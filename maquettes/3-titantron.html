@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DA 3 · Titantron</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#f5b942;--red:#e3262f;--steel:#8b96a5}
+*{box-sizing:border-box;margin:0}
+body{height:100vh;overflow:hidden;color:#fff;font-family:Inter,sans-serif;background:#05060a;display:grid;grid-template-rows:250px 1fr 160px;position:relative}
+/* stage lights */
+body::before{content:"";position:absolute;inset:0;background:
+ conic-gradient(from 160deg at 15% -10%,transparent 0 10deg,rgba(255,220,150,.12) 14deg,transparent 22deg),
+ conic-gradient(from 180deg at 85% -10%,transparent 0 6deg,rgba(255,60,60,.14) 12deg,transparent 20deg),
+ conic-gradient(from 170deg at 50% -20%,transparent 0 8deg,rgba(120,170,255,.1) 12deg,transparent 18deg);pointer-events:none}
+/* titantron */
+.tron{display:grid;grid-template-columns:1fr 560px 1fr;align-items:center;gap:20px;padding:14px 30px}
+.screen{height:220px;border:6px solid #1c1f26;border-radius:6px;background:linear-gradient(135deg,#1a0b0d,#2a0c10 40%,#0b0d14);box-shadow:0 0 60px rgba(227,38,47,.35),inset 0 0 40px #000;display:grid;grid-template-columns:150px 1fr;gap:16px;padding:12px;position:relative;overflow:hidden}
+.screen::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 2px,rgba(0,0,0,.25) 2px 3px);pointer-events:none}
+.screen img{width:100%;height:100%;object-fit:contain;border-radius:6px;min-width:0}
+.screen>div{min-width:0;position:relative;z-index:1}
+.screen h2{font-family:Oswald;font-size:30px;letter-spacing:1px}
+.screen .tag{font-family:Oswald;color:var(--gold);letter-spacing:3px;font-size:13px}
+.screen p{font-size:14px;line-height:1.4;color:#e8d9d9;margin-top:8px}
+.led{font-family:Oswald;text-align:center}
+.led .n{font-size:64px;line-height:1;color:var(--gold);text-shadow:0 0 18px rgba(245,185,66,.6)}
+.led.red .n{color:#ff5a5f;text-shadow:0 0 18px rgba(255,60,60,.6)}
+.led small{letter-spacing:4px;color:var(--steel)}
+.led .who{font-size:22px;letter-spacing:2px}
+/* 3D board */
+.stage{perspective:1100px;display:grid;place-items:center;position:relative}
+.board{width:1040px;transform:rotateX(34deg);transform-origin:50% 60%;background:linear-gradient(#141821,#0c0f15);border:2px solid #2b313d;border-radius:14px;padding:16px 26px;box-shadow:0 40px 80px #000,0 0 0 1px rgba(245,185,66,.2);display:grid;grid-template-rows:1fr 6px 1fr;gap:12px}
+.side{display:grid;grid-template-columns:110px 1fr 230px 110px;gap:14px;align-items:center}
+.mid{background:linear-gradient(90deg,transparent,var(--red),var(--gold),var(--red),transparent);border-radius:3px;box-shadow:0 0 20px var(--red)}
+.slots{display:flex;gap:14px;justify-content:center}
+.card{width:128px;aspect-ratio:496/693;border-radius:7px;overflow:hidden;position:relative;box-shadow:0 8px 16px #000;background:#000}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.card .s{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;padding:3px 7px;background:rgba(0,0,0,.85);font-family:Oswald;font-size:16px}
+.card .s i{font-style:normal;color:var(--gold)}
+.e{width:128px;aspect-ratio:496/693;border-radius:7px;border:2px solid rgba(139,150,165,.3);background:rgba(255,255,255,.02)}
+.pas .card,.pas .e{width:96px}
+.pas{display:flex;gap:10px;justify-content:center;padding:8px;border-radius:8px;background:rgba(139,150,165,.07)}
+.pile{text-align:center;font-family:Oswald;letter-spacing:2px;font-size:12px;color:var(--steel)}
+.pile .stack{width:84px;aspect-ratio:496/693;margin:0 auto 4px;border-radius:6px;background:linear-gradient(135deg,#3a1015,#14070a);border:2px solid #4b1d22;box-shadow:3px 3px 0 #000,6px 6px 0 #20090c}
+.glow{box-shadow:0 0 0 3px var(--gold),0 0 30px var(--gold)}
+/* hand */
+.hand{display:flex;justify-content:center;align-items:flex-end;position:relative}
+.hand .card{width:120px;margin:0 -14px;border:2px solid #000;transform-origin:50% 140%}
+.hand .card:nth-child(2){transform:rotate(-12deg) translateY(26px)}.hand .card:nth-child(3){transform:rotate(-6deg) translateY(8px)}.hand .card:nth-child(4){transform:translateY(-26px) scale(1.14);z-index:3;box-shadow:0 0 0 3px var(--gold),0 0 40px rgba(245,185,66,.6)}.hand .card:nth-child(5){transform:rotate(6deg) translateY(8px)}.hand .card:nth-child(6){transform:rotate(12deg) translateY(26px)}
+.end{position:absolute;right:30px;bottom:44px;font-family:Oswald;font-size:20px;letter-spacing:2px;padding:14px 26px;border-radius:40px;border:2px solid var(--gold);background:linear-gradient(#3a2a0a,#1b1405);color:var(--gold)}
+.hint{position:absolute;left:30px;bottom:40px;color:var(--steel);font-size:14px;max-width:250px}
+</style></head><body>
+<section class="tron">
+ <div class="led red"><div class="who">L’IA</div><div class="n">265</div><small>POINTS DE VIE</small></div>
+ <div class="screen"><img src="/public/cards/momentum-22.png"><div><span class="tag">SUR LE TITANTRON · MOMENTUM</span><h2>VISIONNAIRE STRATÉGIQUE</h2><p>La carte survolée s’affiche en grand sur l’écran géant, avec son texte complet. Glissez-la sur le ring pour la jouer : Seth Rollins arrive avec une entrée pyrotechnique.</p></div></div>
+ <div class="led"><div class="who">VOUS</div><div class="n">410</div><small>POINTS DE VIE</small></div>
+</section>
+
+<section class="stage"><div class="board">
+ <div class="side">
+  <div class="pile"><div class="stack"></div>DECK · 27</div>
+  <div class="slots">
+   <div class="card"><img src="/public/cards/catcheur-26.png"><div class="s"><span>55</span><i>90</i></div></div>
+   <div class="card"><img src="/public/cards/catcheur-13.png"><div class="s"><span>60</span><i>80</i></div></div>
+   <div class="card"><img src="/public/cards/catcheur-19.png"><div class="s"><span>50</span><i>80</i></div></div>
+  </div>
+  <div class="pas"><div class="e"></div><div class="e"></div></div>
+  <div class="pile"><div class="stack" style="background:#222"></div>CIMETIÈRE · 6</div>
+ </div>
+ <div class="mid"></div>
+ <div class="side">
+  <div class="pile"><div class="stack" style="background:linear-gradient(135deg,#2a2105,#100c02);border-color:#5a4512"></div>MANAGER</div>
+  <div class="slots">
+   <div class="card"><img src="/public/cards/catcheur-21.png"><div class="s"><span>50</span><i>80</i></div></div>
+   <div class="card glow"><img src="/public/cards/catcheur-04.png"><div class="s"><span>65</span><i>85</i></div></div>
+   <div class="e"></div>
+  </div>
+  <div class="pas"><div class="card"><img src="/public/cards/catcheur-22.png"></div><div class="e"></div></div>
+  <div class="pile"><div class="stack"></div>DECK · 28</div>
+ </div>
+</div></section>
+
+<footer class="hand">
+ <p class="hint">Plateau incliné en 3D sous les projecteurs, l’écran géant au-dessus montre la carte en cours.</p>
+ <div class="card"><img src="/public/cards/momentum-20.png"></div>
+ <div class="card"><img src="/public/cards/objets-05.png"></div>
+ <div class="card"><img src="/public/cards/momentum-22.png"></div>
+ <div class="card"><img src="/public/cards/catcheur-01.png"></div>
+ <div class="card"><img src="/public/cards/wyatt-13.png"></div>
+ <button class="end">FIN DU TOUR</button>
+</footer>
+</body></html>

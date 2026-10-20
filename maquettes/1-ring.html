@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DA 1 · Le Ring vu du ciel</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#d6202b;--blue:#1f6fe0;--mat:#e9e4dc;--ink:#0b0b0d;--metal:#9aa3ad}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(ellipse at 50% 40%,#2a2d33 0,#0b0b0d 70%);color:#fff;font-family:'Barlow Condensed',sans-serif;height:100vh;overflow:hidden;display:grid;grid-template-columns:1fr 330px;grid-template-rows:64px 1fr 170px}
+/* broadcast top bar */
+.bar{grid-column:1/-1;display:flex;align-items:center;gap:18px;padding:0 22px;background:linear-gradient(#17181c,#0d0e10);border-bottom:2px solid var(--red)}
+.live{background:var(--red);font-family:Anton;padding:4px 10px;letter-spacing:2px}
+.bar h1{font-family:Anton;font-weight:400;font-size:26px;letter-spacing:1px}
+.bar .phase{margin-left:auto;display:flex;gap:4px}
+.phase span{padding:6px 14px;background:#22242a;font-weight:700;letter-spacing:1px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.phase .on{background:var(--red)}
+/* arena */
+.arena{position:relative;display:grid;place-items:center;padding:14px}
+.crowd{position:absolute;inset:0;background:repeating-radial-gradient(circle at 50% 50%,rgba(255,255,255,.03) 0 2px,transparent 2px 9px);opacity:.6}
+.ring{position:relative;width:min(100%,900px);height:100%;background:linear-gradient(#f2eee8,#d9d3ca);border:14px solid #15171b;box-shadow:0 0 0 4px #2b2e35,0 30px 80px #000;display:grid;grid-template-rows:1fr 1fr}
+.ring::before,.ring::after{content:"";position:absolute;inset:-4px;border:3px solid var(--red);pointer-events:none}
+.ring::after{inset:6px;border-color:#fff;opacity:.9}
+.post{position:absolute;width:26px;height:26px;background:var(--metal);border:4px solid #2b2e35;z-index:3}
+.post.tl{left:-24px;top:-24px;background:var(--blue)}.post.tr{right:-24px;top:-24px;background:var(--blue)}.post.bl{left:-24px;bottom:-24px;background:var(--red)}.post.br{right:-24px;bottom:-24px;background:var(--red)}
+.half{position:relative;display:grid;grid-template-columns:120px 1fr 120px;align-items:center;padding:0 10px}
+.half.ai{border-bottom:3px dashed rgba(0,0,0,.18)}
+.logo{position:absolute;inset:0;display:grid;place-items:center;font-family:Anton;font-size:90px;color:rgba(0,0,0,.05);letter-spacing:6px;pointer-events:none}
+.actives{display:flex;justify-content:center;gap:16px}
+.card{width:150px;aspect-ratio:496/693;border-radius:8px;overflow:hidden;position:relative;box-shadow:0 10px 22px rgba(0,0,0,.45);background:#111;transition:transform .15s}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.card:hover{transform:translateY(-6px) scale(1.04);z-index:4}
+.stat{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;padding:4px 7px;background:linear-gradient(transparent,rgba(0,0,0,.92));font-family:Anton;font-size:17px}
+.stat .end{color:#7ee08a}
+.slot{width:150px;aspect-ratio:496/693;border:3px dashed rgba(0,0,0,.2);border-radius:8px;display:grid;place-items:center;color:rgba(0,0,0,.3);font-weight:700}
+.apron{display:flex;flex-direction:column;gap:8px;align-items:center}
+.apron .card,.apron .slot{width:92px}
+.apron small{color:#555;font-weight:700;letter-spacing:1px}
+.target{outline:4px solid var(--red);outline-offset:3px;animation:pulse 1s infinite}
+@keyframes pulse{50%{outline-color:#ffb3b3}}
+.arrow{position:absolute;left:50%;top:41%;width:6px;height:150px;background:linear-gradient(var(--red),#ff8a8a);transform:translateX(-50%) rotate(8deg);z-index:5;border-radius:3px;box-shadow:0 0 18px var(--red)}
+.arrow::before{content:"";position:absolute;top:-16px;left:-9px;border:12px solid transparent;border-bottom:18px solid var(--red)}
+/* side commentary desk */
+.desk{grid-row:2/4;grid-column:2;background:#101114;border-left:2px solid #22242a;display:flex;flex-direction:column}
+.hp{padding:14px 16px;border-bottom:1px solid #22242a}
+.hp .who{display:flex;justify-content:space-between;font-weight:700;letter-spacing:1px}
+.hp .val{font-family:Anton;font-size:44px;line-height:1}
+.hp .bar2{height:10px;background:#2a2c31;margin-top:6px}.hp .bar2 i{display:block;height:100%}
+.inspect{flex:1;padding:14px 16px;overflow:auto}
+.inspect h3{font-family:Anton;font-weight:400;font-size:13px;letter-spacing:3px;color:var(--metal);margin-bottom:8px}
+.inspect img{width:100%;border-radius:8px;box-shadow:0 10px 30px #000}
+.inspect p{margin-top:10px;font-size:16px;line-height:1.3;color:#ddd}
+.inspect b{color:#fff}
+.zones{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px;border-top:1px solid #22242a}
+.zones div{background:#1a1b1f;padding:8px;text-align:center;font-weight:700;letter-spacing:1px;font-size:14px}
+.zones b{display:block;font-family:Anton;font-size:24px}
+/* hand */
+.hand{grid-column:1;position:relative;display:flex;justify-content:center;align-items:flex-end;padding-bottom:0}
+.hand .card{width:118px;margin:0 -10px;transform-origin:50% 120%;border:2px solid #000}
+.hand .card:nth-child(1){transform:rotate(-10deg) translateY(30px)}.hand .card:nth-child(2){transform:rotate(-5deg) translateY(12px)}.hand .card:nth-child(4){transform:rotate(5deg) translateY(12px)}.hand .card:nth-child(5){transform:rotate(10deg) translateY(30px)}
+.hand .card.lift{transform:translateY(-34px) scale(1.12);z-index:5;outline:3px solid #ffd23f}
+.endturn{position:absolute;right:24px;bottom:34px;background:var(--red);border:0;color:#fff;font-family:Anton;font-size:22px;padding:14px 26px;letter-spacing:2px;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%)}
+.tag{position:absolute;left:22px;bottom:30px;color:#888;font-size:15px;max-width:230px}
+</style></head><body>
+<header class="bar"><span class="live">EN DIRECT</span><h1>RING CONTROL · TOUR 5</h1>
+<div class="phase"><span>ACTIONS</span><span class="on">COMBAT</span><span>FIN</span></div></header>
+
+<main class="arena"><div class="crowd"></div>
+<div class="ring"><i class="post tl"></i><i class="post tr"></i><i class="post bl"></i><i class="post br"></i>
+ <section class="half ai"><div class="logo">IA</div>
+  <div class="apron"><small>PASSIF</small><div class="slot"></div><div class="slot"></div></div>
+  <div class="actives">
+   <div class="card"><img src="/public/cards/catcheur-26.png"><div class="stat"><span>55</span><span class="end">90</span></div></div>
+   <div class="card target"><img src="/public/cards/catcheur-13.png"><div class="stat"><span>60</span><span class="end">80</span></div></div>
+   <div class="card"><img src="/public/cards/catcheur-19.png"><div class="stat"><span>50</span><span class="end">80</span></div></div>
+  </div>
+  <div class="apron"><small>MANAGER</small><div class="card"><img src="/public/cards/managers-03.png"></div></div>
+ </section>
+ <div class="arrow"></div>
+ <section class="half me"><div class="logo">VOUS</div>
+  <div class="apron"><small>PASSIF</small><div class="card"><img src="/public/cards/catcheur-22.png"></div><div class="slot"></div></div>
+  <div class="actives">
+   <div class="card"><img src="/public/cards/catcheur-21.png"><div class="stat"><span>50</span><span class="end">80</span></div></div>
+   <div class="card" style="outline:4px solid #ffd23f;outline-offset:3px"><img src="/public/cards/catcheur-04.png"><div class="stat"><span>65</span><span class="end">85</span></div></div>
+   <div class="slot">LIBRE</div>
+  </div>
+  <div class="apron"><small>MANAGER</small><div class="card"><img src="/public/cards/managers-01.png"></div></div>
+ </section>
+</div></main>
+
+<aside class="desk">
+ <div class="hp"><div class="who"><span>L’IA</span><span>🔵</span></div><div class="val">265</div><div class="bar2"><i style="width:53%;background:var(--blue)"></i></div></div>
+ <div class="hp"><div class="who"><span>VOUS</span><span>🔴</span></div><div class="val">410</div><div class="bar2"><i style="width:82%;background:var(--red)"></i></div></div>
+ <div class="inspect"><h3>TABLE DES COMMENTATEURS</h3><img src="/public/cards/catcheur-04.png"><p><b>Seth Rollins attaque Randy Orton.</b> Glissez l’attaquant sur sa cible : la flèche rouge montre l’attaque avant de la confirmer.</p></div>
+ <div class="zones"><div>DECK<b>28</b></div><div>CIMETIÈRE<b>4</b></div></div>
+</aside>
+
+<footer class="hand">
+ <p class="tag">La main en éventail au bord de l’écran, comme posée sur le tablier du ring.</p>
+ <div class="card"><img src="/public/cards/momentum-20.png"></div>
+ <div class="card"><img src="/public/cards/objets-05.png"></div>
+ <div class="card lift"><img src="/public/cards/momentum-22.png"></div>
+ <div class="card"><img src="/public/cards/catcheur-01.png"></div>
+ <div class="card"><img src="/public/cards/wyatt-13.png"></div>
+ <button class="endturn">FIN DU TOUR ›</button>
+</footer>
+</body></html>
