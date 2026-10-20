@@ -47,10 +47,11 @@ body::before{content:"";position:absolute;inset:0;pointer-events:none;background
 .slots{display:flex;gap:18px;justify-content:center}
 .card{width:136px;aspect-ratio:496/693;position:relative;border:3px solid #fff;box-shadow:6px 6px 0 #000;background:#000;border-radius:4px}
 .card img{width:100%;height:100%;object-fit:cover;display:block}
-.card .s{position:absolute;bottom:-13px;left:-8px;right:-8px;display:flex;justify-content:space-between}
-.card .s b{font-family:'Russo One';font-size:19px;padding:0 8px;box-shadow:3px 3px 0 #000;transform:skewX(-10deg)}
-.card .s .at{background:var(--m)}.card .s .en{background:var(--c);color:#000}
-.card.hurt .s .en{background:#ff4d4d;color:#fff}
+.card .s{position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);display:flex;gap:6px;padding:1px 8px;border-radius:20px;background:rgba(7,4,15,.82);border:1px solid rgba(255,255,255,.18);white-space:nowrap}
+.card .s b{font-family:Teko;font-weight:600;font-size:14px;line-height:1.2;letter-spacing:.5px}
+.card .s .at{color:#ff8fbf}.card .s .en{color:#8ff1ff}
+.card .s .at::after{content:" ATT";font-size:10px;opacity:.7}.card .s .en::after{content:" END";font-size:10px;opacity:.7}
+.card.hurt .s{border-color:#ff4d4d}.card.hurt .s .en{color:#ff6b6b}
 .card.sel{border-color:var(--y);box-shadow:0 0 0 3px var(--m),0 0 34px var(--y),6px 6px 0 #000}
 .e{width:136px;aspect-ratio:496/693;border:3px dashed rgba(255,255,255,.22);border-radius:4px;display:grid;place-items:center;font-family:'Russo One';font-size:12px;color:rgba(255,255,255,.3);letter-spacing:2px}
 .pas{display:flex;gap:10px;justify-content:center;padding:8px;border:2px solid rgba(255,255,255,.08);border-radius:8px}
