@@ -153,19 +153,28 @@ export function normalSummon(state, playerIndex, card, sacrificeIds = [], positi
   const capacity = position === ZONES.ACTIVE ? player.active.length < 3 : player.passive.length < 2 && player.active.length > 0;
   if (!capacity || getCards(player).length >= 5) return { ok: false, reason: 'Aucune place légale dans cette zone.' };
   const sacrifices = sacrificeIds.map(id => getCards(player).find(x => x.instanceId === id)).filter(Boolean);
-  const validation = validateNormalSummon(card, sacrifices.map(x => ({ category: 'Catcheur', rarity: getCardRarity(x.cardId) })));
-  if (!validation.valid) return { ok: false, reason: validation.reason };
+  // Mr. McMahon : une invocation SSR sans sacrifice, une fois par partie.
+  const free = card.rarity === 'SSR' && player.status.freeSsrSummon && sacrifices.length === 0;
+  if (!free) {
+    const validation = validateNormalSummon(card, sacrifices.map(x => ({ category: 'Catcheur', rarity: getCardRarity(x.cardId) })));
+    if (!validation.valid) return { ok: false, reason: validation.reason };
+  }
+  if (sacrifices.length && card.rarity === 'SSR' && player.status.noSsrSacrificeThroughTurn >= state.turnNumber) {
+    return { ok: false, reason: 'Domination Totale : impossible de sacrifier pour invoquer une SSR ce tour-ci.' };
+  }
   for (const sacrifice of sacrifices) moveToGrave(state, playerIndex, sacrifice.instanceId, 'sacrifice');
   removeFromHand(player, card.id);
   const fighter = slotFor(card, position);
   player[position].push(fighter);
   player.limits.normal = true;
-  addHistory(state, `${player.name} invoque normalement ${card.displayName}${sacrifices.length ? ` en sacrifiant ${sacrifices.length} catcheur${sacrifices.length === 1 ? '' : 's'}` : ''}.`);
+  if (free) player.status.freeSsrSummon = false;
+  addHistory(state, `${player.name} invoque normalement ${card.displayName}${sacrifices.length ? ` en sacrifiant ${sacrifices.length} catcheur${sacrifices.length === 1 ? '' : 's'}` : free ? ' sans sacrifice grâce à Mr. McMahon' : ''}.`);
   return { ok: true, fighter };
 }
 
 let rarityLookup = () => null;
 export function configureCardLookup(lookup) { rarityLookup = lookup; }
+export function lookupCard(cardId) { return rarityLookup(cardId); }
 function getCardRarity(cardId) { return rarityLookup(cardId)?.rarity ?? null; }
 
 export function specialSummon(state, playerIndex, card, source, position = ZONES.ACTIVE) {

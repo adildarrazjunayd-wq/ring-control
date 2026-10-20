@@ -9,10 +9,20 @@
     "source": "model catcheur carte.pdf",
     "page": 1,
     "image": "public/cards/catcheur-01.png",
-    "textSnippet": "a t ta t t 7 07 0 a t t 7 0 e n de n d 1 0 51 0 5 e n d 1 0 5 S S RS S RS S R - R O M A N R E I G N SR O M A N R E I G N S R O M A N R E I G N S T H E T R I B A L C H I E FT H E T R I B A L C H I E F T H E T R I B A L C H I E F E f f e t p a s s if :Effet passif : D o m in a t io n a b s o l u e : T o u s l e s m e m b r e s d e T h e B l o o d l in e g a g n e n t + 5 A T T .Domination absolue : Tous les membres de The Bloodline gagnent + 5 ATT. E f f e t p a s s if : D o m in a t io n a b s o l u e : T o u s l e s m e m b r e s d e T h e B l o o d l in e g a g n e n t + 5 A T T . E f f e t s p é c i a l :E f f e t s p é c ia l : G u i l l o t i n e H o l d : E m p ê c h e u n a d v e r s a i r e d ’a t t a q u e r a u p r o c h a i n t o u r .G u il l o t in e H o l d : E m p ê c h e u n a d v e r s a ir e d ’a t t a q u e r a u p r o c h a in t o u r . E f f e t s p é c i a l : G u i l l o t i n e H o l d : E m p ê c h e u n a d v e r s a i r e d ’a t t a q u e r a u p r o c h a i n t o u r . B L O O D L I N EB L O O D L I N EB L O O D L I N E",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Bloodline",
+    "nickname": "The Tribal Chief",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Domination absolue : Tous les membres de The Bloodline gagnent +5 ATT."
+      },
+      {
+        "kind": "spécial",
+        "text": "Guillotine Hold : Empêche un adversaire d’attaquer au prochain tour."
+      }
+    ]
   },
   {
     "id": "catcheur-02",
@@ -24,10 +34,20 @@
     "source": "model catcheur carte.pdf",
     "page": 2,
     "image": "public/cards/catcheur-02.png",
-    "textSnippet": "a t ta t t 6 06 0 a t t 6 0 e n de n d 9 09 0 e n d 9 0 T H E R O C KT H E R O C KT H E R O C K S S RS S RS S R b l o o d l i n eb l o o d l i n eb l o o d l i n e T H E F I N A L B O S ST H E F I N A L B O S ST H E F I N A L B O S S E f f e t p a s s i f :Effet passif : C h a r i s m e l é g e n d a i r e : P i o c h e z u n e c a r t e s u p p l é m e n t a i r eCharisme légendaire : Piochez une carte supplémentaire c h a q u e f o i s q u ’i l a t t a q u e .chaque fois qu’il attaque. E f f e t p a s s i f : C h a r i s m e l é g e n d a i r e : P i o c h e z u n e c a r t e s u p p l é m e n t a i r e c h a q u e f o i s q u ’i l a t t a q u e . E f f e t s p é c i a l :Effet spécial : R o c k B o t t o m : I n f l i g e + 1 0 d é g â t s à u n a d v e r s a i r eRock Bottom : Inflige + 10 dégâts à un adversaire a y a n t m o i n s d e 7 0 E N D .ayant moins de 7 0 END. E f f e t s p é c i a l : R o c k B o t t o m : I n f l i g e + 1 0 d é g â t s à u n a d v e r s a i r e a y a n t m o i n s d e 7 0 E N D .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Bloodline",
+    "nickname": "The Final Boss",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Charisme légendaire : Piochez une carte supplémentaire chaque fois qu’il attaque."
+      },
+      {
+        "kind": "spécial",
+        "text": "Rock Bottom : Inflige +10 dégâts à un adversaire ayant moins de 70 END."
+      }
+    ]
   },
   {
     "id": "catcheur-03",
@@ -39,10 +59,20 @@
     "source": "model catcheur carte.pdf",
     "page": 3,
     "image": "public/cards/catcheur-03.png",
-    "textSnippet": "a t ta t t 6 56 5 a t t 6 5 E N DE N D 1 0 51 0 5 E N D 1 0 5 B R O C K L E S N A RB R O C K L E S N A R B R O C K L E S N A R S S RS S RS S R T H E B E A S TT H E B E A S TT H E B E A S T E f f e t p a s s i f : L a b ê t e i n c a r n é e : I g n o r e t o u s l e s e f f e t s r é d u i s a n t s e s d é g â t s . E f f e t s p é c i a l : F - 5 : I n f l i g e 2 0 d é g â t s s u p p l é m e n t a i r e s s i B r o c k a t t a q u e a p r è s a v o i r s u b i u n e a t t a q u e .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": "The Beast",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "La Bête incarnée : Ignore tous les effets réduisant ses dégâts."
+      },
+      {
+        "kind": "spécial",
+        "text": "F-5 : Inflige 20 dégâts supplémentaires si Brock attaque après avoir subi une attaque."
+      }
+    ]
   },
   {
     "id": "catcheur-04",
@@ -54,10 +84,20 @@
     "source": "model catcheur carte.pdf",
     "page": 4,
     "image": "public/cards/catcheur-04.png",
-    "textSnippet": "a t ta t t 6 56 5 a t t 6 5 e n de n d 8 58 5 e n d 8 5 S E T H R O L L I N SS E T H R O L L I N SS E T H R O L L I N S S S RS S RS S R T H E R E V E L U T I O N A R YT H E R E V E L U T I O N A R YT H E R E V E L U T I O N A R Y E f f e t p a s s i f :Effet passif : O p p o r t u n i s t e s u p r ê m e – G a g n é + 5 A T T e t + 5 E N D s 'i l a t t a q u e a p r è s u n eOpportuniste suprême – Gagné + 5 ATT et + 5 END s'il attaque après une c a r t e M o m e n t u m .carte Momentum. E f f e t p a s s i f : O p p o r t u n i s t e s u p r ê m e – G a g n é + 5 A T T e t + 5 E N D s 'i l a t t a q u e a p r è s u n e c a r t e M o m e n t u m . E f f e t s p é c i a l :Effet spécial : C u r b S t o m p : A n n u l e l e s e f f e t s p a s s i f s d u c a t c h e u rCurb Stomp : Annule les effets passifs du catcheur a d v e r s e p e n d a n t 1 t o u r .adverse pendant 1 tour. E f f e t s p é c i a l : C u r b S t o m p : A n n u l e l e s e f f e t s p a s s i f s d u c a t c h e u r a d v e r s e p e n d a n t 1 t o u r .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": "The Revolutionary",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Opportuniste suprême : Gagne +5 ATT et +5 END s’il attaque après une carte Momentum."
+      },
+      {
+        "kind": "spécial",
+        "text": "Curb Stomp : Annule les effets passifs du catcheur adverse pendant 1 tour."
+      }
+    ]
   },
   {
     "id": "catcheur-05",
@@ -69,10 +109,20 @@
     "source": "model catcheur carte.pdf",
     "page": 5,
     "image": "public/cards/catcheur-05.png",
-    "textSnippet": "a t ta t t 5 05 0 a t t 5 0 e n de n d 7 57 5 e n d 7 5 d e a n a m b r o s ed e a n a m b r o s ed e a n a m b r o s e S RS RS R T H E S H I E L DT H E S H I E L DT H E S H I E L D E f f e t p a s s i f :Effet passif : I n s a i s i s s a b l e : I n f l i g e + 1 5 d é g â t s s ’i l a t t a q u e a p r è s a v o i r s u b i t d e sInsaisissable : Inflige + 15 dégâts s’il attaque après avoir subit des d é g â t s .dégâts. E f f e t p a s s i f : I n s a i s i s s a b l e : I n f l i g e + 1 5 d é g â t s s ’i l a t t a q u e a p r è s a v o i r s u b i t d e s d é g â t s . E f f e t s p é c i a l :Effet spécial : S h i e l d B o m b Shield Bomb S i d e u x a u t r e s m e m b r e s d u S h i e l d s o n tSi deux autres membres du Shield sont a c t i f s , i n f l i g e + 1 5 d é g â t s e t a n n u l e l e s e f f e t s d e sactifs, inflige + 15 dégâts et annule les effets des c a r t e s M o m e n t u m a d v e r s e s .cartes Momentum adverses. E f f e t s p é c i a l : S h i e l d B o m b S i d e u x a u t r e s m e m b r e s d u S h i e l d s o n t a c t i f s , i n f l i g e + 1 5 d é g â t s e t a n n u l e l e s e f f e t s d e s c a r t e s M o m e n t u m a d v e r s e ",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Shield",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Insaisissable : Inflige +15 dégâts s’il attaque après avoir subit des dégâts."
+      },
+      {
+        "kind": "spécial",
+        "text": "Shield Bomb : Si deux autres membres du Shield sont actifs, inflige +15 dégâts et annule les effets des cartes Momentum adverses."
+      }
+    ]
   },
   {
     "id": "catcheur-06",
@@ -84,10 +134,20 @@
     "source": "model catcheur carte.pdf",
     "page": 6,
     "image": "public/cards/catcheur-06.png",
-    "textSnippet": "a t ta t t 5 05 0 a t t 5 0 e n de n d 7 57 5 e n d 7 5 S E T H R O L L I N SS E T H R O L L I N SS E T H R O L L I N S S RS RS R T H E S H I E L DT H E S H I E L DT H E S H I E L D E f f e t p a s s i f :Effet passif : F r a p p e s y n c h r o n i s é eFrappe synchronisée S i u n a u t r e m e m b r e d u S h i e l d a t t a q u e c e t o u r - c i , S e t h R o l l i n s g a g n eSi un autre membre du Shield attaque ce tour- ci, Seth Rollins gagne + 5 A T T e t p e u t a t t a q u e r à n o u v e a u .+ 5 ATT et peut attaquer à nouveau. E f f e t p a s s i f : F r a p p e s y n c h r o n i s é e S i u n a u t r e m e m b r e d u S h i e l d a t t a q u e c e t o u r - c i , S e t h R o l l i n s g a g n e + 5 A T T e t p e u t a t t a q u e r à n o u v e a u . E f f e t s p é c i a l :Effet spécial : L e a p Leap o f F a i t h of Faith A t t a q u e t o u s l e s c a t c h e u r s a d v e r s e sAttaque tous les catcheurs adverses s u r l e r i n g e n i n f l i g e a n t + 1 0 d é g â t s à c h a c u nsur le ring en infligeant+ 10 dégâts à chacun E f f e t s p é c i a l : L e a p o f F a i t h A t t a q u e t o u s l e s c a t c h e u r s a d v e r s e s s u r l e r i n g e n i",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Shield",
+    "nickname": "The Architect",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Frappe synchronisée : Si un autre membre du Shield attaque ce tour-ci, Seth Rollins gagne +5 ATT et peut attaquer à nouveau."
+      },
+      {
+        "kind": "spécial",
+        "text": "Leap of Faith : Attaque tous les catcheurs adverses sur le ring en infligeant +10 dégâts à chacun."
+      }
+    ]
   },
   {
     "id": "catcheur-07",
@@ -99,10 +159,20 @@
     "source": "model catcheur carte.pdf",
     "page": 7,
     "image": "public/cards/catcheur-07.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 8 08 0 e n d 8 0 S RS RS R E f f e t s p é c i a l :Effet spécial : D i r t y D e e d s : R é d u i t d e m o i t i é l e s E N D d ’u n a d v e r s a i r eDirty Deeds : Réduit de moitié les END d’un adversaire a y a n t p l u s d e 6 0 E N D .ayant plus de 6 0 END. E f f e t s p é c i a l : D i r t y D e e d s : R é d u i t d e m o i t i é l e s E N D d ’u n a d v e r s a i r e a y a n t p l u s d e 6 0 E N D . E f f e t p a s s i f :Effet passif : R é s i l i e n c e f o l l e R e g a g n e + 1 0 E N D a p r è s a v o i r s u b i u n e a t t a q u eRésilience folle Regagne + 10 END après avoir subi une attaque E f f e t p a s s i f : R é s i l i e n c e f o l l e R e g a g n e + 1 0 E N D a p r è s a v o i r s u b i u n e a t t a q u e D E A N A M B R O S ED E A N A M B R O S ED E A N A M B R O S E U N S T A B L EU N S T A B L EU N S T A B L E",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": "Unstable",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Résilience folle : Regagne +10 END après avoir subi une attaque."
+      },
+      {
+        "kind": "spécial",
+        "text": "Dirty Deeds : Réduit de moitié les END d’un adversaire ayant plus de 60 END."
+      }
+    ]
   },
   {
     "id": "catcheur-08",
@@ -114,10 +184,20 @@
     "source": "model catcheur carte.pdf",
     "page": 8,
     "image": "public/cards/catcheur-08.png",
-    "textSnippet": "a t ta t t 5 05 0 a t t 5 0 e n de n d 88 00 e n d 8 0 R O M A N R E I N G SR O M A N R E I N G SR O M A N R E I N G S S RS RS R T H E S H I E L DT H E S H I E L DT H E S H I E L D E f f e t p a s s i f :Effet passif : F o r c e b r u t e R o m a n R e i g n s i n f l i g e + 5 d é g â t s s u p p l é m e n t a i r e s l o r s q u ’i lForce brute Roman Reigns inflige + 5 dégâts supplémentaires lorsqu’il a t t a q u e l e p r e m i e r c e t o u r - c i .attaque le premier ce tour- ci. E f f e t p a s s i f : F o r c e b r u t e R o m a n R e i g n s i n f l i g e + 5 d é g â t s s u p p l é m e n t a i r e s l o r s q u ’i l a t t a q u e l e p r e m i e r c e t o u r - c i . E f f e t s p é c i a l :Effet spécial : T r i p l e P o w e r b o m b S i d e u x a u t r e s m e m b r e s d u S h i e l dTriple Powerbomb Si deux autres membres du Shield s o n t a c t i f s , i n f l i g e + 2 5 d é g â t s s u p p l é m e n t a i r e s à u nsont actifs, inflige + 2 5 dégâts supplémentaires à un a d v e r s a i r e e t r é d u i t d e m o i t i é l ’E N D d ’u n a u t r eadversaire et réduit de moitié l’END d’un autre a d v e r s a i r e a c t i f .adversaire actif. E f f e t s p é c i a l",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Shield",
+    "nickname": "The Big Dog",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Force brute : Roman Reigns inflige +5 dégâts supplémentaires lorsqu’il attaque le premier ce tour-ci."
+      },
+      {
+        "kind": "spécial",
+        "text": "Triple Powerbomb : Si deux autres membres du Shield sont actifs, inflige +25 dégâts supplémentaires à un adversaire et réduit de moitié l’END d’un autre adversaire actif."
+      }
+    ]
   },
   {
     "id": "catcheur-09",
@@ -129,10 +209,20 @@
     "source": "model catcheur carte.pdf",
     "page": 9,
     "image": "public/cards/catcheur-09.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 7 07 0 e n d 7 0 K E V I N O W E N SK E V I N O W E N S K E V I N O W E N S S RS RS R - - - - - - - - - - E f f e t p a s s i f :Effet passif : R é s i l i e n c e d u c o m b a t t a n t : R e g a g n e + 1 0 E N D à c h a q u e f o i s q u ’i l a t t a q u e .Résilience du combattant : Regagne + 10 END à chaque fois qu’il attaque. E f f e t p a s s i f : R é s i l i e n c e d u c o m b a t t a n t : R e g a g n e + 1 0 E N D à c h a q u e f o i s q u ’i l a t t a q u e . E f f e t s p é c i a l :Effet spécial : K O S t u n n e r : I n f l i g e + 2 0 d é g â t s s i K e v i n O w e n s e s t l eKO Stunner : Inflige + 2 0 dégâts si Kevin Owens est le d e r n i e r l u t t e u r a c t i f .dernier lutteur actif. E f f e t s p é c i a l : K O S t u n n e r : I n f l i g e + 2 0 d é g â t s s i K e v i n O w e n s e s t l e d e r n i e r l u t t e u r a c t i f .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Résilience du combattant : Regagne +10 END à chaque fois qu’il attaque."
+      },
+      {
+        "kind": "spécial",
+        "text": "KO Stunner : Inflige +20 dégâts si Kevin Owens est le dernier lutteur actif."
+      }
+    ]
   },
   {
     "id": "catcheur-10",
@@ -144,10 +234,20 @@
     "source": "model catcheur carte.pdf",
     "page": 10,
     "image": "public/cards/catcheur-10.png",
-    "textSnippet": "a t ta t t 6 06 0 a t t 6 0 e n de n d 88 00 e n d 8 0 S S RS S RS S R - - - - - - - - - - D R E W M C I N T Y R ED R E W M C I N T Y R ED R E W M C I N T Y R E t h e s c o t t i s h w a r r i o rt h e s c o t t i s h w a r r i o rt h e s c o t t i s h w a r r i o r E f f e t p a s s i f :Effet passif : G u e r r i e r i m p i t o y a b l e : I n f l i g e + 5 d é g â t s à c h a q u e a t t a q u e s ’i l a p l u sGuerrier impitoyable : Inflige + 5 dégâts à chaque attaque s’il a plus d e 3 0 E N Dde 3 0 END E f f e t p a s s i f : G u e r r i e r i m p i t o y a b l e : I n f l i g e + 5 d é g â t s à c h a q u e a t t a q u e s ’i l a p l u s d e 3 0 E N D E f f e t s p é c i a l :Effet spécial : C l a y m o r e K i c k : A n n u l e u n e a t t a q u e a d v e r s e a p r è sClaymore Kick : A nnule une attaque adverse après l ’a c t i v a t i o n e t i n f l i g e + 5 d é g â t s a l 'a d v e r s a i r el’activation et inflige + 5 dégâts a l'adversaire E f f e t s p é c i a l : C l a y m o r e K i c k : A n n u l e u n e a t t a q u e a d v e r s e a p r è s l ’a c t i v a t i o n e t i n f l i g e + 5 d é g â t s a l 'a d v e r s a i r e",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": "The Scottish Warrior",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Guerrier impitoyable : Inflige +5 dégâts à chaque attaque s’il a plus de 30 END."
+      },
+      {
+        "kind": "spécial",
+        "text": "Claymore Kick : Annule une attaque adverse après l’activation et inflige +5 dégâts à l’adversaire."
+      }
+    ]
   },
   {
     "id": "catcheur-11",
@@ -159,10 +259,16 @@
     "source": "model catcheur carte.pdf",
     "page": 11,
     "image": "public/cards/catcheur-11.png",
-    "textSnippet": "RRR a t ta t t 4 54 5 a t t 4 5 e n de n d 66 55 e n d 6 5 B O B B Y L A S H L E YB O B B Y L A S H L E YB O B B Y L A S H L E Y - - - - - - - - - - T H E A L L M I G H T YT H E A L L M I G H T YT H E A L L M I G H T Y E f f e t p a s s i f :Effet passif : D o m i n a t i o n p h y s i q u e : I n f l i g e + 5 d é g â t s à t o u t a d v e r s a i r e a y a n tDomination physique : Inflige + 5 dégâts à tout adversaire ayant m o i n s d e 7 5 E N D .moins de 7 5 END. E f f e t p a s s i f : D o m i n a t i o n p h y s i q u e : I n f l i g e + 5 d é g â t s à t o u t a d v e r s a i r e a y a n t m o i n s d e 7 5 E N D .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": "The All Mighty",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Domination physique : Inflige +5 dégâts à tout adversaire ayant moins de 75 END."
+      }
+    ]
   },
   {
     "id": "catcheur-12",
@@ -174,10 +280,20 @@
     "source": "model catcheur carte.pdf",
     "page": 12,
     "image": "public/cards/catcheur-12.png",
-    "textSnippet": "a t ta t t 66 00 a t t 6 0 e n de n d 8 58 5 e n d 8 5 G U N T H E RG U N T H E RG U N T H E R S S RS S RS S R T H E R I N G G E N E R A LT H E R I N G G E N E R A LT H E R I N G G E N E R A L I M P E R I U MI M P E R I U MI M P E R I U M E f f e t p a s s i f :Effet passif : M u r i n v i n c i b l e : R é d u i t d e 1 0 l e s d é g â t s r e ç u s .Mur invincible : Réduit de 10 les dégâts reçus. E f f e t p a s s i f : M u r i n v i n c i b l e : R é d u i t d e 1 0 l e s d é g â t s r e ç u s . E f f e t s p é c i a l :Effet spécial : P o w e r b o m b S y m p h o n y : I n f l i g e + 1 5 d é g â t s s i G u n t h e r a t t a q u ePowerbomb Symphony : Inflige + 15 dégâts si Gunther attaque a p r è s a v o i r r e ç u u n e a t t a q u e .après avoir reçu une attaque. E f f e t s p é c i a l : P o w e r b o m b S y m p h o n y : I n f l i g e + 1 5 d é g â t s s i G u n t h e r a t t a q u e a p r è s a v o i r r e ç u u n e a t t a q u e .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "Imperium",
+    "nickname": "The Ring General",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Mur invincible : Réduit de 10 les dégâts reçus."
+      },
+      {
+        "kind": "spécial",
+        "text": "Powerbomb Symphony : Inflige +15 dégâts si Gunther attaque après avoir reçu une attaque."
+      }
+    ]
   },
   {
     "id": "catcheur-13",
@@ -189,10 +305,20 @@
     "source": "model catcheur carte.pdf",
     "page": 13,
     "image": "public/cards/catcheur-13.png",
-    "textSnippet": "a t ta t t 6 06 0 a t t 6 0 e n de n d 88 00 e n d 8 0 R A N D Y O R T O NR A N D Y O R T O NR A N D Y O R T O N S S RS S RS S R - - - - - - - - - - T H E V I P E RT H E V I P E RT H E V I P E R E f f e t p a s s i f :Effet passif : P r é d a t e u r A p e x : A n n u l e r t o u s l e s e f f e t s a d v e r s e s p e n d a n t c e t o u r .Prédateur Apex : Annuler tous les effets adverses pendant ce tour. E f f e t p a s s i f : P r é d a t e u r A p e x : A n n u l e r t o u s l e s e f f e t s a d v e r s e s p e n d a n t c e t o u r . E f f e t s p é c i a l :Effet spécial : R K O : A n n u l e l ’a t t a q u e d ’u n a d v e r s a i r e e t i n f l i g e + 1 0RKO : Annule l’attaque d’un adversaire et inflige + 10 d é g â t s .dégâts. E f f e t s p é c i a l : R K O : A n n u l e l ’a t t a q u e d ’u n a d v e r s a i r e e t i n f l i g e + 1 0 d é g â t s .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": "The Viper",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Prédateur Apex : Annule tous les effets adverses pendant ce tour."
+      },
+      {
+        "kind": "spécial",
+        "text": "RKO : Annule l’attaque d’un adversaire et inflige +10 dégâts."
+      }
+    ]
   },
   {
     "id": "catcheur-14",
@@ -204,10 +330,20 @@
     "source": "model catcheur carte.pdf",
     "page": 14,
     "image": "public/cards/catcheur-14.png",
-    "textSnippet": "a t ta t t 5 05 0 a t t 5 0 e n de n d 77 00 e n d 7 0 A J S T Y L E SA J S T Y L E SA J S T Y L E S S RS RS R - - - - - - - - - - T H E P H E N O M E N A LT H E P H E N O M E N A LT H E P H E N O M E N A L E f f e t p a s s i f :Effet passif : P h é n o m è n e a é r i e n : I n f l i g e + 5 d é g â t s s u p p l é m e n t a i r e sPhénomène aérien : Inflige + 5 dégâts supplémentaires l o r s q u ’i l a t t a q u e u n a d v e r s a i r e a y a n t m o i n s d e 8 0 E N Dlorsqu’il attaque un adversaire ayant moins de 80 END E f f e t p a s s i f : P h é n o m è n e a é r i e n : I n f l i g e + 5 d é g â t s s u p p l é m e n t a i r e s l o r s q u ’i l a t t a q u e u n a d v e r s a i r e a y a n t m o i n s d e 8 0 E N D E f f e t s p é c i a l :Effet spécial : S t y l e s C l a s h : I n f l i g e + 1 5 d é g â t s s i A J S t y l e s a t t a q u eStyles Clash : Inflige + 15 dégâts si AJ Styles attaque a p r è s u n e c a r t e M o m e n t u maprès une carte Momentum E f f e t s p é c i a l : S t y l e s C l a s h : I n f l i g e + 1 5 d é g â t s s i A J S t y l e s a t t a q u e a p r è s u n e c a r t e M o m e n t u m",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": "The Phenomenal",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Phénomène aérien : Inflige +5 dégâts supplémentaires lorsqu’il attaque un adversaire ayant moins de 80 END."
+      },
+      {
+        "kind": "spécial",
+        "text": "Styles Clash : Inflige +15 dégâts si AJ Styles attaque après une carte Momentum."
+      }
+    ]
   },
   {
     "id": "catcheur-15",
@@ -219,10 +355,20 @@
     "source": "model catcheur carte.pdf",
     "page": 15,
     "image": "public/cards/catcheur-15.png",
-    "textSnippet": "a t ta t t 44 00 a t t 4 0 e n de n d 7 57 5 e n d 7 5 F I N N B A L O RF I N N B A L O RF I N N B A L O R S RS RS R T H E J U D G M E N T D A YT H E J U D G M E N T D A YT H E J U D G M E N T D A Y E f f e t p a s s i f :Effet passif : P r i n c e d u r i n g : G a g n e + 1 0 A T T c o n t r e l e s c a t c h e u r s a v e c p l u s d e 8 5 E N D .Prince du ring : Gagne + 10 ATT contre les catcheurs avec plus de 85 END. E f f e t p a s s i f : P r i n c e d u r i n g : G a g n e + 1 0 A T T c o n t r e l e s c a t c h e u r s a v e c p l u s d e 8 5 E N D . E f f e t s p é c i a l :Effet spécial : C o u p d e G r â c e : D o u b l e l e s d é g â t s i n f l i g é s à u nCoup de Grâce : Double les dégâts infligés à un a d v e r s a i r e a y a n t m o i n s d e 8 0 E N D m a i s n e p e u t ê t r eadversaire ayant moins de 80 END mais ne peut être u t i l i s é q u 'u n e f o i s p a r t o u r .utilisé qu'une fois par tour. E f f e t s p é c i a l : C o u p d e G r â c e : D o u b l e l e s d é g â t s i n f l i g é s à u n a d v e r s a i r e a y a n t m o i n s d e 8 0 E N D m a i s n e p e u t ê t r e u t i l i s é q u 'u n e f o i s p a r t o u r .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Judgment Day",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Prince du ring : Gagne +10 ATT contre les catcheurs avec plus de 85 END."
+      },
+      {
+        "kind": "spécial",
+        "text": "Coup de Grâce : Double les dégâts infligés à un adversaire ayant moins de 80 END, mais ne peut être utilisé qu’une fois par tour."
+      }
+    ]
   },
   {
     "id": "catcheur-16",
@@ -234,10 +380,20 @@
     "source": "model catcheur carte.pdf",
     "page": 16,
     "image": "public/cards/catcheur-16.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 7 57 5 e n d 7 5 D A M I E N P R I E S TD A M I E N P R I E S TD A M I E N P R I E S T S S RS S RS S R T H E J U G M E N T D A YT H E J U G M E N T D A YT H E J U G M E N T D A Y E f f e t p a s s i f :Effet passif : É q u i l i b r e d u j u g e m e n t : S o i g n e 5 E N D p o u r c h a q u e a t t a q u eÉquilibre du jugement : Soigne 5 END pour chaque attaque r é u s s i e c o n t r e u n a d v e r s a i r eréussie contre un adversaire E f f e t p a s s i f : É q u i l i b r e d u j u g e m e n t : S o i g n e 5 E N D p o u r c h a q u e a t t a q u e r é u s s i e c o n t r e u n a d v e r s a i r e E f f e t s p é c i a l :Effet spécial : S o u t h o f H e a v e n : R é d u i t d e m o i t i é l e s d é g â t s i n f l i g é sSouth of Heaven : Réduit de moitié les dégâts infligés p a r u n a d v e r s a i r e a c t i f p e n d a n t l e p r o c h a i n t o u r .par un adversaire actif pendant le prochain tour. E f f e t s p é c i a l : S o u t h o f H e a v e n : R é d u i t d e m o i t i é l e s d é g â t s i n f l i g é s p a r u n a d v e r s a i r e a c t i f p e n d a n t l e p r o c h a i n t o u r .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Judgment Day",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Équilibre du jugement : Soigne 5 END pour chaque attaque réussie contre un adversaire."
+      },
+      {
+        "kind": "spécial",
+        "text": "South of Heaven : Réduit de moitié les dégâts infligés par un adversaire actif pendant le prochain tour."
+      }
+    ]
   },
   {
     "id": "catcheur-17",
@@ -249,10 +405,16 @@
     "source": "model catcheur carte.pdf",
     "page": 17,
     "image": "public/cards/catcheur-17.png",
-    "textSnippet": "a t ta t t 5 05 0 a t t 5 0 e n de n d 6 56 5 e n d 6 5 s h i n s u k e n a k a m u r as h i n s u k e n a k a m u r as h i n s u k e n a k a m u r a R E f f e t s p é c i a l :E f f e t s p é c ia l : K i n s h a s a : A n n u l e l e s e f f e t s d é f e n s i f s a d v e r s e s e t i n f l i g e + 1 5 d é g â t sK in s h a s a : A n n u l e l e s e f f e t s d é f e n s if s a d v e r s e s e t in f l ig e + 15 d é g â t s s u p p l é m e n t a i r e s .s u p p l é m e n t a ir e s . E f f e t s p é c i a l : K i n s h a s a : A n n u l e l e s e f f e t s d é f e n s i f s a d v e r s e s e t i n f l i g e + 1 5 d é g â t s s u p p l é m e n t a i r e s .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "spécial",
+        "text": "Kinshasa : Annule les effets défensifs adverses et inflige +15 dégâts supplémentaires."
+      }
+    ]
   },
   {
     "id": "catcheur-18",
@@ -264,10 +426,16 @@
     "source": "model catcheur carte.pdf",
     "page": 18,
     "image": "public/cards/catcheur-18.png",
-    "textSnippet": "a t ta t t 44 55 a t t 4 5 e n de n d 7 07 0 e n d 7 0 S H E A M U SS H E A M U SS H E A M U S R T H E C E L T I C S W A R R I O RT H E C E L T I C S W A R R I O RT H E C E L T I C S W A R R I O R E f f e t p a s s i f :Effet passif : E n d u r a n c e c e l t i q u e : R e g a g n e + 5 E N D c h a q u e f o i s q u ’i l s u b i t u n e a t t a q u e .Endurance celtique : Regagne + 5 END chaque fois qu’il subit une attaque. E f f e t p a s s i f : E n d u r a n c e c e l t i q u e : R e g a g n e + 5 E N D c h a q u e f o i s q u ’i l s u b i t u n e a t t a q u e .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": "The Celtic Warrior",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Endurance celtique : Regagne +5 END chaque fois qu’il subit une attaque."
+      }
+    ]
   },
   {
     "id": "catcheur-19",
@@ -279,10 +447,20 @@
     "source": "model catcheur carte.pdf",
     "page": 19,
     "image": "public/cards/catcheur-19.png",
-    "textSnippet": "a t ta t t 5 05 0 a t t 5 0 e n de n d 8 08 0 e n d 8 0 B R A U N S T R O W M A NB R A U N S T R O W M A NB R A U N S T R O W M A N R E f f e t p a s s i f :Effet passif : M o n s t r e p a r m i l e s h o m m e s : R é d u i t d e 5 l e s d é g â t s r e ç u s à c h a q u e t o u r .Monstre parmi les hommes : Réduit de 5 les dégâts reçus à chaque tour. E f f e t p a s s i f : M o n s t r e p a r m i l e s h o m m e s : R é d u i t d e 5 l e s d é g â t s r e ç u s à c h a q u e t o u r . E f f e t s p é c i a l :Effet spécial : R u n n i n g P o w e r s l a m : I n f l i g e + 2 0 d é g â t s s i B r a u n a t t a q u e u nRunning Powerslam : Inflige + 2 0 dégâts si Braun attaque un a d v e r s a i r e a y a n t p l u s d e 8 0 E N D .adversaire ayant plus de 8 0 END. E f f e t s p é c i a l : R u n n i n g P o w e r s l a m : I n f l i g e + 2 0 d é g â t s s i B r a u n a t t a q u e u n a d v e r s a i r e a y a n t p l u s d e 8 0 E N D .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Monstre parmi les hommes : Réduit de 5 les dégâts reçus à chaque tour."
+      },
+      {
+        "kind": "spécial",
+        "text": "Running Powerslam : Inflige +20 dégâts si Braun attaque un adversaire ayant plus de 80 END."
+      }
+    ]
   },
   {
     "id": "catcheur-20",
@@ -294,10 +472,20 @@
     "source": "model catcheur carte.pdf",
     "page": 20,
     "image": "public/cards/catcheur-20.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 8 58 5 e n d 8 5 J E Y U S OJ E Y U S OJ E Y U S O S S RS S RS S R M A I N E V E N TM A I N E V E N TM A I N E V E N T E f f e t p a s s i f :Effet passif : O n e - M a n S h o w : T a n t q u e J e y U s o e s t l e s e u l l u t t e u r a c t i f s u r l e r i n g , i lOne- Man Show : Tant que Jey Uso est le seul lutteur actif sur le ring, il g a g n e + 1 0 A T T e t r é d u i t l e s d é g â t s s u b i s d e - 5 .gagne + 10 A TT et réduit les dégâts subis de - 5 . E f f e t p a s s i f : O n e - M a n S h o w : T a n t q u e J e y U s o e s t l e s e u l l u t t e u r a c t i f s u r l e r i n g , i l g a g n e + 1 0 A T T e t r é d u i t l e s d é g â t s s u b i s d e - 5 . E f f e t s p é c i a l :Effet spécial : S o l o S u p e r k i c k : I n f l i g e + 2 0 d é g â t s à u n a d v e r s a i r e . S iSolo Superkick : Inflige + 2 0 dégâts à un adversaire. Si l ’a d v e r s a i r e a p l u s d e 8 0 E N D , i l p e r d 1 0 E N Dl’adversaire a plus de 8 0 END, il perd 10 END s u p p l é m e n t a i r e s .supplémentaires. E f f e t s p é c i a l : S o l o S u p e r k i c k : I n f l i g e + 2 0 d é g â t s à u n a d v e r s a i r e . S ",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": "Main Event",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "One-Man Show : Tant que Jey Uso est le seul lutteur actif sur le ring, il gagne +10 ATT et réduit les dégâts subis de -5."
+      },
+      {
+        "kind": "spécial",
+        "text": "Solo Superkick : Inflige +20 dégâts à un adversaire. Si l’adversaire a plus de 80 END, il perd 10 END supplémentaires."
+      }
+    ]
   },
   {
     "id": "catcheur-21",
@@ -309,10 +497,20 @@
     "source": "model catcheur carte.pdf",
     "page": 21,
     "image": "public/cards/catcheur-21.png",
-    "textSnippet": "a t ta t t 5 05 0 a t t 5 0 e n de n d 8 08 0 e n d 8 0 j e y u s oj e y u s oj e y u s o S RS RS R T H E B L O O D L I N ET H E B L O O D L IN ET H E B L O O D L I N E E f f e t p a s s i f :Effet passif : F r è r e i n s é p a r a b l e : G a g n e + 5 A T T s i J i m m y U s o e s t a c t i fFrère inséparable : Gagne + 5 ATT si Jimmy Uso est actif.. E f f e t p a s s i f : F r è r e i n s é p a r a b l e : G a g n e + 5 A T T s i J i m m y U s o e s t a c t i f . E f f e t s p é c i a l :Effet spécial : U s o S p l a s h : I n f l i g e + 1 5 d é g â t s s u p p l é m e n t a i r e s s i J e yUso Splash : Inflige + 15 dégâts supplémentaires si Jey U s o à s u b i t d e s d é g â t s .Uso à subit des dégâts. E f f e t s p é c i a l : U s o S p l a s h : I n f l i g e + 1 5 d é g â t s s u p p l é m e n t a i r e s s i J e y U s o à s u b i t d e s d é g â t s .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Bloodline",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Frère inséparable : Gagne +5 ATT si Jimmy Uso est actif."
+      },
+      {
+        "kind": "spécial",
+        "text": "Uso Splash : Inflige +15 dégâts supplémentaires si Jey Uso a subit des dégâts."
+      }
+    ]
   },
   {
     "id": "catcheur-22",
@@ -324,10 +522,20 @@
     "source": "model catcheur carte.pdf",
     "page": 22,
     "image": "public/cards/catcheur-22.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 7 57 5 e n d 7 5 J I M M Y U S OJ I M M Y U S OJ I M M Y U S O S R T H E B L O O D L I N ET H E B L O O D L I N ET H E B L O O D L I N E E f f e t p a s s i f :Effet passif : D u o d e c h o c : G a g n e + 5 E N D s i J e y U s o e s t a c t i F .Duo de choc : Gagne + 5 END si Jey Uso est actiF. E f f e t p a s s i f : D u o d e c h o c : G a g n e + 5 E N D s i J e y U s o e s t a c t i F . E f f e t s p é c i a l :Effet spécial : D o u b l e S u p e r k i c k : I n f l i g e + 1 0 d é g â t s à d e u x a d v e r s a i r e s a c t i f s .Double Superkick : Inflige + 10 dégâts à deux adversaires actifs. E f f e t s p é c i a l : D o u b l e S u p e r k i c k : I n f l i g e + 1 0 d é g â t s à d e u x a d v e r s a i r e s a c t i f s .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Bloodline",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Duo de choc : Gagne +5 END si Jey Uso est actif."
+      },
+      {
+        "kind": "spécial",
+        "text": "Double Superkick : Inflige +10 dégâts à deux adversaires actifs."
+      }
+    ]
   },
   {
     "id": "catcheur-23",
@@ -339,10 +547,16 @@
     "source": "model catcheur carte.pdf",
     "page": 23,
     "image": "public/cards/catcheur-23.png",
-    "textSnippet": "a t ta t t 4 54 5 a t t 4 5 e n de n d 7 57 5 e n d 7 5 S O L O S I K O AS O L O S I K O AS O L O S I K O A R T H E B L O O D L I N ET H E B L O O D L I N ET H E B L O O D L I N E E f f e t s p é c i a l :E f f e t s p é c ia l : S a m o a n S p i k e : I n f l i g e + 2 0 d é g â t s s i l ’a d v e r s a i r e a m o i n s d e 7 5 E N DS a m o a n S p ik e : In f l ig e + 2 0 d é g â t s s i l ’a d v e r s a ir e a m o in s d e 7 5 E N D E f f e t s p é c i a l : S a m o a n S p i k e : I n f l i g e + 2 0 d é g â t s s i l ’a d v e r s a i r e a m o i n s d e 7 5 E N D",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Bloodline",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "spécial",
+        "text": "Samoan Spike : Inflige +20 dégâts si l’adversaire a moins de 75 END."
+      }
+    ]
   },
   {
     "id": "catcheur-24",
@@ -354,10 +568,20 @@
     "source": "model catcheur carte.pdf",
     "page": 24,
     "image": "public/cards/catcheur-24.png",
-    "textSnippet": "S S RS S RS S R a t ta t t 6 06 0 a t t 6 0 e n de n d 8 08 0 e n d 8 0 E D G EE D G EE D G E E f f e t p a s s i f :Effet passif : O p p o r t u n i s t e u l t i m e : G a g n e + 5 A T T l o r s q u ’i l a t t a q u e a p r è s u n e c a r t eOpportuniste ultime : Gagne + 5 ATT lorsqu’il attaque après une carte M o m e n t u m .Momentum. E f f e t s p é c i a l :Effet spécial : S p e a r : I n f l i g e + 1 5 d é g â t s s i E d g e a t t a q u e u n a d v e r s a i r e a y a n t p l u s d eSpear : Inflige + 15 dégâts si Edge attaque un adversaire ayant plus de 8 0 E N D .80 END. E f f e t p a s s i f : O p p o r t u n i s t e u l t i m e : G a g n e + 5 A T T l o r s q u ’i l a t t a q u e a p r è s u n e c a r t e M o m e n t u m . E f f e t s p é c i a l : S p e a r : I n f l i g e + 1 5 d é g â t s s i E d g e a t t a q u e u n a d v e r s a i r e a y a n t p l u s d e 8 0 E N D .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Opportuniste ultime : Gagne +5 ATT lorsqu’il attaque après une carte Momentum."
+      },
+      {
+        "kind": "spécial",
+        "text": "Spear : Inflige +15 dégâts si Edge attaque un adversaire ayant plus de 80 END."
+      }
+    ]
   },
   {
     "id": "catcheur-25",
@@ -369,10 +593,20 @@
     "source": "model catcheur carte.pdf",
     "page": 25,
     "image": "public/cards/catcheur-25.png",
-    "textSnippet": "a t ta t t 44 55 a t t 4 5 e n de n d 6 56 5 e n d 6 5 r e y m y s t e r i or e y m y s t e r i or e y m y s t e r i o S R E f f e t p a s s i f :E f f e t p a s s if : L u c h a d o r l é g e n d a i r e : G a g n e + 1 0 A T TL u c h a d o r l é g e n d a ir e : G a g n e + 10 A T T E f f e t s p é c i a l :E f f e t s p é c ia l : 6 1 9 : I n f l i g e + 2 0 d é g â t s s i l ’a d v e r s a i r e a m o i n s d e 8 0 E N D6 19 : In f l ig e + 2 0 d é g â t s s i l ’a d v e r s a ir e a m o in s d e 8 0 E N D .. E f f e t p a s s i f : L u c h a d o r l é g e n d a i r e : G a g n e + 1 0 A T T E f f e t s p é c i a l : 6 1 9 : I n f l i g e + 2 0 d é g â t s s i l ’a d v e r s a i r e a m o i n s d e 8 0 E N D .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Luchador légendaire : Gagne +10 ATT."
+      },
+      {
+        "kind": "spécial",
+        "text": "619 : Inflige +20 dégâts si l’adversaire a moins de 80 END."
+      }
+    ]
   },
   {
     "id": "catcheur-26",
@@ -384,10 +618,20 @@
     "source": "model catcheur carte.pdf",
     "page": 26,
     "image": "public/cards/catcheur-26.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 7 57 5 e n d 7 5 B I G EB I G E B I G E S R T H E N E W D A YT H E N E W D A YT H E N E W D A Y E f f e t p a s s i f :Effet passif : F o r c e p o s i t i v e : S o i g n e + 5 E N D à t o u s l e s m e m b r e s a c t i f s d e l ’é q u i p eForce positive : Soigne + 5 END à tous les membres actifs de l’équipe c h a q u e t o u r .chaque tour. E f f e t s p é c i a l :Effet spécial : B i g E n d i n g : I n f l i g e + 2 5 d é g â t s à u n a d v e r s a i r e a c t i f .Big Ending : Inflige + 2 5 dégâts à un adversaire actif. E f f e t p a s s i f : F o r c e p o s i t i v e : S o i g n e + 5 E N D à t o u s l e s m e m b r e s a c t i f s d e l ’é q u i p e c h a q u e t o u r . E f f e t s p é c i a l : B i g E n d i n g : I n f l i g e + 2 5 d é g â t s à u n a d v e r s a i r e a c t i f .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The New Day",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Force positive : Soigne +5 END à tous les membres actifs de l’équipe chaque tour."
+      },
+      {
+        "kind": "spécial",
+        "text": "Big Ending : Inflige +25 dégâts à un adversaire actif."
+      }
+    ]
   },
   {
     "id": "catcheur-27",
@@ -399,10 +643,16 @@
     "source": "model catcheur carte.pdf",
     "page": 27,
     "image": "public/cards/catcheur-27.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 7 07 0 e n d 7 0 K O F I K I N G S T O NK O F I K I N G S T O NK O F I K I N G S T O N R T H E N E Y D A YT H E N E Y D A YT H E N E Y D A Y E f f e t s p é c i a l :Effet spécial : T r o u b l e i n P a r a d i s e : I n f l i g e + 1 5 d é g â t s s u p p l é m e n t a i r e s s i j o u é a p r è sTrouble in Paradise : Inflige + 15 dégâts supplémentaires si joué après u n e c a r t e M o m e n t u m .une carte Momentum. E f f e t s p é c i a l : T r o u b l e i n P a r a d i s e : I n f l i g e + 1 5 d é g â t s s u p p l é m e n t a i r e s s i j o u é a p r è s u n e c a r t e M o m e n t u m .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The New Day",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "spécial",
+        "text": "Trouble in Paradise : Inflige +15 dégâts supplémentaires si joué après une carte Momentum."
+      }
+    ]
   },
   {
     "id": "catcheur-28",
@@ -414,10 +664,16 @@
     "source": "model catcheur carte.pdf",
     "page": 28,
     "image": "public/cards/catcheur-28.png",
-    "textSnippet": "a t ta t t 44 00 a t t 4 0 e n de n d 6 56 5 e n d 6 5 X A V I E R W O O D SX A V I E R W O O D SX A V I E R W O O D S R T H E N E Y D A YT H E N E Y D A YT H E N E Y D A Y E f f e t p a s s i f : S t r a t é g i s t e d u r i n g : P i o c h e z u n e c a r t e s u p p l é m e n t a i r e c h a q u e f o i s q u ’i l e s t a c t i f .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The New Day",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Stratégiste du ring : Piochez une carte supplémentaire chaque fois qu’il est actif."
+      }
+    ]
   },
   {
     "id": "catcheur-29",
@@ -429,10 +685,20 @@
     "source": "model catcheur carte.pdf",
     "page": 29,
     "image": "public/cards/catcheur-29.png",
-    "textSnippet": "a t ta t t 6 56 5 a t t 6 5 e n de n d 9 59 5 e n d 9 5 T H E U N D E R T A K E RT H E U N D E R T A K E RT H E U N D E R T A K E R S S RS S RS S R E f f e t p a s s i f :Effet passif : P h é n o m è n e i m m o r t e l : G a g n e + 1 0 E N D c h a q u e f o i s q u ’u n a d v e r s a i r e e s tPhénomène immortel : Gagne + 10 END chaque fois qu’un adversaire est m i s K . Omis K.O E f f e t p a s s i f : P h é n o m è n e i m m o r t e l : G a g n e + 1 0 E N D c h a q u e f o i s q u ’u n a d v e r s a i r e e s t m i s K . O E f f e t s p é c i a l :Effet spécial : T o m b s t o n e P i l e d r i v e r : b a n n i s s e z l a c a r t e d eTombstone Piledriver : bannissez la carte de l 'a d v e r s a i r e m i s K . Ol'adversaire mis K.O E f f e t s p é c i a l : T o m b s t o n e P i l e d r i v e r : b a n n i s s e z l a c a r t e d e l 'a d v e r s a i r e m i s K . O T H E D E A D M A NT H E D E A D M A N T H E D E A D M A N",
     "playable": false,
     "excludedReason": "Exclusion demandée",
-    "needsReview": true
+    "faction": null,
+    "nickname": "The Dead Man",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Phénomène immortel : Gagne +10 END chaque fois qu’un adversaire est mis K.O."
+      },
+      {
+        "kind": "spécial",
+        "text": "Tombstone Piledriver : Bannissez la carte de l’adversaire mis K.O."
+      }
+    ]
   },
   {
     "id": "catcheur-30",
@@ -444,10 +710,11 @@
     "source": "model catcheur carte.pdf",
     "page": 30,
     "image": "public/cards/catcheur-30.png",
-    "textSnippet": "a t t e n d T H E U N D E R T A K E RT H E U N D E R T A K E RT H E U N D E R T A K E R S S RS S RS S R",
     "playable": false,
     "excludedReason": "Exclusion demandée",
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": []
   },
   {
     "id": "catcheur-31",
@@ -459,10 +726,20 @@
     "source": "model catcheur carte.pdf",
     "page": 31,
     "image": "public/cards/catcheur-31.png",
-    "textSnippet": "a t ta t t 6 06 0 a t t 6 0 e n de n d 8 08 0 e n d 8 0 T R I P L E HT R I P L E HT R I P L E H S RS RS R E f f e t p a s s i f :E f f e t p a s s if : D - G E N E R A T I O N - X ; P E U T I N V O Q U E R D E P U I S L E D E C K U N M E M B R E D E L A D XD - G E N E R A T IO N - X ; P E U T IN V O Q U E R D E P U IS L E D E C K U N M E M B R E D E L A D X .. E f f e t p a s s i f : D - G E N E R A T I O N - X ; P E U T I N V O Q U E R D E P U I S L E D E C K U N M E M B R E D E L A D X . E f f e t s p é c i a l :E f f e t s p é c ia l : P E D I G R E E : G A G N E + 5 A T T S I I L A U N O B J E T A T T A C H é .P E D IG R E E : G A G N E + 5 A T T S I IL A U N O B J E T A T T A C H é . E f f e t s p é c i a l : P E D I G R E E : G A G N E + 5 A T T S I I L A U N O B J E T A T T A C H é . D XD XD X T H E G A M ET H E G A M ET H E G A M E",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "DX",
+    "nickname": "The Game",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "D-Generation-X : Peut invoquer depuis le deck un membre de la DX."
+      },
+      {
+        "kind": "spécial",
+        "text": "Pedigree : Gagne +5 ATT s’il a un objet attaché."
+      }
+    ]
   },
   {
     "id": "catcheur-32",
@@ -474,10 +751,20 @@
     "source": "model catcheur carte.pdf",
     "page": 32,
     "image": "public/cards/catcheur-32.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 7 57 5 e n d 7 5 S H A W N M I C H A E LS H A W N M I C H A E LS H A W N M I C H A E L S RS RS R E f f e t p a s s i f :Effet passif : S W E E T C H I N M U S I C : E N D O R S L E C A T C H E U R A D V E R S E S P E N D A N T 1 T O U R .SWEET CHIN MUSIC : ENDORS LE CATCHEUR ADVERSES PENDANT 1 TOUR. E f f e t p a s s i f : S W E E T C H I N M U S I C : E N D O R S L E C A T C H E U R A D V E R S E S P E N D A N T 1 T O U R . E f f e t s p é c i a l :Effet spécial : B O Y T O Y : I n f l i g e + 2 5 d é g â t s Q U A N D I L E S T M I S K . O .BOY TOY : Inflige + 25 dégâts QUAND IL EST MIS K.O. E f f e t s p é c i a l : B O Y T O Y : I n f l i g e + 2 5 d é g â t s Q U A N D I L E S T M I S K . O . D XD XD X T H E H E A R T B R E A K K I DT H E H E A R T B R E A K K I DT H E H E A R T B R E A K K I D",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "DX",
+    "nickname": "The Heartbreak Kid",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Sweet Chin Music : Endors le catcheur adverse pendant 1 tour."
+      },
+      {
+        "kind": "spécial",
+        "text": "Boy Toy : Inflige +25 dégâts quand il est mis K.O."
+      }
+    ]
   },
   {
     "id": "catcheur-33",
@@ -489,10 +776,16 @@
     "source": "model catcheur carte.pdf",
     "page": 33,
     "image": "public/cards/catcheur-33.png",
-    "textSnippet": "a t ta t t 3 03 0 a t t 3 0 e n de n d 5 05 0 e n d 5 0 h o r n s w o g g l eh o r n s w o g g l eh o r n s w o g g l e RRR E f f e t s p é c i a l :E f f e t s p é c ia l : I N V O Q U E D E P U I S L E D E C K U N h o r n s w o g g l e 1 F O I S D A N S L A P A R T I E .IN V O Q U E D E P U IS L E D E C K U N h o r n s w o g g l e 1 F O IS D A N S L A P A R T IE . E f f e t s p é c i a l : I N V O Q U E D E P U I S L E D E C K U N h o r n s w o g g l e 1 F O I S D A N S L A P A R T I E . D XD XD X",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "DX",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "spécial",
+        "text": "Invoque depuis le deck un Hornswoggle 1 fois dans la partie."
+      }
+    ]
   },
   {
     "id": "catcheur-34",
@@ -504,10 +797,20 @@
     "source": "model catcheur carte.pdf",
     "page": 34,
     "image": "public/cards/catcheur-34.png",
-    "textSnippet": "a t ta t t 7 07 0 a t t 7 0 e n de n d 1 0 01 0 0 e n d 1 0 0 C O D Y R H O D E SC O D Y R H O D E SC O D Y R H O D E S S S RS S RS S R E f f e t p a s s if :E f f e t p a s s if : H é r it ie r d e l a G l o ir e Héritier de la Gloire : T a n t q u e C o d y R h o d e s e s t a c t if , t o u s l e s c a t c h e u r s a l l ié s g a g n e n t: Tant que Cody Rhodes est actif, tous les catcheurs alliés gagnent + 5 A T T e t + 5 E N D .+5 A TT et +5 END. P O U R C h a q u e M o m e n t u m Q U E V O U S j o u E Z , p io c h e z u n e c a r t e .POUR Chaque Momentum QUE VOUS jouEZ, piochez une carte. E f f e t p a s s if : H é r it ie r d e l a G l o ir e : T a n t q u e C o d y R h o d e s e s t a c t if , t o u s l e s c a t c h e u r s a l l ié s g a g n e n t + 5 A T T e t + 5 E N D . P O U R C h a q u e M o m e n t u m Q U E V O U S j o u E Z , p io c h e z u n e c a r t e . Effet spécial :E f f e t s p é c ia l : Cross Rhodes Exalté : Infligez +25 dégâts à un catcheur actifCross Rhodes Exalté : Infligez +25 dégâts à un catcheur actif adverse.adverse. Si ce catcheur a m oins de 50 END après l’attaque, annulez tous sesSi ce catcheur a moins de 50 END après l’attaque, annulez tous ",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": "The American Nightmare",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Héritier de la gloire : Tant que Cody Rhodes est actif, tous les catcheurs alliés gagnent +5 ATT et +5 END. Pour chaque Momentum que vous jouez, piochez une carte."
+      },
+      {
+        "kind": "spécial",
+        "text": "Cross Rhodes Exalté : Inflige +25 dégâts à un catcheur actif adverse. Si ce catcheur a moins de 50 END après l’attaque, annulez tous ses effets passifs jusqu’à la fin de son prochain tour. Si le catcheur adverse est mis K.O., soignez tous vos catcheurs actifs de +10 END."
+      }
+    ]
   },
   {
     "id": "catcheur-35",
@@ -519,10 +822,20 @@
     "source": "model catcheur carte.pdf",
     "page": 35,
     "image": "public/cards/catcheur-35.png",
-    "textSnippet": "a t ta t t 7 57 5 a t t 7 5 e n de n d 9 59 5 e n d 9 5 J O H N C E N AJ O H N C E N AJ O H N C E N A S S RS S RS S R E f f e t p a s s i f :Effet passif : N E V E R G I V E U P NEVER GIVE UP : T a n t q u e J o h n C e n a e s t a c t i f , t o u s l e s c a t c h e u r s a l l i é s: Tant que John Cena est actif, tous les catcheurs alliés g a g n e n t + 1 0 E N D l o r s q u ’i l s s u b i s s e n t u n e a t t a q u E s i u n c a t c h e u r a l l i é e s tgagnent + 10 END lorsqu’ils subissent une attaquE si un catcheur allié est m i s K . O . , p i o c h e z u n e c a r t e .mis K.O., piochez une carte. E f f e t p a s s i f : N E V E R G I V E U P : T a n t q u e J o h n C e n a e s t a c t i f , t o u s l e s c a t c h e u r s a l l i é s g a g n e n t + 1 0 E N D l o r s q u ’i l s s u b i s s e n t u n e a t t a q u E s i u n c a t c h e u r a l l i é e s t m i s K . O . , p i o c h e z u n e c a r t e . E f f e t s p é c i a l :Effet spécial : Y o u C a n 't S e e M e : I n f l i g e z + 1 5 d é g â t s à u n c a t c h e u rYou Can't See Me : Infligez + 15 dégâts à un catcheur a c t i f a d v e r s e . L ’a d v e r s a i r e n e p e u t p a s u t i l i s e r d eactif adve",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Never Give Up : Tant que John Cena est actif, tous les catcheurs alliés gagnent +10 END lorsqu’ils subissent une attaque. Si un catcheur allié est mis K.O., piochez une carte."
+      },
+      {
+        "kind": "spécial",
+        "text": "You Can’t See Me : Inflige +15 dégâts à un catcheur actif adverse. L’adversaire ne peut pas utiliser de cartes Momentum. Peut être activé un tour sur deux."
+      }
+    ]
   },
   {
     "id": "catcheur-36",
@@ -534,10 +847,20 @@
     "source": "model catcheur carte.pdf",
     "page": 36,
     "image": "public/cards/catcheur-36.png",
-    "textSnippet": "a t ta t t 6 56 5 a t t 6 5 e n de n d 9 09 0 e n d 9 0 C M P U N KC M P U N KC M P U N K S S RS S RS S R E f f e t p a s s i f :Effet passif : S t r a i g h t E d g e I c o n Straight Edge Icon : T o u s v o s c a t c h e u r s a c t i f s r e g a g n e n t + 5 E N D a u d é b u t: Tous vos catcheurs actifs regagnent +5 END au début d e v o t r e t o u r .de votre tour. E f f e t p a s s i f : S t r a i g h t E d g e I c o n : T o u s v o s c a t c h e u r s a c t i f s r e g a g n e n t + 5 E N D a u d é b u t d e v o t r e t o u r . E f f e t s p é c ia l :E f f e t s p é c ia l : G o T o S l e e p : A c t iv e z c e t e f f e t u n e f o is p a r t o u r e n s a c r if ia n t u n eGo To Sleep : Activez cet effet une fois par tour en sacrifiant une c a r t e M o m e n t u m d e v o t r e m a in :carte Momentum de votre main : In f l ig e z + 2 5 d é g â t s à u n a d v e r s a ir e a c t if .Infligez +25 dégâts à un adversaire actif. S i l ’a d v e r s a ir e a m o in s d e 5 0 E N D a p r è s c e t t e a t t a q u e , il e s tSi l’adversaire a moins de 50 END après cette attaque, il est in c a p a b l e d ’a t t a q u e r o u d ’u t il is e r u n e c a r t e M o m e n t u m a u",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": "The Best in the World",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Straight Edge Icon : Tous vos catcheurs actifs regagnent +5 END au début de votre tour."
+      },
+      {
+        "kind": "spécial",
+        "text": "Go to Sleep : Activez cet effet une fois par tour en sacrifiant une carte Momentum de votre main : infligez +25 dégâts à un adversaire actif. Si l’adversaire a moins de 50 END après cette attaque, il est incapable d’attaquer ou d’utiliser une carte Momentum au tour suivant."
+      }
+    ]
   },
   {
     "id": "catcheur-37",
@@ -549,10 +872,11 @@
     "source": "model catcheur carte.pdf",
     "page": 37,
     "image": "public/cards/catcheur-37.png",
-    "textSnippet": "a t ta t t 6 56 5 a t t 6 5 e n de n d 7 07 0 e n d 7 0 R A Y B A C KR A Y B A C KR A Y B A C K S RS RS R",
     "playable": false,
     "excludedReason": "Exclusion demandée",
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": []
   },
   {
     "id": "catcheur-38",
@@ -564,10 +888,16 @@
     "source": "model catcheur carte.pdf",
     "page": 38,
     "image": "public/cards/catcheur-38.png",
-    "textSnippet": "a t ta t t 5 05 0 a t t 5 0 e n de n d 8 58 5 e n d 8 5 B R O N S O N R E E DB R O N S O N R E E DB R O N S O N R E E D RRR E f f e t p a s s i f :E f f e t p a s s if : T S U N A M I S P L A S H T S U N A M I S P L A S H : E N D O R S L E C A T C H E U R A D V E R S E U N E F O I S P A R P A R T I S I: E N D O R S L E C A T C H E U R A D V E R S E U N E F O IS P A R P A R T I S I B R O N S O N R E E D à S U B I T D E S d é g â t S .B R O N S O N R E E D à S U B IT D E S d é g â t S . E f f e t p a s s i f : T S U N A M I S P L A S H : E N D O R S L E C A T C H E U R A D V E R S E U N E F O I S P A R P A R T I S I B R O N S O N R E E D à S U B I T D E S d é g â t S .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Tsunami Splash : Endors le catcheur adverse une fois par partie si Bronson Reed a subi des dégâts."
+      }
+    ]
   },
   {
     "id": "catcheur-39",
@@ -579,10 +909,20 @@
     "source": "model catcheur carte.pdf",
     "page": 39,
     "image": "public/cards/catcheur-39.png",
-    "textSnippet": "a t ta t t 5 05 0 a t t 5 0 e n de n d 8 08 0 e n d 8 0 B R A Y W Y A T TB R A Y W Y A T TB R A Y W Y A T T S RS RS R E f f e t p a s s i f :Effet passif : M a n i p u l a t i o n m e n t a l e : L e s a d v e r s a i r e s i n f l i g e n t - 1 0 d é g â t s t a n t q u eManipulation mentale : Les adversaires infligent - 10 dégâts tant que B r a y W y a t t e s t a c t i f .Bray Wyatt est actif. E f f e t p a s s i f : M a n i p u l a t i o n m e n t a l e : L e s a d v e r s a i r e s i n f l i g e n t - 1 0 d é g â t s t a n t q u e B r a y W y a t t e s t a c t i f . E f f e t s p é c i a l :Effet spécial : S i s t e r A b i g a i l : I n f l i g e + 2 5 d é g â t s e t e m p ê c h e l ’a d v e r s a i r e c i b l éSister Abigail : Inflige + 2 5 dégâts et empêche l’adversaire ciblé d ’a t t a q u e r p e n d a n t u n t o u r .d’attaquer pendant un tour. E f f e t s p é c i a l : S i s t e r A b i g a i l : I n f l i g e + 2 5 d é g â t s e t e m p ê c h e l ’a d v e r s a i r e c i b l é d ’a t t a q u e r p e n d a n t u n t o u r .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Manipulation mentale : Les adversaires infligent -10 dégâts tant que Bray Wyatt est actif."
+      },
+      {
+        "kind": "spécial",
+        "text": "Sister Abigail : Inflige +25 dégâts et empêche l’adversaire ciblé d’attaquer pendant un tour."
+      }
+    ]
   },
   {
     "id": "catcheur-40",
@@ -594,10 +934,11 @@
     "source": "model catcheur carte.pdf",
     "page": 40,
     "image": "public/cards/catcheur-40.png",
-    "textSnippet": "b y A D IL D A R R A Z F I G T HF I G T HF I G T H T C GT C GT C G",
     "playable": false,
     "excludedReason": "Dos de carte conservé",
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": []
   },
   {
     "id": "wyatt-01",
@@ -609,10 +950,20 @@
     "source": "wyatt familly.pdf",
     "page": 1,
     "image": "public/cards/wyatt-01.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 7 57 5 e n d 7 5 RRR - b r a u n s t r o w m a nb r a u n s t r o w m a nb r a u n s t r o w m a n e f f e t p a s s i f :effet passif: l o r s q u e s t r a u w m a n e s t e n v o y é a u c i m e t i è r e , v o u s p o u v e z e n v o y e r u n elorsque strauwman est envoyé au cimetière, vous pouvez envoyer une c a r t e w y a t t f a m i l l y d u d e c k a u c i m e t i è r e .carte wyatt familly du deck au cimetière. e f f e t p a s s i f : l o r s q u e s t r a u w m a n e s t e n v o y é a u c i m e t i è r e , v o u s p o u v e z e n v o y e r u n e c a r t e w y a t t f a m i l l y d u d e c k a u c i m e t i è r e . E f f e t s p é c i a l :Effet spécial : l o r s q u e q u ’u n c a t c h e u r a t t a q u e b r a y w y a t tlorsque qu’un catcheur attaque bray wyatt b a n n i s s e z c e t t e c a r t e d u c i m e t i è r e e t a n n u l e zbannissez cette carte du cimetière et annulez l ’a t t a q u e .l’attaque . E f f e t s p é c i a l : l o r s q u e q u ’u n c a t c h e u r a t t a q u e b r a y w y a t t b a n n i s s e z c e t t e c a r t e d u c i m e t i è r e e t a n n u l e z l ’a t t a q u e . w y a t t f a m i l yw y a",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "Wyatt Family",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Lorsque Strowman est envoyé au cimetière, vous pouvez envoyer une carte Wyatt Family du deck au cimetière."
+      },
+      {
+        "kind": "spécial",
+        "text": "Lorsqu’un catcheur attaque Bray Wyatt, bannissez cette carte du cimetière et annulez l’attaque."
+      }
+    ]
   },
   {
     "id": "wyatt-02",
@@ -624,10 +975,20 @@
     "source": "wyatt familly.pdf",
     "page": 2,
     "image": "public/cards/wyatt-02.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 7 57 5 e n d 7 5 S RS RS R - E R I C K R O W A NE R I C K R O W A NE R I C K R O W A N E f f e t p a s s i f :E ffet passif : s i c e t t e c a r t e e s t e n v o y é e a u c i m e t i è r e , v o u s p o u v e z a j o u t e r u n e c a r t esi cette carte est envoyée au cimetière, vous pouvez ajouter une carte q u i c i t e w y a t t f a m i l y ( n i v m a x : S R ) d a n s l e d e c k e t l ’a j o u t é à v o t r e m a i n .qui cite wyatt family (niv max: SR) dans le deck et l’ajouté à votre main. E f f e t p a s s i f : s i c e t t e c a r t e e s t e n v o y é e a u c i m e t i è r e , v o u s p o u v e z a j o u t e r u n e c a r t e q u i c i t e w y a t t f a m i l y ( n i v m a x : S R ) d a n s l e d e c k e t l ’a j o u t é à v o t r e m a i n . E f f e t s p é c i a l :E ffet spécial : b a n n i s s e z c e t t e c a r t e d e p u i s l e c i m e t i è r e e tbannissez cette carte depuis le cimetière et a j o u t e z + 2 0 a t t a b r a y w y a t t c e t o u r - c i .ajoutez + 2 0 att a bray wyatt ce tour- ci. E f f e t s p é c i a l : b a n n i s s e z c e t t e c a r t e d e p u i s l e c i m e t i è r e e t a j o u t e z + 2 0 ",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "Wyatt Family",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Si cette carte est envoyée au cimetière, vous pouvez ajouter une carte qui cite Wyatt Family (niv max : SR) dans le deck et l’ajouter à votre main."
+      },
+      {
+        "kind": "spécial",
+        "text": "Bannissez cette carte depuis le cimetière et ajoutez +20 ATT à Bray Wyatt ce tour-ci."
+      }
+    ]
   },
   {
     "id": "wyatt-03",
@@ -639,10 +1000,20 @@
     "source": "wyatt familly.pdf",
     "page": 3,
     "image": "public/cards/wyatt-03.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 8 08 0 e n d 8 0 S RS RS R l u k e h a r p e rl u k e h a r p e rl u k e h a r p e r Effet passif :Effet passif : une fois par tour si bray wyatt est actif et que cette carte est auune fois par tour si bray wyatt est actif et que cette carte est au cimetière vous pouvez endormir un catcheur adverse.cimetière vous pouvez endormir un catcheur adverse. Effet passif : une fois par tour si bray wyatt est actif et que cette carte est au cimetière vous pouvez endormir un catcheur adverse. E f f e t s p é c i a l :Effet spécial : e n v o y é c e t t e c a r t e a u c i m e t i è r e e t i n v o q u e z b r a yenvoyé cette carte au cimetière et invoquez bray w y a t t d e p u i s v o t r e m a i n s a n s s a c r i f i c ewyatt depuis votre main sans sacrifice E f f e t s p é c i a l : e n v o y é c e t t e c a r t e a u c i m e t i è r e e t i n v o q u e z b r a y w y a t t d e p u i s v o t r e m a i n s a n s s a c r i f i c e w y a t t f a m i l yw y a t t f a m i l yw y a t t f a m i l y",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "Wyatt Family",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Une fois par tour, si Bray Wyatt est actif et que cette carte est au cimetière, vous pouvez endormir un catcheur adverse."
+      },
+      {
+        "kind": "spécial",
+        "text": "Envoyez cette carte au cimetière et invoquez Bray Wyatt depuis votre main sans sacrifice."
+      }
+    ]
   },
   {
     "id": "wyatt-04",
@@ -654,10 +1025,20 @@
     "source": "wyatt familly.pdf",
     "page": 4,
     "image": "public/cards/wyatt-04.png",
-    "textSnippet": "S S RS S RS S R B R A Y W Y A T TB R A Y W Y A T TB R A Y W Y A T T a t ta t t 6 06 0 a t t 6 0 e n de n d 8 58 5 e n d 8 5 E f f e t p a s s if :Effet passif : u n e f o is p a r t o u r , v o u s p o u v e z in v o q u e r u n m e m b r e d e l a w y a t t f a m il yune fois par tour, vous pouvez invoquer un membre de la wyatt family d e p u is l e c im e t iè r e s a n s s a c r if ic e .depuis le cimetière sans sacrifice. E f f e t p a s s if : u n e f o is p a r t o u r , v o u s p o u v e z in v o q u e r u n m e m b r e d e l a w y a t t f a m il y d e p u is l e c im e t iè r e s a n s s a c r if ic e . E f f e t s p é c i a l :Effet spécial : s i b r a y w y a t t m e t K . O u n c a t c h e u r p r e n e z l esi bray wyatt met K.O un catcheur prenez le c o n t r ô l e d e c e c a t c h e u r , m a i s r é d u i s e z s o n E N D d econtrôle de ce catcheur, mais réduisez son END de m o i t i é .moitié. E f f e t s p é c i a l : s i b r a y w y a t t m e t K . O u n c a t c h e u r p r e n e z l e c o n t r ô l e d e c e c a t c h e u r , m a i s r é d u i s e z s o n E N D d e m o i t i é . w y a t t f a m i l yw y a t t f a m i l yw y a t t f a m i l y",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "Wyatt Family",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Une fois par tour, vous pouvez invoquer un membre de la Wyatt Family depuis le cimetière sans sacrifice."
+      },
+      {
+        "kind": "spécial",
+        "text": "Si Bray Wyatt met K.O. un catcheur, prenez le contrôle de ce catcheur, mais réduisez son END de moitié."
+      }
+    ]
   },
   {
     "id": "wyatt-05",
@@ -669,10 +1050,16 @@
     "source": "wyatt familly.pdf",
     "page": 5,
     "image": "public/cards/wyatt-05.png",
-    "textSnippet": "M O M E N T U MM O M E N T U MM O M E N T U M S U I V E Z L E S B U S E SS U I V E Z L E S B U S E SS U I V E Z L E S B U S E S S S RS S RS S R Effet :Effet : ajoutez bray wyatt depuis votre deck a votreajoutez bray wyatt depuis votre deck a votre main.main. Effet : ajoutez bray wyatt depuis votre deck a votre main.",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Ajoutez Bray Wyatt depuis votre deck à votre main."
+      }
+    ]
   },
   {
     "id": "wyatt-06",
@@ -684,10 +1071,16 @@
     "source": "wyatt familly.pdf",
     "page": 6,
     "image": "public/cards/wyatt-06.png",
-    "textSnippet": "M O M E N T U MM O M E N T U MM O M E N T U M l a i s s e m o i r e n t r e rl a i s s e m o i r e n t r e r l a i s s e m o i r e n t r e r S S RS S RS S R Effet :Effet : defaussez une carte, et invoqué un membre dedefaussez une carte, et invoqué un membre de la wyatt familly depuis le deck.la wyatt familly depuis le deck. Effet : defaussez une carte, et invoqué un membre de la wyatt familly depuis le deck.",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Défaussez une carte, et invoquez un membre de la Wyatt Family depuis le deck."
+      }
+    ]
   },
   {
     "id": "wyatt-07",
@@ -699,10 +1092,16 @@
     "source": "wyatt familly.pdf",
     "page": 7,
     "image": "public/cards/wyatt-07.png",
-    "textSnippet": "O B J E TO B J E TO B J E T S RS RS R l a n t e r n e d e l ’o b s c u r i t él a n t e r n e d e l ’ob s c u r it él a n t e r n e d e l ’o b s c u r i t é E f f e t :Effet : s i c e t t e c a r t e e s t e n v o y é a u c i m e t i è r e , v o u s p o u v e zsi cette carte est envoyé au cim etière, vous pouvez r é c u p é r e r u n e c a r t e m o m e n t u m d u c i m e t i è r e à v o t r e m a i nrécupérer une carte m om entum du cim etière à votre m ain s i c e t t e c a r t e e s t é q u i p é à b r a y w y a t t , i l g a g n e + 1 0 a t t e tsi cette carte est équipé à bray w yatt, il gagne + 10 att et p e r d e zperdez - 1 0 e n d- 10 end E f f e t : s i c e t t e c a r t e e s t e n v o y é a u c i m e t i è r e , v o u s p o u v e z r é c u p é r e r u n e c a r t e m o m e n t u m d u c i m e t i è r e à v o t r e m a i n s i c e t t e c a r t e e s t é q u i p é à b r a y w y a t t , i l g a g n e + 1 0 a t t e t p e r d e z - 1 0 e n d",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Si cette carte est envoyée au cimetière, vous pouvez récupérer une carte Momentum du cimetière à votre main. Si cette carte est équipée à Bray Wyatt, il gagne +10 ATT et perd -10 END."
+      }
+    ]
   },
   {
     "id": "wyatt-08",
@@ -714,10 +1113,20 @@
     "source": "wyatt familly.pdf",
     "page": 8,
     "image": "public/cards/wyatt-08.png",
-    "textSnippet": "a t ta t t 7 07 0 a t t 7 0 e n de n d 1 0 51 0 5 e n d 1 0 5 S S RS S RS S R - R O M A N R E I G N SR O M A N R E I G N S R O M A N R E I G N S T H E T R I B A L C H I E FT H E T R I B A L C H I E F T H E T R I B A L C H I E F E f f e t p a s s if :Effet passif : s i t o u s l e s m e m b r e s d e l a b l o o d l in e s o n t s u r l e r in g r o m a n r e ig n s p e u tsi tous les membres de la bloodline sont sur le ring roman reigns peut a t t a q u e r 2 f o is .attaquer 2 fois. E f f e t p a s s if : s i t o u s l e s m e m b r e s d e l a b l o o d l in e s o n t s u r l e r in g r o m a n r e ig n s p e u t a t t a q u e r 2 f o is . E f f e t s p é c i a l :E f f e t s p é c ia l : s i c e t t e c a r t e a m a x 5 5 E N D v o u s p o u v e z a t t a q u e rs i c e t t e c a r t e a m a x 5 5 E N D v o u s p o u v e z a t t a q u e r t o u s l e s c a t c h e u r a c t i f a d v e r s e E N U N E A T T A Q U E .t o u s l e s c a t c h e u r a c t if a d v e r s e E N U N E A T T A Q U E . E f f e t s p é c i a l : s i c e t t e c a r t e a m a x 5 5 E N D v o u s p o u v e z a t t a q u e r t o u s l e s c a t c h e u r a c t i f a d v e r s e E N U N E A T T A Q U E . B L",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Bloodline",
+    "nickname": "The Tribal Chief",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Si tous les membres de la Bloodline sont sur le ring, Roman Reigns peut attaquer 2 fois."
+      },
+      {
+        "kind": "spécial",
+        "text": "Si cette carte a max 55 END, vous pouvez attaquer tous les catcheur actif adverse en une attaque."
+      }
+    ]
   },
   {
     "id": "wyatt-09",
@@ -729,10 +1138,20 @@
     "source": "wyatt familly.pdf",
     "page": 9,
     "image": "public/cards/wyatt-09.png",
-    "textSnippet": "a t ta t t 5 05 0 a t t 5 0 e n de n d 8 08 0 e n d 8 0 j e y u s oj e y u s oj e y u s o S RS RS R T H E B L O O D L I N ET H E B L O O D L I N ET H E B L O O D L I N E E f f e t p a s s i f :Effet passif : s i r o m a n r e i g n s e s t m i s K . O , v o u s p o u v e z m e t t r e K . O c e t t esi roman reigns est mis K.O, vous pouvez mettre K.O cette c a r t e a l a p l a c e .carte a la place. E f f e t p a s s i f : s i r o m a n r e i g n s e s t m i s K . O , v o u s p o u v e z m e t t r e K . O c e t t e c a r t e a l a p l a c e . E f f e t s p é c i a l :Effet spécial : i n v o q u é j i m m y u s o d e p u i s l e d e c k , m a i s j e y u s o n e p e u tinvoqué jimmy uso depuis le deck, mais jey uso ne peut p a s a t t a q u e r c e t o u r c i .pas attaquer ce tour ci. E f f e t s p é c i a l : i n v o q u é j i m m y u s o d e p u i s l e d e c k , m a i s j e y u s o n e p e u t p a s a t t a q u e r c e t o u r c i .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Bloodline",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Si Roman Reigns est mis K.O., vous pouvez mettre K.O. cette carte à la place."
+      },
+      {
+        "kind": "spécial",
+        "text": "Invoquez Jimmy Uso depuis le deck, mais Jey Uso ne peut pas attaquer ce tour-ci."
+      }
+    ]
   },
   {
     "id": "wyatt-10",
@@ -744,10 +1163,20 @@
     "source": "wyatt familly.pdf",
     "page": 10,
     "image": "public/cards/wyatt-10.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 7 57 5 e n d 7 5 J I M M Y U S OJ I M M Y U S OJ I M M Y U S O S R T H E B L O O D L I N ET H E B L O O D L I N ET H E B L O O D L I N E E f f e t p a s s i f :Effet passif : A C H A C U N D E V O T R E T O U R , s i j i m m y u s o e t u n a u t r e m e m b r e d e l a b l o o d l i n eA CHACUN DE VOTRE TOUR, si jimmy uso et un autre membre de la bloodline S O N T a c t i f c e t t e c a r t e p e u t i n f l i g e r 1 0 d e d é g â t a U N D E S C A T C H E U R SSONT actif cette carte peut infliger 10 de dégât a UN DES CATCHEURS A C T I F D E V O T R E A D V E R S A I R EACTIF DE VOTRE ADVERSAIRE E f f e t p a s s i f : A C H A C U N D E V O T R E T O U R , s i j i m m y u s o e t u n a u t r e m e m b r e d e l a b l o o d l i n e S O N T a c t i f c e t t e c a r t e p e u t i n f l i g e r 1 0 d e d é g â t a U N D E S C A T C H E U R S A C T I F D E V O T R E A D V E R S A I R E E f f e t s p é c i a l :Effet spécial : a j o u t e z u n e c a r t e p a u l h e y m a n d u d e c k a l a m a i n .ajoutez une carte paul heyman du deck a la main. E f f e t s p é c i a l : a j o u t e z u n e c a r t e p a u l h e y m a n d u d e c k a l a m ",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Bloodline",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "À chacun de votre tour, si Jimmy Uso et un autre membre de la Bloodline sont actifs, cette carte peut infliger 10 dégâts à un des catcheurs actifs de votre adversaire."
+      },
+      {
+        "kind": "spécial",
+        "text": "Ajoutez une carte Paul Heyman du deck à la main."
+      }
+    ]
   },
   {
     "id": "wyatt-11",
@@ -759,10 +1188,20 @@
     "source": "wyatt familly.pdf",
     "page": 11,
     "image": "public/cards/wyatt-11.png",
-    "textSnippet": "a t ta t t 5 55 5 a t t 5 5 e n de n d 7 57 5 e n d 7 5 s a m i z a y ns a m i z a y ns a m i z a y n S R T H E B L O O D L I N ET H E B L O O D L I N ET H E B L O O D L I N E E f f e t p a s s i f :Effet passif : a j o u t e z u n e c a r t e m o m e n t u m q u i c i t e l a b l o o d l i n e d u d e c k à l a m a i n .ajoutez une carte momentum qui cite la bloodline du deck à la main. E f f e t p a s s i f : a j o u t e z u n e c a r t e m o m e n t u m q u i c i t e l a b l o o d l i n e d u d e c k à l a m a i n . E f f e t s p é c i a l :Effet spécial : s i r o m a n r e i g n s e s t a c t i f e t q u ’i l v a s u b i r u n e a t t a q u e a n n u l e z l a .si roman reigns est actif et qu’il va subir une attaque annulez la. E f f e t s p é c i a l : s i r o m a n r e i g n s e s t a c t i f e t q u ’i l v a s u b i r u n e a t t a q u e a n n u l e z l a .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": "The Bloodline",
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Ajoutez une carte Momentum qui cite la Bloodline du deck à la main."
+      },
+      {
+        "kind": "spécial",
+        "text": "Si Roman Reigns est actif et qu’il va subir une attaque, annulez-la."
+      }
+    ]
   },
   {
     "id": "wyatt-12",
@@ -774,10 +1213,16 @@
     "source": "wyatt familly.pdf",
     "page": 12,
     "image": "public/cards/wyatt-12.png",
-    "textSnippet": "M O M E N T U MM O M E N T U MM O M E N T U M l e b r a s d r o i t d u c h e f t r i b a ll e b r a s d r o i t d u c h e f t r i b a ll e b r a s d r o i t d u c h e f t r i b a l S S RS S RS S R E f f e t :E f f e t : i n v o q u e z j e y u s o d e p u i s l e d e c k e t j o u e r 2in v o q u e z j e y u s o d e p u is l e d e c k e t j o u e r 2 c a r t e s m o m e n t u m l o r s d e v o t r e p r o c h a i n t o u r .c a r t e s m o m e n t u m l o r s d e v o t r e p r o c h a in t o u r . E f f e t : i n v o q u e z j e y u s o d e p u i s l e d e c k e t j o u e r 2 c a r t e s m o m e n t u m l o r s d e v o t r e p r o c h a i n t o u r .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Invoquez Jey Uso depuis le deck et jouez 2 cartes Momentum lors de votre prochain tour."
+      }
+    ]
   },
   {
     "id": "wyatt-13",
@@ -789,10 +1234,16 @@
     "source": "wyatt familly.pdf",
     "page": 13,
     "image": "public/cards/wyatt-13.png",
-    "textSnippet": "M O M E N T U MM O M E N T U MM O M E N T U M t h e b l o o d l i n e r a s s e m b l e m e n tt h e b l o o d l in e r a s s e m b l e m e n tt h e b l o o d l i n e r a s s e m b l e m e n t S S RS S RS S R Effet :Effet : tant que tous les membres bloodline sont sur le ring cettetant que tous les membres bloodline sont sur le ring cette carte reste active.carte reste active. vous pouvez invoquer roman reigns depuis le deck (activablevous pouvez invoquer roman reigns depuis le deck (activable 1 fois maximum)1 fois maximum) tout les membRe de la bloodline inflige +10 ATT et peuventtout les membRe de la bloodline inflige +10 ATT et peuvent attaquer les catcheur inactif.attaquer les catcheur inactif. Effet : tant que tous les membres bloodline sont sur le ring cette carte reste active. vous pouvez invoquer roman reigns depuis le deck (activable 1 fois maximum) tout les membRe de la bloodline inflige +10 ATT et peuvent attaquer les catcheur inactif.",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Tant que tous les membres Bloodline sont sur le ring, cette carte reste active. Vous pouvez invoquer Roman Reigns depuis le deck (activable 1 fois maximum). Tous les membres de la Bloodline infligent +10 ATT et peuvent attaquer les catcheurs inactifs."
+      }
+    ]
   },
   {
     "id": "managers-01",
@@ -804,10 +1255,16 @@
     "source": "-------.pdf",
     "page": 1,
     "image": "public/cards/managers-01.png",
-    "textSnippet": "m a n a g e rm a n a g e rm a n a g e r P A U L H E Y M A NP A U L H E Y M A NP A U L H E Y M A N S S RS S RS S R E f f e t :E f f e t : S i R o m a n R e i g n s o u B r o c k L e s n a r e s t a c t i f , a j o u t e z + 1 0 A T TS i R o m a n R e ig n s o u B r o c k L e s n a r e s t a c t if , a j o u t e z + 1 0 A T T e t + 1 0 E N D à l e u r t o t a l t a n t q u ’ i l r e s t e s u r l e r i n g .e t + 1 0 E N D à l e u r t o t a l t a n t q u ’il r e s t e s u r l e r in g . E f f e t : S i R o m a n R e i g n s o u B r o c k L e s n a r e s t a c t i f , a j o u t e z + 1 0 A T T e t + 1 0 E N D à l e u r t o t a l t a n t q u ’ i l r e s t e s u r l e r i n g .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Si Roman Reigns ou Brock Lesnar est actif, ajoutez +10 ATT et +10 END à leur total tant qu’il reste sur le ring."
+      }
+    ]
   },
   {
     "id": "managers-02",
@@ -819,10 +1276,16 @@
     "source": "-------.pdf",
     "page": 2,
     "image": "public/cards/managers-02.png",
-    "textSnippet": "M A N A G E RM A N A G E RM A N A G E R M r . M c M a h o nM r . M c M a h o nM r . M c M a h o n S RS RS R E f f e t :Effet : U n e f o i s p a r p a r t i e , p e r m e t d ' i n v o q u e r u n c a t c h e u r S S R s a n sUne fois par partie, permet d'invoquer un catcheur SSR sans s a c r i f i e rsacrifier E f f e t : U n e f o i s p a r p a r t i e , p e r m e t d ' i n v o q u e r u n c a t c h e u r S S R s a n s s a c r i f i e r",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Une fois par partie, permet d’invoquer un catcheur SSR sans sacrifier."
+      }
+    ]
   },
   {
     "id": "managers-03",
@@ -834,10 +1297,16 @@
     "source": "-------.pdf",
     "page": 3,
     "image": "public/cards/managers-03.png",
-    "textSnippet": "M A N A G E RM A N A G E RM A N A G E R T R I P L E HT R I P L E H T R I P L E H S RS RS R E f f e t :E f f e t : A j o u t e + 1 0 A T T à t o u s v o s c a t c h e u r s s i u n m e m b r e d ' u n eA j o u t e + 10 A T T à t o u s v o s c a t c h e u r s s i u n m e m b r e d 'u n e f a c t i o n e s t a c t i f s u r l e r i n g .f a c t io n e s t a c t if s u r l e r in g . E f f e t : A j o u t e + 1 0 A T T à t o u s v o s c a t c h e u r s s i u n m e m b r e d ' u n e f a c t i o n e s t a c t i f s u r l e r i n g .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Ajoute +10 ATT à tous vos catcheurs si un membre d’une faction est actif sur le ring."
+      }
+    ]
   },
   {
     "id": "managers-04",
@@ -849,10 +1318,16 @@
     "source": "-------.pdf",
     "page": 4,
     "image": "public/cards/managers-04.png",
-    "textSnippet": "m a n a g e rm a n a g e rm a n a g e r T e d d y L o n gT e d d y L o n g T e d d y L o n g S RS RS R E f f e t :Effet : P e r m e t d ' i n v o q u e r d i r e c t e m e n t d e u x c a t c h e u r s d ' u n e f a c t i o nPermet d'invoquer directement deux catcheurs d'une faction d e p u i s v o t r e m a i n .depuis votre main. E f f e t : P e r m e t d ' i n v o q u e r d i r e c t e m e n t d e u x c a t c h e u r s d ' u n e f a c t i o n d e p u i s v o t r e m a i n .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Permet d’invoquer directement deux catcheurs d’une faction depuis votre main."
+      }
+    ]
   },
   {
     "id": "managers-05",
@@ -864,10 +1339,16 @@
     "source": "-------.pdf",
     "page": 5,
     "image": "public/cards/managers-05.png",
-    "textSnippet": "M A N A G E RM A N A G E RM A N A G E R S t e p h a n i e M c M a h o n S RS RS R E f f e t :Effet : P e r m e t d e j o u e r u n e c a r t e M o m e n t u m s u p p l é m e n t a i r e u n ePermet de jouer une carte Momentum supplémentaire une f o i s p a r p a r t i e .fois par partie. E f f e t : P e r m e t d e j o u e r u n e c a r t e M o m e n t u m s u p p l é m e n t a i r e u n e f o i s p a r p a r t i e .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Permet de jouer une carte Momentum supplémentaire une fois par partie."
+      }
+    ]
   },
   {
     "id": "objets-01",
@@ -879,10 +1360,16 @@
     "source": "Votre texte de paragraphe.pdf",
     "page": 1,
     "image": "public/cards/objets-01.png",
-    "textSnippet": "O B J E TO B J E TO B J E T RRR É c h e l l eÉ c h e l l eÉ c h e l l e E f f e t :Effet : P e r m e t à u n c a t c h e u r a c t i f d ’ a t t a q u e r t o u s l e sPerm et à un catcheur actif d’attaquer tous les a d v e r s a i r e s a c t i f s e n i n f l i g e a n t 1 0 d é g â t s c h a c u n . L eadversaires actifs en infligeant 10 dégâts chacun. Le c a t c h e u r s u b i t - 1 0 E N D a p r è s u t i l i s a t i o n .catcheur subit - 10 END après utilisation. E f f e t : P e r m e t à u n c a t c h e u r a c t i f d ’ a t t a q u e r t o u s l e s a d v e r s a i r e s a c t i f s e n i n f l i g e a n t 1 0 d é g â t s c h a c u n . L e c a t c h e u r s u b i t - 1 0 E N D a p r è s u t i l i s a t i o n .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Permet à un catcheur actif d’attaquer tous les adversaires actifs en infligeant 10 dégâts chacun. Le catcheur subit -10 END après utilisation."
+      }
+    ]
   },
   {
     "id": "objets-02",
@@ -894,10 +1381,16 @@
     "source": "Votre texte de paragraphe.pdf",
     "page": 2,
     "image": "public/cards/objets-02.png",
-    "textSnippet": "O B J E TO B J E TO B J E T R B â t o n d e K e n d oB â t o n d e K e n d oB â t o n d e K e n d o E f f e t :Effet : I n f l i g e + 1 0 d é g â t s à u n a d v e r s a i r e e t e m p ê c h e c e l u i - c iInflige + 10 dégâts à un adversaire et em pêche celui- ci d ’ u t i l i s e r u n e c a r t e M o m e n t u m a u p r o c h a i n t o u r .d’utiliser une carte M om entum au prochain tour. E f f e t : I n f l i g e + 1 0 d é g â t s à u n a d v e r s a i r e e t e m p ê c h e c e l u i - c i d ’ u t i l i s e r u n e c a r t e M o m e n t u m a u p r o c h a i n t o u r .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Inflige +10 dégâts à un adversaire et empêche celui-ci d’utiliser une carte Momentum au prochain tour."
+      }
+    ]
   },
   {
     "id": "objets-03",
@@ -909,10 +1402,16 @@
     "source": "Votre texte de paragraphe.pdf",
     "page": 3,
     "image": "public/cards/objets-03.png",
-    "textSnippet": "O B J E TO B J E TO B J E T R C h a i s e e n A c i e rC h a is e e n A c ie rC h a i s e e n A c i e r E f f e t :Effet : I n f l i g e + 1 5 d é g â t s à u n a d v e r s a i r e a c t i f , m a i s l eInflige + 15 dégâts à un adversaire actif, m ais le c a t c h e u r q u i l ’ u t i l i s e p e r d 5 E N D a p r è s l ’ a t t a q u e .catcheur qui l’utilise perd 5 END après l’attaque. E f f e t : I n f l i g e + 1 5 d é g â t s à u n a d v e r s a i r e a c t i f , m a i s l e c a t c h e u r q u i l ’ u t i l i s e p e r d 5 E N D a p r è s l ’ a t t a q u e .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Inflige +15 dégâts à un adversaire actif, mais le catcheur qui l’utilise perd 5 END après l’attaque."
+      }
+    ]
   },
   {
     "id": "objets-04",
@@ -924,10 +1423,16 @@
     "source": "Votre texte de paragraphe.pdf",
     "page": 4,
     "image": "public/cards/objets-04.png",
-    "textSnippet": "O B J E TO B J E TO B J E T R T A B L ET A B L ET A B L E E f f e t :Effet : I n f l i g e + 2 0 d é g â t s s i u n c a t c h e u r a v e c m i n i m u m 5 0 A T TInflige + 2 0 dégâts si un catcheur avec m inim um 5 0 ATT a t t a q u e u n a d v e r s a i r e . L a T a b l e e s t d é t r u i t e a p r è sattaque un adversaire. La Table est détruite après u t i l i s a t i o n .utilisation. E f f e t : I n f l i g e + 2 0 d é g â t s s i u n c a t c h e u r a v e c m i n i m u m 5 0 A T T a t t a q u e u n a d v e r s a i r e . L a T a b l e e s t d é t r u i t e a p r è s u t i l i s a t i o n .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Inflige +20 dégâts si un catcheur avec minimum 50 ATT attaque un adversaire. La table est détruite après utilisation."
+      }
+    ]
   },
   {
     "id": "objets-05",
@@ -939,10 +1444,16 @@
     "source": "Votre texte de paragraphe.pdf",
     "page": 5,
     "image": "public/cards/objets-05.png",
-    "textSnippet": "O B J E TO B J E TO B J E T S R C e i n t u r e U n i v e r s e l l eC e i n t u r e U n i v e r s e l l eC e i n t u r e U n i v e r s e l l e E f f e t :Effet : A j o u t e z + 1 0 A T T à u n c a t c h e u r a c t i f t a n t q u ’ i l e s t é q u i p é d eA joutez + 10 A TT à un ca tcheur a ctif ta nt qu’il est équipé de c e t t e c e i n t u r e . S i c e c a t c h e u r e s t R o m a n R e i g n s , i l g a g n ecette ceinture. Si ce ca tcheur est Rom a n Reigns, il ga gne é g a l e m e n t + 5 E N D c h a q u e t o u r .éga lem ent + 5 END cha que tour. E f f e t : A j o u t e z + 1 0 A T T à u n c a t c h e u r a c t i f t a n t q u ’ i l e s t é q u i p é d e c e t t e c e i n t u r e . S i c e c a t c h e u r e s t R o m a n R e i g n s , i l g a g n e é g a l e m e n t + 5 E N D c h a q u e t o u r .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Ajoutez +10 ATT à un catcheur actif tant qu’il est équipé de cette ceinture. Si ce catcheur est Roman Reigns, il gagne également +5 END chaque tour."
+      }
+    ]
   },
   {
     "id": "objets-06",
@@ -954,10 +1465,16 @@
     "source": "Votre texte de paragraphe.pdf",
     "page": 6,
     "image": "public/cards/objets-06.png",
-    "textSnippet": "O B J E TO B J E TO B J E T S R C e i n t u r e p o i d s l o u r d “ b i g g o l d ”C e i n t u r e p o i d s l o u r d “ b i g g o l d ”C e i n t u r e p o i d s l o u r d “ b i g g o l d ” E f f e t :Effet : s i c e t t e c a r t e e s t e q u i p é a u n c a t c h e u r v o u s p o u v e zsi cette ca rte est equipé a un ca tcheur vous pouvez i n v o q u é d e u x f o i s c e t o u r - c i . S i c e s c a t c h e u r s s o n t e d g e ,invoqué deux fois ce tour- ci. Si ces ca tcheurs sont edge, t r i p l e h e t r a n d y o r t o n , i l s p e u v e n t e v i t e r u n e a t t a q u etriple h et ra ndy orton, ils peuvent eviter une a tta que a d v r a i r s e u n e f o i s p a r p a r t i .a dvra irse une fois pa r pa rti . E f f e t : s i c e t t e c a r t e e s t e q u i p é a u n c a t c h e u r v o u s p o u v e z i n v o q u é d e u x f o i s c e t o u r - c i . S i c e s c a t c h e u r s s o n t e d g e , t r i p l e h e t r a n d y o r t o n , i l s p e u v e n t e v i t e r u n e a t t a q u e a d v r a i r s e u n e f o i s p a r p a r t i .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Si cette carte est équipée à un catcheur, vous pouvez invoquer deux fois ce tour-ci. Si ces catcheurs sont Edge, Triple H et Randy Orton, ils peuvent éviter une attaque adverse une fois par partie."
+      }
+    ]
   },
   {
     "id": "objets-07",
@@ -969,10 +1486,16 @@
     "source": "Votre texte de paragraphe.pdf",
     "page": 7,
     "image": "public/cards/objets-07.png",
-    "textSnippet": "O B J E TO B J E TO B J E T S R C e i n t u r e p o i d s l o u r dC e in t u r e p o id s l o u r dC e i n t u r e p o i d s l o u r d E f f e t :Effet : u n e f o i s p a r t o u r s i c e t t e c a r t e e s t e q u p é à u n c a t c h e u rune fois par tour si cette carte est equpé à un catcheur v o u s p o u v e r j o u e z d e u x c a r t e m o m e n t u mvous pouver jouez deux carte m om entum . S i c e s c a t c h e u r s. Si ces catcheurs s o n t R o m a n R e i g n s “ s h i e l d ” , s e t h r o l l i n s “ s h i e l d ” e t b r o c ksont Rom an Reigns “shield”,seth rollins “shield” et brock l e s n a r , i l s g a g n e n t é g a l e m e n t + 5 a t t c h a q u e t o u r .lesnar , ils gagnent égalem ent + 5 att chaque tour. E f f e t : u n e f o i s p a r t o u r s i c e t t e c a r t e e s t e q u p é à u n c a t c h e u r v o u s p o u v e r j o u e z d e u x c a r t e m o m e n t u m . S i c e s c a t c h e u r s s o n t R o m a n R e i g n s “ s h i e l d ” , s e t h r o l l i n s “ s h i e l d ” e t b r o c k l e s n a r , i l s g a g n e n t é g a l e m e n t + 5 a t t c h a q u e t o u r .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Une fois par tour, si cette carte est équipée à un catcheur, vous pouvez jouer deux cartes Momentum. Si ces catcheurs sont Roman Reigns « Shield », Seth Rollins « Shield » et Brock Lesnar, ils gagnent également +5 ATT chaque tour."
+      }
+    ]
   },
   {
     "id": "objets-08",
@@ -984,10 +1507,16 @@
     "source": "Votre texte de paragraphe.pdf",
     "page": 8,
     "image": "public/cards/objets-08.png",
-    "textSnippet": "O B J E TO B J E TO B J E T S R C e i n t u r e w w e “ t h e c h a m p ”C e in t u r e w w e “t h e c h a m p ”C e i n t u r e w w e “ t h e c h a m p ” E f f e t :Effet : A j o u t e z + 1 0 e n d à u n c a t c h e u r a c t i f t a n t q u ’ i l e s t é q u i p é d eAjoutez + 10 end à un catcheur actif tant qu’il est équipé de c e t t e c e i n t u r e . S i c e s c a t c h e u r s o n t j o h n c e n a e t c m p u n k ,cette ceinture. Si ces catcheur sont john cena et cm punk, i l s p e u v e n t a t t a q u e r d e u x c e t o u r - c i .ils peuvent attaquer deux ce tour- ci. E f f e t : A j o u t e z + 1 0 e n d à u n c a t c h e u r a c t i f t a n t q u ’ i l e s t é q u i p é d e c e t t e c e i n t u r e . S i c e s c a t c h e u r s o n t j o h n c e n a e t c m p u n k , i l s p e u v e n t a t t a q u e r d e u x c e t o u r - c i .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Ajoutez +10 END à un catcheur actif tant qu’il est équipé de cette ceinture. Si ces catcheurs sont John Cena et CM Punk, ils peuvent attaquer deux fois ce tour-ci."
+      }
+    ]
   },
   {
     "id": "momentum-01",
@@ -999,11 +1528,17 @@
     "source": "model momentum carte .pdf",
     "page": 1,
     "image": "public/cards/momentum-01.png",
-    "textSnippet": "M O M E N T U MM O M E N T U MM O M E N T U M D O M I N A T I O N T O T A L ED O M I N A T I O N T O T A L ED O M I N A T I O N T O T A L E S S RS S RS S R Effet :Effet : Tant qu’un membre de The Bloodline est actif, lesTant qu’un membre de The Bloodline est actif, les adversaires ne peuvent pas sacrifier leurs catcheursadversaires ne peuvent pas sacrifier leurs catcheurs pour invoquer une SSR pendant ce tour.pour invoquer une SSR pendant ce tour. Effet : Tant qu’un membre de The Bloodline est actif, les adversaires ne peuvent pas sacrifier leurs catcheurs pour invoquer une SSR pendant ce tour.",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true,
-    "rapid": true
+    "rapid": true,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Tant qu’un membre de The Bloodline est actif, les adversaires ne peuvent pas sacrifier leurs catcheurs pour invoquer une SSR pendant ce tour."
+      }
+    ]
   },
   {
     "id": "momentum-02",
@@ -1015,11 +1550,17 @@
     "source": "model momentum carte .pdf",
     "page": 2,
     "image": "public/cards/momentum-02.png",
-    "textSnippet": "H O T T A G M O M E N TH O T T A G M O M E N TH O T T A G M O M E N T M O M E N T U MM O M E N T U MM O M E N T U M S RS RS R E F F E T :E F F E T : C H A N G E R V O T R E C A T C H E U R A C T I F A V E C U N C A C T E U R N O N A C T I F .C H A N G E R V O T R E C A T C H E U R A C T IF A V E C U N C A C T E U R N O N A C T IF . E F F E T : C H A N G E R V O T R E C A T C H E U R A C T I F A V E C U N C A C T E U R N O N A C T I F .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true,
-    "rapid": true
+    "rapid": true,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Changez votre catcheur actif avec un catcheur non actif."
+      }
+    ]
   },
   {
     "id": "momentum-03",
@@ -1031,10 +1572,16 @@
     "source": "model momentum carte .pdf",
     "page": 3,
     "image": "public/cards/momentum-03.png",
-    "textSnippet": "M O M E N T U MM O M E N T U MM O M E N T U M s a u t d e l ’A N G Es a u t d e l ’A N G Es a u t d e l ’A N G E RRR - - - - - - - E f f e t :Effet : A j o u t e z + 1 5 A T T à v o t r e c a t c h e u r a c t i f c e t o u r - c i , m a i s i lAjoutez + 1 5 ATT à votre catcheur actif ce tour- ci, mais il p e r d 5 E N D a p r è s l ' a t t a q u e .perd 5 END après l'attaque. E f f e t : A j o u t e z + 1 5 A T T à v o t r e c a t c h e u r a c t i f c e t o u r - c i , m a i s i l p e r d 5 E N D a p r è s l ' a t t a q u e .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Ajoutez +15 ATT à votre catcheur actif ce tour-ci, mais il perd 5 END après l’attaque."
+      }
+    ]
   },
   {
     "id": "momentum-04",
@@ -1046,10 +1593,16 @@
     "source": "model momentum carte .pdf",
     "page": 4,
     "image": "public/cards/momentum-04.png",
-    "textSnippet": "M O M E N T U M I M P R é V U EM O M E N T U M I M P R é V U EM O M E N T U M I M P R é V U E M O M E N T U MM O M E N T U MM O M E N T U M S RS RS R - - - - - - - E f f e t :Effet : S i v o u s c o n t r ô l e r a u c u n e S S R v o u s p o u v e z j o u é 2 c a r t e sSi vous contrôler aucune SSR vous pouvez joué 2 cartes S U P P L é M E N T A I R E SSUPPLéM ENTAIRES M o m e n t u m c e t o u r - c i .M om entum ce tour-ci. E f f e t : S i v o u s c o n t r ô l e r a u c u n e S S R v o u s p o u v e z j o u é 2 c a r t e s S U P P L é M E N T A I R E S M o m e n t u m c e t o u r - c i .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Si vous ne contrôlez aucune SSR, vous pouvez jouer 2 cartes Momentum supplémentaires ce tour-ci."
+      }
+    ]
   },
   {
     "id": "momentum-05",
@@ -1061,10 +1614,16 @@
     "source": "model momentum carte .pdf",
     "page": 5,
     "image": "public/cards/momentum-05.png",
-    "textSnippet": "P R O M O S t r a t é g i q u eP R O M O S t r a t é g i q u e P R O M O S t r a t é g i q u e M O M E N T U MM O M E N T U MM O M E N T U M S RS RS R - - - - - - - E f f e t :Effet : C h o i s i s s e z u n e c a r t e M o m e n t u m d a n s v o t r e d e c k e tChoisissez une ca rte M om entum da ns votre deck et a j o u t e z - l a à v o t r e m a i n .a joutez- la à votre m a in. E f f e t : C h o i s i s s e z u n e c a r t e M o m e n t u m d a n s v o t r e d e c k e t a j o u t e z - l a à v o t r e m a i n .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Choisissez une carte Momentum dans votre deck et ajoutez-la à votre main."
+      }
+    ]
   },
   {
     "id": "momentum-06",
@@ -1076,11 +1635,17 @@
     "source": "model momentum carte .pdf",
     "page": 6,
     "image": "public/cards/momentum-06.png",
-    "textSnippet": "A M B U L A N C EA M B U L A N C E A M B U L A N C E M O M E N T U MM O M E N T U MM O M E N T U M S RS RS R - - - - - - - E f f e t :Effet : S i u n c a t c h e u r S S R e s t a c t i f , s o i g n e z + 1 0 E N D t o u s v o sSi un ca tcheur SSR est a ctif, soignez + 10 END tous vos c a t c h e u r s .ca tcheurs. E f f e t : S i u n c a t c h e u r S S R e s t a c t i f , s o i g n e z + 1 0 E N D t o u s v o s c a t c h e u r s .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true,
-    "rapid": true
+    "rapid": true,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Si un catcheur SSR est actif, soignez +10 END tous vos catcheurs."
+      }
+    ]
   },
   {
     "id": "momentum-07",
@@ -1092,10 +1657,16 @@
     "source": "model momentum carte .pdf",
     "page": 7,
     "image": "public/cards/momentum-07.png",
-    "textSnippet": "D é f e n s e I n é b r a n l a b l eD é f e n s e In é b r a n l a b l eD é f e n s e I n é b r a n l a b l e M O M E N T U MM O M E N T U MM O M E N T U M S RS RS R E f f e t :Effet : S i v o u s c o n t r o l e r K e v i n O w e n s r é d u i s e z l e s d é g â t s d eSi vous controler Kevin Ow ens réduisez les dégâ ts de t o u t e s l e s a t t a q u e s a d v e r s e s d e - 4 0 c e t o u r - c i .toutes les a tta ques a dverses de - 40 ce tour- ci. E f f e t : S i v o u s c o n t r o l e r K e v i n O w e n s r é d u i s e z l e s d é g â t s d e t o u t e s l e s a t t a q u e s a d v e r s e s d e - 4 0 c e t o u r - c i .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Si vous contrôlez Kevin Owens, réduisez les dégâts de toutes les attaques adverses de -40 ce tour-ci."
+      }
+    ]
   },
   {
     "id": "momentum-08",
@@ -1107,10 +1678,16 @@
     "source": "model momentum carte .pdf",
     "page": 8,
     "image": "public/cards/momentum-08.png",
-    "textSnippet": "R A P p e l S T R A T é G I Q U ER A P p e l S T R A T é G I Q U E R A P p e l S T R A T é G I Q U E M O M E N T U MM O M E N T U MM O M E N T U M S RS RS R - - - - - - - E f f e t :Effet : P i o c h e z 2 c a r t e s s i v o u s c o n t r ô l e z u n e S S R .Piochez 2 cartes si vous contrôlez une SSR. E f f e t : P i o c h e z 2 c a r t e s s i v o u s c o n t r ô l e z u n e S S R .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Piochez 2 cartes si vous contrôlez une SSR."
+      }
+    ]
   },
   {
     "id": "momentum-09",
@@ -1122,10 +1699,16 @@
     "source": "model momentum carte .pdf",
     "page": 9,
     "image": "public/cards/momentum-09.png",
-    "textSnippet": "- - - - - - - - - - - - L U C H A S T Y L E SL U C H A S T Y L E SL U C H A S T Y L E S M O M E N T U MM O M E N T U MM O M E N T U M R E f f e t :Effet : P e r m e t à u n c a t c h e u r a v E C M I N I M U M d e 7 0 E N D d ' a t t a q u e rPermet à un catcheur avEC MINIMUM de 70 END d'attaquer d e u x f o i s c e t o u r - c i .deux fois ce tour- ci. E f f e t : P e r m e t à u n c a t c h e u r a v E C M I N I M U M d e 7 0 E N D d ' a t t a q u e r d e u x f o i s c e t o u r - c i .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Permet à un catcheur avec minimum 70 END d’attaquer deux fois ce tour-ci."
+      }
+    ]
   },
   {
     "id": "momentum-10",
@@ -1137,11 +1720,17 @@
     "source": "model momentum carte .pdf",
     "page": 10,
     "image": "public/cards/momentum-10.png",
-    "textSnippet": "L ' U l t i m e O p p o r t u n i t éL 'U l t im e O p p o r t u n it éL ' U l t i m e O p p o r t u n i t é S R - - - - - - - E f f e t :E f f e t : P i o c h e z u n e c a r t e p o u r c h a q u e c a t c h e u r m i s K . O d a n sP io c h e z u n e c a r t e p o u r c h a q u e c a t c h e u r m is K .O d a n s v o t r e é q u i p e .v o t r e é q u ip e . E f f e t : P i o c h e z u n e c a r t e p o u r c h a q u e c a t c h e u r m i s K . O d a n s v o t r e é q u i p e . M O M E N T U MM O M E N T U MM O M E N T U M",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true,
-    "rapid": true
+    "rapid": true,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Piochez une carte pour chaque catcheur mis K.O. dans votre équipe."
+      }
+    ]
   },
   {
     "id": "momentum-11",
@@ -1153,10 +1742,16 @@
     "source": "model momentum carte .pdf",
     "page": 11,
     "image": "public/cards/momentum-11.png",
-    "textSnippet": "P u i s s a n c e d e G r o u p eP u is s a n c e d e G r o u p eP u i s s a n c e d e G r o u p e m o m e n t u mm o m e n t u mm o m e n t u m RRR E f f e t :E f f e t : S i v o u s a v e z 2 c a t c h e u r s a c t i f s , t o u s v o s c a t c h e u r sS i v o u s a v e z 2 c a t c h e u r s a c t if s , t o u s v o s c a t c h e u r s g a g n e n t + 5 A T T c e t o u r - c i .g a g n e n t + 5 A T T c e t o u r - c i. E f f e t : S i v o u s a v e z 2 c a t c h e u r s a c t i f s , t o u s v o s c a t c h e u r s g a g n e n t + 5 A T T c e t o u r - c i .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Si vous avez 2 catcheurs actifs, tous vos catcheurs gagnent +5 ATT ce tour-ci."
+      }
+    ]
   },
   {
     "id": "momentum-12",
@@ -1168,11 +1763,17 @@
     "source": "model momentum carte .pdf",
     "page": 12,
     "image": "public/cards/momentum-12.png",
-    "textSnippet": "S T O P M O M E N T U MS T O P M O M E N T U MS T O P M O M E N T U M R - - - - - - - E f f e t :Effet : E m p ê c h e z u n a d v e r s a i r e d e j o u e r u n e c a r t e M o m e n t u m c eEmpêchez un adversaire de jouer une carte Momentum ce t o u r - c i .tour-ci. E f f e t : E m p ê c h e z u n a d v e r s a i r e d e j o u e r u n e c a r t e M o m e n t u m c e t o u r - c i . M O M E N T U MM O M E N T U MM O M E N T U M",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true,
-    "rapid": true
+    "rapid": true,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Empêchez un adversaire de jouer une carte Momentum ce tour-ci."
+      }
+    ]
   },
   {
     "id": "momentum-13",
@@ -1184,10 +1785,16 @@
     "source": "model momentum carte .pdf",
     "page": 13,
     "image": "public/cards/momentum-13.png",
-    "textSnippet": "A c k n o w l e d g e m eA c k n o w l e d g e m eA c k n o w l e d g e m e M O M E N T U MM O M E N T U MM O M E N T U M S S R E f f e t :Effet : S i R o m a n R e i g n s e s t a c t i f , a n n u l e z t o u s l e s e f f e t s a d v e r s e s .Si Roman Reigns est actif, annulez tous les effets adverses. E f f e t : S i R o m a n R e i g n s e s t a c t i f , a n n u l e z t o u s l e s e f f e t s a d v e r s e s .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Si Roman Reigns est actif, annulez tous les effets adverses."
+      }
+    ]
   },
   {
     "id": "momentum-14",
@@ -1199,10 +1806,16 @@
     "source": "model momentum carte .pdf",
     "page": 14,
     "image": "public/cards/momentum-14.png",
-    "textSnippet": "I n s t i n c t S a u v a g eI n s t i n c t S a u v a g eI n s t i n c t S a u v a g e M O M E N T U MM O M E N T U MM O M E N T U M RRR - - - - - - - E f f e t :Effet : A j o u t e z + 1 5 A T T à v o t r e c a t c h e u r a c t i f , m a i s i l n e p e u tA joutez + 1 5 A TT à votre ca tcheur a ctif, m a is il ne peut p a s a t t a q u e r a u p r o c h a i n t o u r .pa s a tta quer a u procha in tour. E f f e t : A j o u t e z + 1 5 A T T à v o t r e c a t c h e u r a c t i f , m a i s i l n e p e u t p a s a t t a q u e r a u p r o c h a i n t o u r .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Ajoutez +15 ATT à votre catcheur actif, mais il ne peut pas attaquer au prochain tour."
+      }
+    ]
   },
   {
     "id": "momentum-15",
@@ -1214,10 +1827,16 @@
     "source": "model momentum carte .pdf",
     "page": 15,
     "image": "public/cards/momentum-15.png",
-    "textSnippet": "P I O C H E T A C T I Q U EP I O C H E T A C T I Q U EP I O C H E T A C T I Q U E M O M E N T U MM O M E N T U MM O M E N T U M S R - - - - - - - E f f e t :Effet : P i o c h e z 2 c a r t e s s i v o u s c o n t r ô l e z u n m e m b r e d ’ u n e f a c t i o n .Pioch ez 2 ca r tes si v ous con tr ôlez un m em br e d’un e fa ction . E f f e t : P i o c h e z 2 c a r t e s s i v o u s c o n t r ô l e z u n m e m b r e d ’ u n e f a c t i o n .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Piochez 2 cartes si vous contrôlez un membre d’une faction."
+      }
+    ]
   },
   {
     "id": "momentum-16",
@@ -1229,10 +1848,16 @@
     "source": "model momentum carte .pdf",
     "page": 16,
     "image": "public/cards/momentum-16.png",
-    "textSnippet": "R e t o u r I n a t t e n d uR e t o u r In a t t e n d uR e t o u r I n a t t e n d u M O M E N T U MM O M E N T U MM O M E N T U M S S RS S RS S R E f f e t :E f f e t : P e r m e t d e r a m e n e r u n c a t c h e u r K . O . s u r l e r i n gP e r m e t d e r a m e n e r u n c a t c h e u r K .O . s u r l e r in g .. E f f e t : P e r m e t d e r a m e n e r u n c a t c h e u r K . O . s u r l e r i n g .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Permet de ramener un catcheur K.O. sur le ring."
+      }
+    ]
   },
   {
     "id": "momentum-17",
@@ -1244,10 +1869,16 @@
     "source": "model momentum carte .pdf",
     "page": 17,
     "image": "public/cards/momentum-17.png",
-    "textSnippet": "L ’ A p p e l d u M a i n E v e n tL ’A p p e l d u M a in E v e n tL ’ A p p e l d u M a i n E v e n t M O M E N T U MM O M E N T U MM O M E N T U M S RS RS R - - - - - - - E f f e t :Effet : T a n t q u e J e y U s o e s t a c t i f , p i o c h e z 2 c a r t e sTant que Jey Uso est actif, piochez 2 cartes E f f e t : T a n t q u e J e y U s o e s t a c t i f , p i o c h e z 2 c a r t e s",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Tant que Jey Uso est actif, piochez 2 cartes."
+      }
+    ]
   },
   {
     "id": "momentum-18",
@@ -1259,10 +1890,16 @@
     "source": "model momentum carte .pdf",
     "page": 18,
     "image": "public/cards/momentum-18.png",
-    "textSnippet": "A T E M I S t r a t é g i q u eA T E M I S t r a t é g i q u eA T E M I S t r a t é g i q u e M O M E N T U MM O M E N T U MM O M E N T U M RRR - - - - - - - E f f e t :Effet : A n n u l e l ' e f f e t p a s s i f d u c a t c h e u r a c t i f d eA n n ule l'effet pa ssif du ca tch eur a ctif de l ’ a d v e r s a i r e c e t o u r - c i .l’a dv er sa ir e ce tour - ci. E f f e t : A n n u l e l ' e f f e t p a s s i f d u c a t c h e u r a c t i f d e l ’ a d v e r s a i r e c e t o u r - c i .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Annule l’effet passif du catcheur actif de l’adversaire ce tour-ci."
+      }
+    ]
   },
   {
     "id": "momentum-19",
@@ -1274,11 +1911,17 @@
     "source": "model momentum carte .pdf",
     "page": 19,
     "image": "public/cards/momentum-19.png",
-    "textSnippet": "N E V E R G I V E U PN E V E R G I V E U PN E V E R G I V E U P M O M E N T U MM O M E N T U MM O M E N T U M S RS RS R E f f e t :E f f e t : I n v o q u e z i m m é d i a t e m e n t u n c a t c h e u r d e v o t r e m a i n s u r l eIn v o q u e z im m é d ia t e m e n t u n c a t c h e u r d e v o t r e m a in s u r l e r i n g .r in g . E f f e t : I n v o q u e z i m m é d i a t e m e n t u n c a t c h e u r d e v o t r e m a i n s u r l e r i n g .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true,
-    "rapid": true
+    "rapid": true,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Invoquez immédiatement un catcheur de votre main sur le ring."
+      }
+    ]
   },
   {
     "id": "momentum-20",
@@ -1290,11 +1933,17 @@
     "source": "model momentum carte .pdf",
     "page": 20,
     "image": "public/cards/momentum-20.png",
-    "textSnippet": "C O N T R EC O N T R EC O N T R E M O M E N T U MM O M E N T U MM O M E N T U M RRR E f f e t :Effet : E m p ê c h e z u n a d v e r s a i r e d ' a t t a q u e r c e t o u r - c i .Em pêchez un adversaire d'attaquer ce tour-ci. E f f e t : E m p ê c h e z u n a d v e r s a i r e d ' a t t a q u e r c e t o u r - c i .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true,
-    "rapid": true
+    "rapid": true,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Empêchez un adversaire d’attaquer ce tour-ci."
+      }
+    ]
   },
   {
     "id": "momentum-21",
@@ -1306,10 +1955,16 @@
     "source": "model momentum carte .pdf",
     "page": 21,
     "image": "public/cards/momentum-21.png",
-    "textSnippet": "L E R E T O U R D E L A B E T EL E R E T O U R D E L A B E T EL E R E T O U R D E L A B E T E M O M E N T U MM O M E N T U MM O M E N T U M S S RS S RS S R - - - - - - - E f f e t :E f f e t : S i B r o c k L e s n a r n ’ e s t p a s s u r l e r i n g , i n v o q u e z - l eS i B r o c k L e s n a r n ’e s t p a s s u r l e r in g , in v o q u e z - l e d i r e c t e m e n t s a n s s a c r i f i e r u n c a t c h e u r a c t i f .d ir e c t e m e n t s a n s s a c r if ie r u n c a t c h e u r a c t if . E f f e t : S i B r o c k L e s n a r n ’ e s t p a s s u r l e r i n g , i n v o q u e z - l e d i r e c t e m e n t s a n s s a c r i f i e r u n c a t c h e u r a c t i f .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Si Brock Lesnar n’est pas sur le ring, invoquez-le directement sans sacrifier un catcheur actif."
+      }
+    ]
   },
   {
     "id": "momentum-22",
@@ -1321,10 +1976,16 @@
     "source": "model momentum carte .pdf",
     "page": 22,
     "image": "public/cards/momentum-22.png",
-    "textSnippet": "V i s i o n N A I R E S t r a t é g i q u eV i s i o n N A I R E S t r a t é g i q u e V i s i o n N A I R E S t r a t é g i q u e M O M E N T U MM O M E N T U MM O M E N T U M S S RS S RS S R - - - - - - - E f f e t :E f f e t : P i o c h e z u n e c a r t e S e t h R o l l i n s d e p u i s v o t r e d e c k . S i e l l eP io c h e z u n e c a r t e S e t h R o l l in s d e p u is v o t r e d e c k . S i e l l e e s t d a n s v o t r e m a i n , v o u s p o u v e z l ' i n v o q u e r d i r e c t e m e n t .e s t d a n s v o t r e m a in , v o u s p o u v e z l 'in v o q u e r d ir e c t e m e n t . E f f e t : P i o c h e z u n e c a r t e S e t h R o l l i n s d e p u i s v o t r e d e c k . S i e l l e e s t d a n s v o t r e m a i n , v o u s p o u v e z l ' i n v o q u e r d i r e c t e m e n t .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Piochez une carte Seth Rollins depuis votre deck. Si elle est dans votre main, vous pouvez l’invoquer directement."
+      }
+    ]
   },
   {
     "id": "momentum-23",
@@ -1336,14 +1997,20 @@
     "source": "model momentum carte .pdf",
     "page": 23,
     "image": "public/cards/momentum-23.png",
-    "textSnippet": "S y m p h o n i e d u R i n g g é n é r a l eS y m p h o n ie d u R in g g é n é r a l eS y m p h o n i e d u R i n g g é n é r a l e m o m e n t u mm o m e n t u mm o m e n t u m S RS RS R E f f e t :Effet : I n v o q u e z G u n t h e r d e p u i s v o t r e m a i n o u v o t r e d e c kInvoquez Gunther depuis votre main ou votre deck d i r e c t e m e n t s u r l e r i n g s a n s s a c r i f i e r u n c a t c h e u r a c t i f .directement sur le ring sans sacrifier un catcheur actif. E f f e t : I n v o q u e z G u n t h e r d e p u i s v o t r e m a i n o u v o t r e d e c k d i r e c t e m e n t s u r l e r i n g s a n s s a c r i f i e r u n c a t c h e u r a c t i f .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Invoquez Gunther depuis votre main ou votre deck directement sur le ring sans sacrifier un catcheur actif."
+      }
+    ]
   },
   {
     "id": "momentum-24",
-    "displayName": "TTTRRRIIIPPPLLLEEE PPPOOOWWWEEERRR BBBOOOMMMBBBEEE",
+    "displayName": "TRIPLE POWER BOMBE",
     "category": "Momentum",
     "rarity": "SR",
     "attack": null,
@@ -1351,10 +2018,16 @@
     "source": "model momentum carte .pdf",
     "page": 24,
     "image": "public/cards/momentum-24.png",
-    "textSnippet": "T R I P L E P O W E R B O M B ET R I P L E P O W E R B O M B ET R I P L E P O W E R B O M B E M O M E N T U MM O M E N T U MM O M E N T U M S R E f f e t :Effet : s i v o u s c o n t r ô l e z u n m e m b r e d u s h i e l d v o u s p o u v e zsi vous contrôlez un membre du shield vous pouvez I n v o q u e z j u s q u ' à 2 m e m b r e s d u S h i e l d d e p u i s v o t r e d e c k .Invoquez jusqu'à 2 membres du Shield depuis votre deck. E f f e t : s i v o u s c o n t r ô l e z u n m e m b r e d u s h i e l d v o u s p o u v e z I n v o q u e z j u s q u ' à 2 m e m b r e s d u S h i e l d d e p u i s v o t r e d e c k .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Si vous contrôlez un membre du Shield, vous pouvez invoquer jusqu’à 2 membres du Shield depuis votre deck."
+      }
+    ]
   },
   {
     "id": "momentum-25",
@@ -1366,10 +2039,16 @@
     "source": "model momentum carte .pdf",
     "page": 25,
     "image": "public/cards/momentum-25.png",
-    "textSnippet": "M a i n d e l ’ O m b r eM a i n d e l ’O m b r eM a i n d e l ’ O m b r e M O M E N T U MM O M E N T U MM O M E N T U M S S RS S RS S R E f f e t :E f f e t : P e r m e t d e p i o c h e r T h e U n d e r t a k e r d e p u i s v o t r e d e c k e t d eP e r m e t d e p io c h e r T h e U n d e r t a k e r d e p u is v o t r e d e c k e t d e l ’ i n v o q u e r d i r e c t e m e n t a v e c 1 0 E N D s u p p l é m e n t a i r e s .l ’in v o q u e r d ir e c t e m e n t a v e c 1 0 E N D s u p p l é m e n t a ir e s . E f f e t : P e r m e t d e p i o c h e r T h e U n d e r t a k e r d e p u i s v o t r e d e c k e t d e l ’ i n v o q u e r d i r e c t e m e n t a v e c 1 0 E N D s u p p l é m e n t a i r e s .",
     "playable": false,
     "excludedReason": "Carte exclue à la demande de l’utilisateur.",
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Permet de piocher The Undertaker depuis votre deck et de l’invoquer directement avec 10 END supplémentaires."
+      }
+    ]
   },
   {
     "id": "momentum-26",
@@ -1381,10 +2060,16 @@
     "source": "model momentum carte .pdf",
     "page": 26,
     "image": "public/cards/momentum-26.png",
-    "textSnippet": "B o t t e C e l t eB o t t e C e l t e B o t t e C e l t e M O M E N T U MM O M E N T U MM O M E N T U M RRR - - - - - - - E f f e t :Effet : a j o u t e z - l e à v o t r e m a i n . S i S h e a m u s a t t a q u e c e t o u r - c i , i lajoutez- le à votre main. Si Sheamus attaque ce tour- ci, il g a g n e + 1 5 A T T s u p p l é m e n t a i r e s .gagne + 15 ATT supplémentaires. E f f e t : a j o u t e z - l e à v o t r e m a i n . S i S h e a m u s a t t a q u e c e t o u r - c i , i l g a g n e + 1 5 A T T s u p p l é m e n t a i r e s .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Ajoutez-le à votre main. Si Sheamus attaque ce tour-ci, il gagne +15 ATT supplémentaires."
+      }
+    ]
   },
   {
     "id": "momentum-27",
@@ -1396,10 +2081,16 @@
     "source": "model momentum carte .pdf",
     "page": 27,
     "image": "public/cards/momentum-27.png",
-    "textSnippet": "a m e r i c a n d r e a ma m e r ic a n d r e a ma m e r i c a n d r e a m M O M E N T U MM O M E N T U MM O M E N T U M S S RS S RS S R E f f e t :Effet : P e r m e t d e p i o c h e r c o d y r h o d e s d e p u i s v o t r e d e c k e t d ePermet de piocher cody rhodes depuis votre deck et de l ’ i n v o q u e r d i r e c t e m e n t .l’invoquer directement. E f f e t : P e r m e t d e p i o c h e r c o d y r h o d e s d e p u i s v o t r e d e c k e t d e l ’ i n v o q u e r d i r e c t e m e n t .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Permet de piocher Cody Rhodes depuis votre deck et de l’invoquer directement."
+      }
+    ]
   },
   {
     "id": "momentum-28",
@@ -1411,10 +2102,16 @@
     "source": "model momentum carte .pdf",
     "page": 28,
     "image": "public/cards/momentum-28.png",
-    "textSnippet": "c u l t e d e l a p e r s o n n a l i t éc u l t e d e l a p e r s o n n a l i t éc u l t e d e l a p e r s o n n a l i t é M O M E N T U MM O M E N T U MM O M E N T U M S S RS S RS S R E f f e t :Effet : P i o c h e z u n e c a r t e c m p u n k d e p u i s v o t r e d e c k . S i e l l e e s tPiochez une carte cm punk depuis votre deck. Si elle est d a n s v o t r e m a i n , v o u s p o u v e z l ' i n v o q u e r d i r e c t e m e n t .dans votre m ain, vous pouvez l'invoquer directem ent. E f f e t : P i o c h e z u n e c a r t e c m p u n k d e p u i s v o t r e d e c k . S i e l l e e s t d a n s v o t r e m a i n , v o u s p o u v e z l ' i n v o q u e r d i r e c t e m e n t .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Piochez une carte CM Punk depuis votre deck. Si elle est dans votre main, vous pouvez l’invoquer directement."
+      }
+    ]
   },
   {
     "id": "momentum-29",
@@ -1426,10 +2123,16 @@
     "source": "model momentum carte .pdf",
     "page": 29,
     "image": "public/cards/momentum-29.png",
-    "textSnippet": "t h e c h a m pt h e c h a m pt h e c h a m p M O M E N T U MM O M E N T U MM O M E N T U M S S RS S RS S R - - - - - - - E f f e t :Effet : S i j o h n c e n a n ’ e s t p a s s u r l e r i n g , i n v o q u e z - l eSi john cena n’est pa s sur le ring, invoquez- le d i r e c t e m e n t s a n s s a c r i f i e r u n c a t c h e u r a c t i f .directem ent sa ns sa crifier un ca tcheur a ctif. E f f e t : S i j o h n c e n a n ’ e s t p a s s u r l e r i n g , i n v o q u e z - l e d i r e c t e m e n t s a n s s a c r i f i e r u n c a t c h e u r a c t i f .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Si John Cena n’est pas sur le ring, invoquez-le directement sans sacrifier un catcheur actif."
+      }
+    ]
   },
   {
     "id": "momentum-30",
@@ -1441,9 +2144,15 @@
     "source": "model momentum carte .pdf",
     "page": 30,
     "image": "public/cards/momentum-30.png",
-    "textSnippet": "t i m e t o p l a y t h e g a m et i m e t o p l a y t h e g a m et i m e t o p l a y t h e g a m e m o m e n t u mm o m e n t u mm o m e n t u m S RS RS R E f f e t :E f f e t : I n v o q u e z t r i p l e h d e p u i s v o t r e m a i n o u v o t r e d e c kIn v o q u e z t r ip l e h d e p u is v o t r e m a in o u v o t r e d e c k d i r e c t e m e n t s u r l e r i n g .d ir e c t e m e n t s u r l e r in g . E f f e t : I n v o q u e z t r i p l e h d e p u i s v o t r e m a i n o u v o t r e d e c k d i r e c t e m e n t s u r l e r i n g .",
     "playable": true,
     "excludedReason": null,
-    "needsReview": true
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Invoquez Triple H depuis votre main ou votre deck directement sur le ring."
+      }
+    ]
   }
 ]
