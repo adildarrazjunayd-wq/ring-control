@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
 import {resolve} from 'node:path';
-const cards=JSON.parse(readFileSync(new URL('./catalog.json',import.meta.url),'utf8'));
+const cards=JSON.parse(readFileSync(new URL('../data/catalog.json',import.meta.url),'utf8'));
 test('catalogue couvre les 96 pages des cinq PDF sans identifiants dupliqués',()=>{assert.equal(cards.length,96);assert.equal(new Set(cards.map(c=>c.id)).size,96)});
 test('les catégories suivent le contenu des pages, y compris le PDF Wyatt mixte',()=>{const counts=Object.fromEntries(['Catcheur','Manager','Objet','Momentum','Référence'].map(x=>[x,cards.filter(c=>c.category===x).length]));assert.deepEqual(counts,{Catcheur:47,Manager:5,Objet:9,Momentum:34,'Référence':1});assert.equal(cards.find(c=>c.id==='wyatt-05').category,'Momentum');assert.equal(cards.find(c=>c.id==='wyatt-07').category,'Objet')});
 test('The Undertaker, Rayback, Main de l’Ombre et le dos ne sont pas jouables',()=>{assert.deepEqual(cards.filter(c=>!c.playable).map(c=>c.id).sort(),['catcheur-29','catcheur-30','catcheur-37','catcheur-40','momentum-25'].sort());assert.equal(cards.filter(c=>c.playable).length,91)});

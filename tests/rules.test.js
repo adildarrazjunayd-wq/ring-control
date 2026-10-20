@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateDeck,normalSummonRequirement,validateNormalSummon,canDirectAttack,resolveDamage,canMovePosition,startMatch,drawAtTurnStart,damagePlayer,activateEffect,cancelEffect} from './rules.js';
+import {validateDeck,normalSummonRequirement,validateNormalSummon,canDirectAttack,resolveDamage,canMovePosition,startMatch,drawAtTurnStart,damagePlayer,activateEffect,cancelEffect} from '../src/engine/rules.js';
 const forty=Array.from({length:40},(_,i)=>`card-${Math.floor(i/2)}`);
 test('deck de 40 cartes et deux exemplaires est valide',()=>assert.equal(validateDeck({cards:forty}).valid,true));
 test('40 cartes avec trois exemplaires est refusé',()=>{const cards=[...forty];cards[2]='card-0';assert.equal(validateDeck({cards}).valid,false)});

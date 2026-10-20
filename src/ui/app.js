@@ -1,9 +1,9 @@
-import { DECK_MIN, DECK_MAX, COPIES_MAX, validateDeck, normalSummonRequirement } from './rules.js';
-import * as game from './game-engine.js';
-import { SIGNATURE_DECKS } from './signature-decks.js';
+import { DECK_MIN, DECK_MAX, COPIES_MAX, validateDeck, normalSummonRequirement } from '../engine/rules.js';
+import * as game from '../engine/game-engine.js';
+import { SIGNATURE_DECKS } from '../../data/signature-decks.js';
 
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const catalog=await fetch('/catalog.json').then(r=>r.json());
+const catalog=await fetch('/data/catalog.json').then(r=>r.json());
 const cards=new Map(catalog.map(c=>[c.id,c]));
 game.configureCardLookup(id=>cards.get(id));
 const STORE='ring-control-v2';

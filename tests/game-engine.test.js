@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import * as game from './game-engine.js';
+import * as game from '../src/engine/game-engine.js';
 
-const cards=JSON.parse(readFileSync(new URL('./catalog.json',import.meta.url),'utf8'));
+const cards=JSON.parse(readFileSync(new URL('../data/catalog.json',import.meta.url),'utf8'));
 const byId=id=>cards.find(c=>c.id===id);
 game.configureCardLookup(byId);
 const deck=Array.from({length:40},(_,i)=>cards.filter(c=>c.playable)[i%cards.filter(c=>c.playable).length].id);
