@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DA 5 · Arcade Titantron</title>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Teko:wght@500;600;700&family=Inter:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--y:#ffe14d;--m:#ff2e88;--c:#22e6ff;--bg:#07040f}
+*{box-sizing:border-box;margin:0}
+body{height:100vh;overflow:hidden;color:#fff;font-family:Teko,sans-serif;background:var(--bg);display:grid;grid-template-rows:236px 1fr 172px;position:relative}
+/* projecteurs néon */
+body::before{content:"";position:absolute;inset:0;pointer-events:none;background:
+ conic-gradient(from 155deg at 8% -8%,transparent 0 10deg,rgba(255,46,136,.16) 15deg,transparent 24deg),
+ conic-gradient(from 185deg at 92% -8%,transparent 0 6deg,rgba(34,230,255,.14) 12deg,transparent 20deg),
+ conic-gradient(from 172deg at 50% -25%,transparent 0 7deg,rgba(255,225,77,.08) 11deg,transparent 16deg),
+ repeating-linear-gradient(115deg,rgba(255,255,255,.02) 0 3px,transparent 3px 14px)}
+/* ===== HAUT : barres de vie arcade + Titantron ===== */
+.top{display:grid;grid-template-columns:1fr 560px 1fr;gap:22px;align-items:center;padding:12px 26px 6px;position:relative;z-index:1}
+.life .name{font-family:'Russo One';font-size:22px;letter-spacing:1px;text-shadow:3px 3px 0 #000;display:flex;gap:10px;align-items:baseline}
+.life .name small{font-family:Teko;font-size:18px;color:#c9b8ff;letter-spacing:2px}
+.gauge{height:30px;background:#24103a;border:3px solid #fff;box-shadow:4px 4px 0 #000;overflow:hidden;margin-top:4px}
+.gauge i{display:block;height:100%;background:linear-gradient(var(--y),#ff9f1c);box-shadow:inset 0 -6px 0 rgba(0,0,0,.2)}
+.life.me .gauge{transform:skewX(-18deg)}.life.ai .gauge{transform:skewX(18deg);direction:rtl}
+.life.ai{text-align:right}.life.ai .name{justify-content:flex-end}
+.pv{font-family:'Russo One';font-size:58px;line-height:1;margin-top:6px;color:var(--y);text-shadow:4px 4px 0 var(--m)}
+.life.ai .pv{text-shadow:4px 4px 0 #0a7f99}
+.chips{display:flex;gap:8px;margin-top:8px}.life.ai .chips{justify-content:flex-end}
+.chips span{font-family:'Russo One';font-size:12px;letter-spacing:1px;padding:4px 10px;border:2px solid var(--y);transform:skewX(-10deg);background:rgba(0,0,0,.4)}
+.chips b{color:var(--y);font-size:16px;margin-left:4px}
+.tron{height:214px;border:5px solid #1c1f26;border-radius:6px;background:linear-gradient(135deg,#1d0820,#2b0b1c 45%,#081322);box-shadow:0 0 0 2px var(--m),0 0 50px rgba(255,46,136,.45),inset 0 0 40px #000;display:grid;grid-template-columns:140px 1fr;gap:16px;padding:12px;position:relative;overflow:hidden}
+.tron::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 2px,rgba(0,0,0,.28) 2px 3px);pointer-events:none}
+.tron img{width:100%;height:100%;object-fit:contain;min-width:0}
+.tron>div{min-width:0;position:relative;z-index:1;display:flex;flex-direction:column}
+.tron .k{font-family:'Russo One';font-size:12px;letter-spacing:3px;color:var(--c)}
+.tron h2{font-family:'Russo One';font-weight:400;font-size:28px;line-height:1.05;margin:2px 0 6px;text-shadow:3px 3px 0 var(--m)}
+.tron p{font-family:Inter;font-size:13px;line-height:1.45;color:#eadff0}
+.tron .act{margin-top:auto;display:flex;gap:8px}
+.tron .act button{font-family:'Russo One';font-size:14px;padding:8px 14px;border:3px solid #000;background:var(--y);color:#000;box-shadow:4px 4px 0 var(--m);transform:skewX(-10deg)}
+.tron .act button+button{background:transparent;color:#fff;border-color:#fff;box-shadow:none}
+.round{position:absolute;right:10px;top:10px;font-family:'Russo One';font-size:13px;letter-spacing:3px;background:var(--m);padding:2px 14px;z-index:2;box-shadow:3px 3px 0 #000}
+/* ===== MILIEU : plateau 3D néon ===== */
+.stage{perspective:1200px;display:grid;place-items:center;position:relative;z-index:1}
+.board{width:1120px;transform:rotateX(24deg);transform-origin:50% 62%;display:grid;grid-template-rows:1fr 8px 1fr;gap:14px;padding:16px 26px;border-radius:14px;background:linear-gradient(#120a24,#0b0716);border:2px solid #2d1d4d;box-shadow:0 40px 80px #000}
+.side{display:grid;grid-template-columns:100px 1fr 240px 100px;gap:16px;align-items:center;border-radius:10px;padding:8px}
+.side.ai{background:linear-gradient(90deg,transparent,rgba(34,230,255,.09),transparent)}
+.side.me{background:linear-gradient(90deg,transparent,rgba(255,46,136,.12),transparent)}
+.line{background:linear-gradient(90deg,transparent,var(--c),var(--y),var(--m),transparent);border-radius:4px;box-shadow:0 0 22px var(--m);position:relative}
+.vs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);font-family:'Russo One';font-size:50px;color:var(--y);text-shadow:4px 4px 0 var(--m),-2px -2px 0 #000}
+.slots{display:flex;gap:18px;justify-content:center}
+.card{width:136px;aspect-ratio:496/693;position:relative;border:3px solid #fff;box-shadow:6px 6px 0 #000;background:#000;border-radius:4px}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.card .s{position:absolute;bottom:-13px;left:-8px;right:-8px;display:flex;justify-content:space-between}
+.card .s b{font-family:'Russo One';font-size:19px;padding:0 8px;box-shadow:3px 3px 0 #000;transform:skewX(-10deg)}
+.card .s .at{background:var(--m)}.card .s .en{background:var(--c);color:#000}
+.card.hurt .s .en{background:#ff4d4d;color:#fff}
+.card.sel{border-color:var(--y);box-shadow:0 0 0 3px var(--m),0 0 34px var(--y),6px 6px 0 #000}
+.e{width:136px;aspect-ratio:496/693;border:3px dashed rgba(255,255,255,.22);border-radius:4px;display:grid;place-items:center;font-family:'Russo One';font-size:12px;color:rgba(255,255,255,.3);letter-spacing:2px}
+.pas{display:flex;gap:10px;justify-content:center;padding:8px;border:2px solid rgba(255,255,255,.08);border-radius:8px}
+.pas .card,.pas .e{width:96px}
+.pas .card{filter:saturate(.75) brightness(.9)}
+.zt{font-family:'Russo One';font-size:11px;letter-spacing:2px;text-align:center;color:var(--c);margin:4px 0}
+.me .zt{color:var(--m)}
+.pile{text-align:center;font-family:'Russo One';font-size:11px;letter-spacing:1px;color:#c9b8ff}
+.pile .st{width:80px;aspect-ratio:496/693;margin:0 auto 6px;border:3px solid #fff;background:linear-gradient(135deg,var(--m),#3b0c4f);box-shadow:3px 3px 0 #000,7px 7px 0 #1b0b2c;transform:skewX(-4deg)}
+.pile.g .st{background:linear-gradient(135deg,#333,#111)}
+.pile.mg .st{background:#000;overflow:hidden;padding:0}.pile.mg .st img{width:100%;height:100%;object-fit:cover}
+.spark{position:absolute;width:130px;height:130px;background:radial-gradient(circle,#fff 0 12%,var(--y) 22%,transparent 60%);clip-path:polygon(50% 0,60% 38%,100% 30%,66% 56%,90% 100%,50% 70%,10% 100%,34% 56%,0 30%,40% 38%);left:calc(50% - 30px);top:-30px;z-index:3}
+.hit{position:absolute;left:calc(50% + 70px);top:-10px;font-family:'Russo One';font-size:42px;color:#fff;text-shadow:4px 4px 0 var(--m);transform:rotate(-10deg);z-index:4;line-height:.9}
+.hit small{display:block;font-size:20px;color:var(--y)}
+/* ===== BAS : main en éventail ===== */
+.hand{display:flex;justify-content:center;align-items:flex-end;position:relative;z-index:2}
+.hand .card{width:118px;margin:0 -12px;transform-origin:50% 140%;transform:skewX(0)}
+.hand .card:nth-child(2){transform:rotate(-12deg) translateY(28px)}.hand .card:nth-child(3){transform:rotate(-6deg) translateY(9px)}
+.hand .card:nth-child(4){transform:translateY(-30px) scale(1.15);z-index:3;border-color:var(--y);box-shadow:0 0 0 3px var(--m),0 0 40px var(--y)}
+.hand .card:nth-child(5){transform:rotate(6deg) translateY(9px)}.hand .card:nth-child(6){transform:rotate(12deg) translateY(28px)}
+.end{position:absolute;right:28px;bottom:40px;font-family:'Russo One';font-size:22px;padding:14px 28px;background:var(--y);color:#000;border:4px solid #000;box-shadow:6px 6px 0 var(--m);transform:skewX(-10deg)}
+.phase{position:absolute;left:28px;bottom:44px;display:flex;gap:4px}
+.phase span{font-family:'Russo One';font-size:13px;letter-spacing:1px;padding:7px 12px;background:#1d1236;transform:skewX(-12deg);color:#9c8cc7}
+.phase .on{background:var(--m);color:#fff;box-shadow:3px 3px 0 #000}
+</style></head><body>
+
+<section class="top">
+ <div class="life me">
+  <div class="name">VOUS <small>THE BLOODLINE</small></div>
+  <div class="gauge"><i style="width:82%"></i></div>
+  <div class="pv">410</div>
+  <div class="chips"><span>MAIN<b>5</b></span><span>MOMENTUM<b>1/1</b></span></div>
+ </div>
+ <div class="tron"><span class="round">TOUR 05</span>
+  <img src="/public/cards/momentum-22.png" alt="">
+  <div><span class="k">SUR LE TITANTRON · MOMENTUM</span><h2>VISIONNAIRE STRATÉGIQUE</h2>
+  <p>Survolez une carte : elle s’affiche en grand ici avec son texte complet. Seth Rollins est pris dans votre deck et entre sur le ring sans sacrifice.</p>
+  <div class="act"><button>JOUER ▶</button><button>ANNULER</button></div></div>
+ </div>
+ <div class="life ai">
+  <div class="name"><small>CPU</small> L’IA</div>
+  <div class="gauge"><i style="width:53%"></i></div>
+  <div class="pv">265</div>
+  <div class="chips"><span>MAIN<b>4</b></span><span>MOMENTUM<b>0/1</b></span></div>
+ </div>
+</section>
+
+<section class="stage"><div class="board">
+ <div class="side ai">
+  <div class="pile"><div class="st"></div>DECK · 27</div>
+  <div><div class="slots">
+   <div class="card"><img src="/public/cards/catcheur-26.png"><div class="s"><b class="at">55</b><b class="en">90</b></div></div>
+   <div class="card hurt"><img src="/public/cards/catcheur-13.png"><div class="s"><b class="at">60</b><b class="en">20</b></div></div>
+   <div class="card"><img src="/public/cards/catcheur-19.png"><div class="s"><b class="at">50</b><b class="en">80</b></div></div>
+  </div></div>
+  <div><div class="zt">PASSIFS</div><div class="pas"><div class="e"></div><div class="e"></div></div></div>
+  <div class="pile mg"><div class="st"><img src="/public/cards/managers-03.png"></div>MANAGER</div>
+ </div>
+ <div class="line"><div class="vs">VS</div><div class="spark"></div><div class="hit">-60 !<small>GROS IMPACT</small></div></div>
+ <div class="side me">
+  <div class="pile mg"><div class="st"><img src="/public/cards/managers-01.png"></div>MANAGER</div>
+  <div><div class="slots">
+   <div class="card"><img src="/public/cards/catcheur-21.png"><div class="s"><b class="at">50</b><b class="en">80</b></div></div>
+   <div class="card sel"><img src="/public/cards/catcheur-04.png"><div class="s"><b class="at">65</b><b class="en">85</b></div></div>
+   <div class="e">LIBRE</div>
+  </div></div>
+  <div><div class="pas"><div class="card"><img src="/public/cards/catcheur-22.png"></div><div class="e"></div></div><div class="zt">PASSIFS</div></div>
+  <div class="pile g"><div class="st"></div>CIMETIÈRE · 4</div>
+ </div>
+</div></section>
+
+<footer class="hand">
+ <div class="phase"><span>PIOCHE</span><span class="on">ACTIONS</span><span>COMBAT</span><span>FIN</span></div>
+ <div class="card"><img src="/public/cards/momentum-20.png"></div>
+ <div class="card"><img src="/public/cards/objets-05.png"></div>
+ <div class="card"><img src="/public/cards/momentum-22.png"></div>
+ <div class="card"><img src="/public/cards/catcheur-01.png"></div>
+ <div class="card"><img src="/public/cards/wyatt-13.png"></div>
+ <button class="end">FIN DU TOUR ▶</button>
+</footer>
+</body></html>
