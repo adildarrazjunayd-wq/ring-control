@@ -177,9 +177,10 @@ export function configureCardLookup(lookup) { rarityLookup = lookup; }
 export function lookupCard(cardId) { return rarityLookup(cardId); }
 function getCardRarity(cardId) { return rarityLookup(cardId)?.rarity ?? null; }
 
-export function specialSummon(state, playerIndex, card, source, position = ZONES.ACTIVE) {
+export function specialSummon(state, playerIndex, card, source, position = ZONES.ACTIVE, { anytime = false } = {}) {
   const player = state.players[playerIndex];
-  if (state.winner !== null || state.turn !== playerIndex || state.phase !== 'actions') return { ok: false, reason: 'Invocation spéciale possible pendant votre phase d’action.' };
+  // `anytime` : invocation provoquée par un Momentum rapide, pendant le tour adverse.
+  if (state.winner !== null || (!anytime && (state.turn !== playerIndex || state.phase !== 'actions'))) return { ok: false, reason: 'Invocation spéciale possible pendant votre phase d’action.' };
   if (!card || card.category !== 'Catcheur') return { ok: false, reason: 'Seul un catcheur peut être invoqué.' };
   if (card.attack == null || card.endurance == null) return { ok: false, reason: 'Les statistiques originales de cette carte doivent être vérifiées.' };
   const capacity = position === ZONES.ACTIVE ? player.active.length < 3 : player.passive.length < 2 && player.active.length > 0;
@@ -493,7 +494,7 @@ export function resolveDirectSummon(state, playerIndex, momentumCard, targetCard
   if (!option) return { ok: false, reason: 'Ce catcheur n’est pas invocable avec cet effet.' };
   if (!option.positions.includes(position)) return { ok: false, reason: 'Aucune place légale dans cette position.' };
   const target = rarityLookup(targetCardId);
-  const summoned = specialSummon(state, playerIndex, target, option.source, position);
+  const summoned = specialSummon(state, playerIndex, target, option.source, position, { anytime: Boolean(player.resolvingMomentum.rapid) });
   if (!summoned.ok) return summoned;
   addHistory(state, `${momentumCard.displayName} : ${target.displayName} est invoqué directement ${position === 'active' ? 'en actif' : 'en passif'}, sans consommer l’invocation normale.`);
   resolveMomentum(state, playerIndex);

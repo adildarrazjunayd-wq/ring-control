@@ -61,13 +61,24 @@ function drawAvailable(state, playerIndex, amount, sourceName) {
   return drawn;
 }
 
+// Conditions imprimées « Si … » des Momenta dont l'effet reste manuel.
+const activeNamed = (p, name) => p.active.some(f => isNamed(f.cardId, name));
+export const MOMENTUM_CONDITIONS = Object.freeze({
+  'momentum-04': { when: p => !cardsOnField(p).some(id => lookupCard(id)?.rarity === 'SSR'), reason: 'Tu ne dois contrôler aucune SSR.' },
+  'momentum-06': { when: p => p.active.some(f => lookupCard(f.cardId)?.rarity === 'SSR'), reason: 'Un catcheur SSR doit être actif.' },
+  'momentum-07': { when: p => fighters(p).some(f => isNamed(f.cardId, 'kevin owens')), reason: 'Il faut contrôler Kevin Owens.' },
+  'momentum-09': { when: p => fighters(p).some(f => f.endurance >= 70), reason: 'Il faut un catcheur avec au moins 70 END.' },
+  'momentum-11': { when: p => p.active.length >= 2, reason: 'Il faut 2 catcheurs actifs.' },
+  'momentum-13': { when: p => activeNamed(p, 'roman reigns'), reason: 'Roman Reigns doit être actif.' },
+});
+
 const shieldMembers = ids => ids.filter(id => lookupCard(id)?.category === 'Catcheur' && lookupCard(id)?.faction === 'The Shield');
 
 // Une carte Momentum peut-elle être jouée maintenant ? Évite de gaspiller une
 // carte dont la condition imprimée n'est pas remplie.
 export function momentumRequirement(state, playerIndex, card) {
   const player = state.players[playerIndex];
-  const draw = DRAW_RULES[card.id];
+  const draw = DRAW_RULES[card.id] ?? MOMENTUM_CONDITIONS[card.id];
   if (draw && !draw.when(player)) return { ok: false, reason: draw.reason };
   const search = SEARCH_RULES[card.id];
   if (search && !search.optional && !searchOptions(state, playerIndex, card.id).length) return { ok: false, reason: `Aucune carte ${search.what} ne reste dans ton deck.` };

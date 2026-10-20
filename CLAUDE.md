@@ -1,24 +1,31 @@
-# Repères pour Codex — WWE TCG
+# Ring Control — WWE TCG
 
-## Objectif du projet
-
-Application web locale gratuite pour construire manuellement un deck et jouer en solo contre une IA locale. Le jeu doit rester fidèle aux cartes et aux règles données par le propriétaire du projet.
+Jeu de cartes de catch dans le navigateur, 1 joueur contre une IA locale. Le propriétaire ne code pas :
+lui répondre en français simple, par étapes courtes, et dire clairement ce qui a été vérifié (tests,
+navigateur) et ce qui ne l'a pas été.
 
 ## Règles de travail impératives
 
-- Ne pas modifier le fonctionnement du jeu, les règles, le texte, les statistiques, les noms, les raretés ou l’équilibrage des cartes sans demande explicite.
-- Ne pas retoucher, recadrer, remplacer ou générer de nouveaux visuels de cartes. Utiliser les images source déjà dans `public/cards/` telles quelles.
-- Garder la construction du deck du joueur manuelle : 40 à 50 cartes, maximum 2 exemplaires par carte. Le deck de démonstration de l’IA peut rester généré par le jeu.
-- Le mode demandé est 1 joueur contre IA locale. Ne pas ajouter de service payant, de clé API ou de mode en ligne comme prérequis.
-- Les Momentum rapides ne peuvent être joués qu’après l’annonce d’une attaque adverse. « Contre » annule cette attaque et empêche le catcheur concerné d’attaquer à nouveau ce tour.
-- « Retour Inattendu » laisse le joueur choisir actif/passif et rend le catcheur avec son END imprimée complète. « Botte Celte » ajoute Sheamus à la main et lui donne +15 ATT s’il attaque ce tour. « Main de l’Ombre » reste exclue du jeu.
-- Ne pas inventer la résolution d’un effet dont le texte est incertain : conserver une résolution manuelle et signaler l’incertitude.
-- Une refonte visuelle peut changer la présentation, les animations, la navigation et l’ergonomie, mais doit laisser les règles et le dessin des cartes intacts.
+- Ne pas modifier les règles, textes, stats, noms, raretés ou l'équilibrage des cartes sans demande explicite.
+- Ne jamais retoucher, recadrer ou remplacer les images de `public/cards/`.
+- Ne jamais effacer le `localStorage` (clé `ring-control-v2` : `{ decks, match }`). Garder ce format, ou migrer avec sauvegarde.
+- Deck du joueur : 40 à 50 cartes, 2 exemplaires maximum. Le deck de l'IA est généré par le jeu.
+- Ne pas inventer la résolution d'un effet ambigu : le laisser manuel et le signaler dans `docs/AUDIT-CARTES.md`.
+- Pas de service payant, de clé API ni de mode en ligne obligatoire.
+- Décisions de règles déjà prises : `docs/DECISIONS-REGLES.md` et `docs/CAHIER-DES-CHARGES.md` (ne pas les redemander).
+- Un Momentum qui invoque est une invocation spéciale : sans sacrifice, carte prise en main sinon dans le deck.
 
-## Projet et commandes
+## Structure
 
-- Application native navigateur, JavaScript ES modules et CSS, sans dépendance npm nécessaire.
-- Lancement local : `node server.mjs`, puis ouvrir `http://localhost:4173`.
-- Vérifier la logique existante avec `node --test` après une modification qui touche au code ou aux règles.
-- `rules.js` et `game-engine.js` portent les règles; `catalog.json` décrit les cartes; `app.js`, `index.html` et `styles.css` portent l’interface.
-- Les sauvegardes de decks et de parties restent dans le stockage local du navigateur.
+- `src/engine/` : règles pures, sans DOM (pour pouvoir tourner côté serveur plus tard).
+  `card-effects.js` regroupe les effets automatisés ; ajouter un test dans `tests/` pour chaque effet.
+- `src/ui/` : interface en modules ES. Les boutons portent `data-act="nom"` ; les gestionnaires sont dans `actions.js`.
+- `data/catalog.json` : cartes avec `effects` retranscrits depuis les images, `faction`, `nickname`.
+- Direction artistique validée : « Arcade Titantron » (`maquettes/5-arcade-titantron.html`).
+  ATT/END discrètes sur le terrain (petite pastille sous la carte).
+
+## Commandes
+
+- Lancer : `node server.mjs` (ou `LANCER-LE-JEU.bat`), puis `http://localhost:4173`.
+- Tests : `node --test`. Vérifier aussi dans le navigateur après un changement d'interface.
+- Git : `C:\Program Files\Git\cmd\git.exe` (pas dans le PATH de cette machine).

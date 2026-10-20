@@ -77,6 +77,13 @@ test('Mr. McMahon permet une invocation SSR sans sacrifice, une seule fois par p
   assert.equal(fx.managerEffect(s, 0).ok, false);
 });
 
+test('Acknowledge Me ne se joue que si Roman Reigns est actif', () => {
+  const s = fresh(), p = s.players[0];
+  assert.equal(fx.momentumRequirement(s, 0, byId('momentum-13')).ok, false);
+  p.active.push(slot('catcheur-01'));
+  assert.equal(fx.momentumRequirement(s, 0, byId('momentum-13')).ok, true);
+});
+
 test('Stop Momentum empêche l’adversaire de jouer un Momentum ce tour', () => {
   const s = fresh();
   fx.resolveSimpleMomentum(s, 0, byId('momentum-12'));
