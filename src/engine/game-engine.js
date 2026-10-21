@@ -406,7 +406,10 @@ export function declareAttack(state, playerIndex, attackerId, targetId = 'direct
   state.usedAttackers.push(attackerId);
   if (targets[0] === 'direct') state.directAttacksUsed += 1;
   else for (const id of targets) if (!state.usedTargets.includes(id)) state.usedTargets.push(id);
-  if (sp) attacker.specialUsed = true;
+  if (sp) {
+    attacker.specialUsed = true;
+    emit(state, { kind: 'effect', pi: playerIndex, cardId: attacker.cardId, title: 'Attaque spéciale', sub: sp.name });
+  }
   state.pendingAttack = { id: crypto.randomUUID(), playerIndex, attackerId, targetId: targets.length > 1 ? 'multi' : targets[0], targets, special: sp ? special : null, ladder, first, secondTarget: options.secondTarget ?? null };
   state.pendingAttack.attack = combat.previewDamage(state, state.pendingAttack);
   state.phase = 'reaction';

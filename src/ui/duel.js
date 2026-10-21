@@ -152,7 +152,11 @@ function titantron(m) {
   const sel = selectedCard(m), id = sel?.id ?? S.hovered, c = id && card(id);
   if (!c) {
     const s = statusScreen(m);
-    return `<div class="tron idle"><img src="/${CARD_BACK}" alt=""><div class="tron-body"><span class="k">${s.kicker}</span><h2>${s.title}</h2><p>${s.text}</p><p class="hint">Survole une carte pour lire ses effets en grand. Clique-la pour voir ses actions.</p></div></div>`;
+    const phase = m.turn === 1 ? 2 : m.phase === 'actions' ? 0 : 1;
+    const steps = [['1', 'ACTIONS', 'Invoque, joue tes cartes, active tes effets, change une position.'], ['2', 'COMBAT', 'Choisis un catcheur actif puis sa cible sur le ring.'], ['3', 'TOUR DE L’IA', 'Valide chacune de ses actions avec « OK ».']];
+    return `<div class="tron idle"><div class="tron-body"><span class="k">${s.kicker}</span><h2>${s.title}</h2><p>${s.text}</p>
+      <ol class="guide">${steps.map(([n, t, d], i) => `<li class="${i === phase ? 'on' : ''}"><span>${n}</span><div><b>${t}</b><small>${d}</small></div></li>`).join('')}</ol>
+      <p class="hint">Survole une carte pour lire ses effets en grand. Clique-la pour voir ses actions.</p></div></div>`;
   }
   const f = sel?.fighter ?? hoveredFighter(m, id), fpi = sel?.pi ?? (f && m.players[0].active.concat(m.players[0].passive).includes(f) ? 0 : 1);
   const stats = f ? fighterStats(m, fpi, f) : '';
@@ -217,11 +221,14 @@ function statusBadges(m, f) {
 
 function life(m, pi) {
   const p = m.players[pi], pct = Math.max(0, Math.min(100, p.hp / 5));
-  return `<div class="life ${pi ? 'ai' : 'me'}">
-    <div class="who"><b>${pi ? 'L’IA' : 'VOUS'}</b><small>${m.turn === pi && m.winner === null ? '● À SON TOUR' : ''}</small></div>
-    <button class="gauge" data-act="hp" data-pi="${pi}" data-hp="${pi}" title="Points de vie"><i style="width:${pct}%"></i></button>
-    <div class="pv">${p.hp}<small>PV</small></div>
-    <div class="chips"><span>MAIN <b>${p.hand.length}</b></span><span>DECK <b>${p.deck.length}</b></span><span title="Momenta encore jouables ce tour">MOMENTUM <b>${m.turn === pi ? Math.max(0, 1 - p.limits.momentum) : '—'}</b></span></div>
+  const turn = m.turn === pi && m.winner === null;
+  return `<div class="life ${pi ? 'ai' : 'me'} ${turn ? 'turn' : ''} ${pct <= 25 ? 'low' : ''}">
+    <div class="avatar">${pi ? 'IA' : 'TOI'}</div>
+    <div class="life-main">
+      <div class="life-top"><b class="name">${pi ? 'L’IA' : 'VOUS'}</b>${turn ? '<span class="turn-tag">À SON TOUR</span>' : ''}<span class="pv">${p.hp}<small>PV</small></span></div>
+      <button class="gauge" data-act="hp" data-pi="${pi}" data-hp="${pi}" title="Points de vie (clic : correction manuelle)"><i style="width:${pct}%"></i></button>
+      <div class="chips"><span title="Cartes en main">✋ <b>${p.hand.length}</b> main</span><span title="Cartes dans le deck">🂠 <b>${p.deck.length}</b> deck</span><span title="Momenta encore jouables ce tour">⚡ <b>${m.turn === pi ? Math.max(0, 1 - p.limits.momentum) : '—'}</b> momentum</span></div>
+    </div>
   </div>`;
 }
 

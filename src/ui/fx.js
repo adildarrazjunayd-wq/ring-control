@@ -128,21 +128,59 @@ export function drainEvents(match, { silent = false } = {}) {
   if (!showing) nextShow();
 }
 
+// Texte imprimé à rappeler sous la carte, pour comprendre ce que fait l'adversaire.
+function printedText(ev) {
+  const c = card(ev.cardId);
+  if (!c || ev.kind === 'draw' || ev.kind === 'reveal') return '';
+  if (ev.kind === 'summon') return c.attack != null ? `${c.attack} ATT · ${c.endurance} END` : '';
+  const kind = /passif/i.test(ev.title ?? '') ? 'passif' : /spécial/i.test(ev.title ?? '') ? 'spécial' : null;
+  return (c.effects.find(e => e.kind === kind) ?? c.effects[0])?.text ?? '';
+}
+
+let waiters = [];
+let skipping = false; // « Tout passer » : les actions suivantes de l'IA défilent sans attendre
+
+// Résolue quand plus aucune carte n'est montrée : l'IA attend ce moment pour continuer.
+export function whenShowsDone() {
+  return showing || shows.length ? new Promise(resolve => waiters.push(resolve)) : Promise.resolve();
+}
+export function resetSkip() { skipping = false; }
+
 function nextShow() {
   const ev = shows.shift();
-  if (!ev) { showing = false; return; }
+  if (!ev) { showing = false; waiters.splice(0).forEach(resolve => resolve()); return; }
   showing = true;
-  const quick = ev.kind === 'summon';
+  // Les actions de l'IA attendent un clic « OK » ; les tiennes défilent seules.
+  const confirm = ev.pi === 1 && !skipping;
   const faces = ev.kind === 'draw' && ev.pi === 1 ? ev.cardIds.map(() => null) : (ev.cardIds ?? [ev.cardId]);
   const el = document.createElement('div');
-  el.className = `cardshow ${ev.pi === 1 ? 'ai' : 'me'} ${ev.kind}`;
+  el.className = `cardshow ${ev.pi === 1 ? 'ai' : 'me'} ${ev.kind} ${confirm ? 'confirm' : ''}`;
   const imgs = faces.map(id => `<img src="/${id ? card(id)?.image : CARD_BACK}" alt="">`).join('');
-  el.innerHTML = `<div class="cs-ribbon"><small>${ev.pi === 1 ? 'L’IA' : 'TOI'}</small>${esc(ev.title ?? '')}</div><div class="cs-cards n${Math.min(faces.length, 3)}">${imgs}</div>${ev.sub || (ev.kind === 'draw' && ev.pi === 1) ? `<div class="cs-sub">${esc(ev.kind === 'draw' && ev.pi === 1 ? `${ev.sub} · ${faces.length} carte${faces.length > 1 ? 's' : ''}` : ev.sub)}</div>` : ''}`;
+  const sub = ev.kind === 'draw' && ev.pi === 1 ? `${ev.sub} · ${faces.length} carte${faces.length > 1 ? 's' : ''}` : ev.sub;
+  const text = confirm ? printedText(ev) : '';
+  const left = shows.filter(x => x.pi === 1).length;
+  el.innerHTML = `<div class="cs-ribbon"><small>${ev.pi === 1 ? 'L’IA' : 'TOI'}</small>${esc(ev.title ?? '')}</div>
+    <div class="cs-cards n${Math.min(faces.length, 3)}">${imgs}</div>
+    ${sub ? `<div class="cs-sub">${esc(sub)}</div>` : ''}
+    ${text ? `<p class="cs-text">${esc(text)}</p>` : ''}
+    ${confirm ? `<div class="cs-buttons"><button class="btn hot big" data-cs="next">OK ${left ? `▶ (${left} de plus)` : '▶'}</button>${left ? '<button class="btn ghost" data-cs="skip">Tout passer</button>' : ''}</div>` : ''}`;
   document.body.append(el);
   sfx(SOUND_OF[ev.kind] ?? 'effect');
-  const life = quick ? 850 : 1400;
-  setTimeout(() => el.classList.add('out'), life - 250);
-  setTimeout(() => { el.remove(); nextShow(); }, life);
+  const close = () => {
+    if (!el.isConnected) return;
+    document.removeEventListener('keydown', onKey);
+    el.classList.add('out');
+    setTimeout(() => { el.remove(); nextShow(); }, 200);
+  };
+  const onKey = e => { if (['Enter', ' ', 'Escape'].includes(e.key)) { e.preventDefault(); close(); } };
+  if (confirm) {
+    el.querySelector('[data-cs="next"]').addEventListener('click', close);
+    el.querySelector('[data-cs="skip"]')?.addEventListener('click', () => { skipping = true; close(); });
+    document.addEventListener('keydown', onKey);
+    el.querySelector('[data-cs="next"]').focus();
+  } else {
+    setTimeout(close, ev.kind === 'summon' ? 650 : 1150);
+  }
 }
 
 export function banner(text, cls = '') {
