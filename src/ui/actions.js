@@ -57,6 +57,12 @@ function afterMomentum(c, result) {
   if (c.id === 'momentum-20' && result.response) { banner('<b>CONTRE !</b> L’attaque est annulée'); done({ ok: true }, 'effect'); if (match.turn === 1) runAI(); return; }
   if (effects.resolveSimpleMomentum(match, 0, c)) { banner(`<b>${esc(c.displayName)}</b>`); done({ ok: true }, 'effect'); return; }
   if (effects.SEARCH_RULES[c.id]) { searchModal(c.id, c.displayName); return; }
+  if (c.id === 'wyatt-13') {
+    const opts = activ.rassemblementOptions(match, 0), romanOn = fighters(p).some(f => combat.is(f.cardId, 'roman reigns'));
+    if (!opts.length) { const r = activ.resolveRassemblement(match, 0); if (r.ok) banner('<b>THE BLOODLINE</b> au complet !'); done(r, 'effect'); return; }
+    modal(`<h2>The Bloodline Rassemblement</h2><p>Tu peux invoquer Roman Reigns depuis ton deck (une seule fois dans la partie).</p><div class="opts">${opts.map(o => `<div class="opt row"><img src="/${card(o.cardId).image}" alt=""><b>${esc(card(o.cardId).displayName)}</b>${o.positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="rassemblement" data-id="${o.cardId}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('')}</div>${romanOn ? btn('Ne pas invoquer', 'data-act="rassemblement"', 'btn ghost') : ''}`);
+    return;
+  }
   if (activ.TARGET_MOMENTA[c.id]) {
     S.targeting = { mode: 'effect', kind: 'momentum', key: c.id, iid: null, specs: activ.TARGET_MOMENTA[c.id].targets, picked: [], name: c.displayName };
     render();
@@ -249,6 +255,11 @@ export const actions = {
   choicePick: d => {
     const r = activ.resolveChoice(m(), d.choice, d.id || null);
     done(r, d.id ? 'effect' : 'tap');
+  },
+  rassemblement: d => {
+    const r = activ.resolveRassemblement(m(), 0, d.id ? { cardId: d.id, position: d.pos } : {});
+    if (r.ok) banner('<b>THE BLOODLINE</b> au complet !');
+    done(r, 'summon');
   },
   summonMomentum: d => {
     const discard = document.querySelector('[data-discard]:checked')?.value;

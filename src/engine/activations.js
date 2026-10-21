@@ -1,7 +1,7 @@
 // Effets que le joueur déclenche lui-même (effets passifs « à action », effets spéciaux hors attaque,
 // effets depuis le cimetière, Momenta qui visent une carte) et choix déclenchés par l'arrivée au cimetière.
 import { addHistory, lookupCard, specialSummon, legalPositions, resolveMomentum, activateWrestlerEffect, sendFighterToGrave } from './game-engine.js';
-import { effective, effectsOff, is, fightersOf, addModifier, checkKOs, heal, draw } from './combat.js';
+import { effective, effectsOff, is, fightersOf, addModifier, checkKOs, heal, draw, bloodlineComplete } from './combat.js';
 
 const label = id => lookupCard(id)?.displayName ?? 'la carte';
 const text = c => `${c.displayName} ${c.effects.map(e => e.text).join(' ')}`;
@@ -67,7 +67,7 @@ export const ACTIVATED = Object.freeze({
 });
 
 // Mode d'un effet imprimé, pour l'affichage.
-const AUTO = new Set(['catcheur-01:passive', 'catcheur-02:passive', 'catcheur-03:passive', 'catcheur-04:passive', 'catcheur-05:passive', 'catcheur-06:passive', 'catcheur-07:passive', 'catcheur-08:passive', 'catcheur-09:passive', 'catcheur-10:passive', 'catcheur-11:passive', 'catcheur-12:passive', 'catcheur-14:passive', 'catcheur-15:passive', 'catcheur-16:passive', 'catcheur-18:passive', 'catcheur-19:passive', 'catcheur-20:passive', 'catcheur-21:passive', 'catcheur-22:passive', 'catcheur-24:passive', 'catcheur-25:passive', 'catcheur-26:passive', 'catcheur-28:passive', 'catcheur-34:passive', 'catcheur-35:passive', 'catcheur-36:passive', 'catcheur-39:passive', 'catcheur-32:special', 'wyatt-01:passive', 'wyatt-02:passive']);
+const AUTO = new Set(['catcheur-01:passive', 'catcheur-02:passive', 'catcheur-03:passive', 'catcheur-04:passive', 'catcheur-05:passive', 'catcheur-06:passive', 'catcheur-07:passive', 'catcheur-08:passive', 'catcheur-09:passive', 'catcheur-10:passive', 'catcheur-11:passive', 'catcheur-12:passive', 'catcheur-14:passive', 'catcheur-15:passive', 'catcheur-16:passive', 'catcheur-18:passive', 'catcheur-19:passive', 'catcheur-20:passive', 'catcheur-21:passive', 'catcheur-22:passive', 'catcheur-24:passive', 'catcheur-25:passive', 'catcheur-26:passive', 'catcheur-28:passive', 'catcheur-34:passive', 'catcheur-35:passive', 'catcheur-36:passive', 'catcheur-39:passive', 'catcheur-32:special', 'wyatt-01:passive', 'wyatt-02:passive', 'wyatt-08:passive', 'wyatt-09:passive']);
 const REACTION = new Set(['catcheur-10:special', 'catcheur-13:special', 'wyatt-11:special', 'wyatt-01:special']);
 export function effectMode(cardId, kind, { attackSpecial, search } = {}) {
   const key = `${cardId}:${kind === 'passif' ? 'passive' : 'special'}`;
@@ -188,6 +188,38 @@ export function resolveSummonMomentum(state, pi, cardId, { discard, summonId, po
   if (!r.ok) return r;
   sm.after?.(state, pi);
   resolveMomentum(state, pi);
+  return { ok: true };
+}
+
+// ---------- The Bloodline Rassemblement (wyatt-13) ----------
+// Reste active tant que Roman Reigns, Jey Uso, Jimmy Uso et Sami Zayn sont sur le ring.
+// Permet d'invoquer Roman Reigns depuis le deck (une fois par partie).
+const romanFromDeck = { sources: ['deck'], filter: c => is(c.id, 'roman reigns') };
+export function rassemblementOptions(state, pi) {
+  return once(state.players[pi]).includes('wyatt-13') ? [] : summonCandidates(state, pi, romanFromDeck);
+}
+
+export function rassemblementCheck(state, pi) {
+  const p = state.players[pi], on = n => fightersOf(p).some(f => is(f.cardId, n));
+  const missing = ['jey uso', 'jimmy uso', 'sami zayn'].filter(n => !on(n));
+  if (missing.length) return 'Il faut Jey Uso, Jimmy Uso et Sami Zayn sur le ring.';
+  if (!on('roman reigns') && !rassemblementOptions(state, pi).length) return 'Roman Reigns n’est ni sur le ring ni invocable depuis ton deck.';
+  return null;
+}
+
+export function resolveRassemblement(state, pi, { cardId = null, position = null } = {}) {
+  const p = state.players[pi];
+  if (p.resolvingMomentum?.cardId !== 'wyatt-13') return { ok: false, reason: 'Ce Momentum n’est pas en résolution.' };
+  if (cardId) {
+    const option = rassemblementOptions(state, pi).find(o => o.cardId === cardId);
+    if (!option || !option.positions.includes(position)) return { ok: false, reason: 'Choisis Roman Reigns et sa position.' };
+    const r = summonFrom(state, pi, option, position, 'The Bloodline Rassemblement');
+    if (!r.ok) return r;
+    once(p).push('wyatt-13');
+  }
+  const keep = bloodlineComplete(state, pi);
+  resolveMomentum(state, pi, { keepActive: keep });
+  if (keep) addHistory(state, 'The Bloodline Rassemblement : la Bloodline frappe à +10 ATT et peut attaquer les catcheurs passifs.');
   return { ok: true };
 }
 

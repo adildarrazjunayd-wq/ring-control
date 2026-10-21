@@ -24,7 +24,8 @@ export function pickable(m, t = S.targeting) {
   if (!f || type.startsWith('all')) return new Set();
   if (type === 'two') return new Set(d.active.filter(x => !picked.includes(x.instanceId)).map(x => x.instanceId));
   if (t.special === 'catcheur-08' && picked.length === 1) return new Set(d.active.filter(x => x.instanceId !== picked[0]).map(x => x.instanceId));
-  return new Set(d.active.filter(x => !m.usedTargets.includes(x.instanceId) && (!t.special || combat.specialBonusAgainst(m, 0, f, x) != null)).map(x => x.instanceId));
+  const pool = combat.canHitPassive(m, 0, f) ? [...d.active, ...d.passive] : d.active;
+  return new Set(pool.filter(x => !m.usedTargets.includes(x.instanceId) && (!t.special || combat.specialBonusAgainst(m, 0, f, x) != null)).map(x => x.instanceId));
 }
 
 // Combien de cibles faut-il avant de lancer ?

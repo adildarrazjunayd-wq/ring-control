@@ -345,14 +345,15 @@ export function declareAttack(state, playerIndex, attackerId, targetId = 'direct
       const directLimit = Math.max(0, player.active.length - defender.active.length);
       if (!canDirectAttack(player.active.length, defender.active.length) || state.directAttacksUsed >= directLimit) return { ok: false, reason: 'Le nombre d’attaques directes autorisé ce tour est atteint.' };
     } else {
-      if (!defender.active.some(x => x.instanceId === targetId)) return { ok: false, reason: 'Une attaque doit viser un catcheur actif adverse.' };
+      const pool = combat.canHitPassive(state, playerIndex, attacker) ? getCards(defender) : defender.active;
+      if (!pool.some(x => x.instanceId === targetId)) return { ok: false, reason: 'Une attaque doit viser un catcheur actif adverse.' };
       if (state.usedTargets.includes(targetId)) return { ok: false, reason: 'Ce catcheur adverse a déjà été ciblé ce tour.' };
     }
     targets = [targetId];
   }
   if (!targets.length) return { ok: false, reason: 'Aucune cible.' };
   if (sp && !multi) {
-    const target = targetId === 'direct' ? null : defender.active.find(x => x.instanceId === targetId);
+    const target = targetId === 'direct' ? null : getCards(defender).find(x => x.instanceId === targetId);
     if (combat.specialBonusAgainst(state, playerIndex, attacker, target) == null) return { ok: false, reason: 'La condition de l’attaque spéciale n’est pas remplie contre cette cible.' };
   } else if (sp && combat.specialBonusAgainst(state, playerIndex, attacker, defender.active[0] ?? null) == null && sp.targets === 'all-active') {
     return { ok: false, reason: 'La condition de l’attaque spéciale n’est pas remplie.' };

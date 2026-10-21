@@ -10,7 +10,7 @@ import {
   DIRECT_SUMMON_RULES,
 } from './game-engine.js';
 import { heal, addModifier, effective } from './combat.js';
-import { momentumTargetsAvailable, TARGET_MOMENTA, SUMMON_MOMENTA, targetCandidates, summonCandidates, resolveTargetMomentum, resolveSummonMomentum } from './activations.js';
+import { momentumTargetsAvailable, TARGET_MOMENTA, SUMMON_MOMENTA, targetCandidates, summonCandidates, resolveTargetMomentum, resolveSummonMomentum, rassemblementCheck, rassemblementOptions, resolveRassemblement } from './activations.js';
 
 const fighters = player => [...player.active, ...player.passive];
 const cardsOnField = player => [
@@ -84,6 +84,7 @@ export function momentumRequirement(state, playerIndex, card) {
   if (draw && !draw.when(player, state, playerIndex)) return { ok: false, reason: draw.reason };
   const targeting = momentumTargetsAvailable(state, playerIndex, card.id);
   if (targeting) return { ok: false, reason: targeting };
+  if (card.id === 'wyatt-13') { const r = rassemblementCheck(state, playerIndex); if (r) return { ok: false, reason: r }; }
   const search = SEARCH_RULES[card.id];
   if (search && !search.optional && !searchOptions(state, playerIndex, card.id).length) return { ok: false, reason: `Aucune carte ${search.what} ne reste dans ton deck.` };
   if (card.id === 'momentum-24') {
@@ -111,6 +112,10 @@ export function resolveSimpleMomentum(state, playerIndex, card) {
   } else if (card.id === 'momentum-04') {
     player.limits.momentum -= 2;
     addHistory(state, 'Momentum imprévu : 2 cartes Momentum supplémentaires peuvent être jouées ce tour-ci.');
+  } else if (card.id === 'momentum-07') {
+    // Réponse du propriétaire : la réduction tient jusqu'à la fin du prochain tour adverse.
+    player.status.damageReductionUntil = state.turnNumber + 1;
+    addHistory(state, 'Défense inébranlable : les attaques adverses infligent 40 dégâts de moins jusqu’à la fin du prochain tour adverse.');
   } else if (card.id === 'momentum-06') {
     for (const f of fighters(player)) heal(state, playerIndex, f, 10, 'Ambulance');
   } else if (card.id === 'momentum-10') {
@@ -221,6 +226,11 @@ export function autoResolveMomentum(state, playerIndex, card) {
     const option = summonCandidates(state, playerIndex, SUMMON_MOMENTA[card.id].summon)[0];
     const discard = state.players[playerIndex].hand.find(id => lookupCard(id)?.category !== 'Catcheur') ?? state.players[playerIndex].hand[0];
     if (option && resolveSummonMomentum(state, playerIndex, card.id, { discard, summonId: option.cardId, position: option.positions[0] }).ok) return;
+  }
+  if (card.id === 'wyatt-13') {
+    const option = rassemblementOptions(state, playerIndex)[0], needRoman = !fighters(state.players[playerIndex]).some(f => isNamed(f.cardId, 'roman reigns') || isNamed(f.cardId, 'roman reings'));
+    resolveRassemblement(state, playerIndex, needRoman && option ? { cardId: option.cardId, position: option.positions[0] } : {});
+    return;
   }
   if (DIRECT_SUMMON_RULES[card.id]) return; // géré par l'appelant (choix de position)
   if (state.players[playerIndex].resolvingMomentum) resolveMomentum(state, playerIndex);

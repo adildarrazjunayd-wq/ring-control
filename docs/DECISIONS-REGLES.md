@@ -14,6 +14,10 @@
 - **L'Ultime Opportunité** : on compte les catcheurs du joueur mis K.O. pendant le tour en cours.
 - **« +5 ATT / +5 END chaque tour »** (Ceinture poids lourd, Ceinture Universelle sur Roman Reigns) : le bonus s'accumule à chaque tour du joueur tant que l'objet est équipé.
 
+- **« Tous les membres de la Bloodline sont sur le ring »** (Roman Reigns `wyatt-08`, The Bloodline Rassemblement) : Roman Reigns, Jey Uso, Jimmy Uso et Sami Zayn (n'importe quelle version de chaque carte, zone active ou passive).
+- **Jey Uso (`wyatt-09`)** : si Roman Reigns doit être mis K.O., c'est Jey Uso qui est mis K.O. à sa place ; Roman reste sur le ring sans subir le coup.
+- **Défense inébranlable** : la réduction de -40 dure jusqu'à la fin du prochain tour adverse.
+
 ## Façon d'appliquer les effets (cahier des charges §11 : « selon sa formulation »)
 
 - Effet passif **continu** (« gagne +X », « réduit les dégâts reçus », « tant que… ») : appliqué en permanence, sans clic.

@@ -21,6 +21,13 @@ const objectsOf = (state, pi, f) => (effectsOff(state, pi) ? [] : state.players[
 const managerIs = (state, pi, id) => !effectsOff(state, pi) && state.players[pi].manager?.cardId === id;
 const momentumPlayed = (state, pi) => (state.momentumsThisTurn?.[pi] ?? 0) > 0;
 
+// « Tous les membres de la Bloodline » = Roman Reigns, Jey Uso, Jimmy Uso et Sami Zayn (réponse du propriétaire).
+export const BLOODLINE_CORE = ['roman reigns', 'jey uso', 'jimmy uso', 'sami zayn'];
+export const bloodlineComplete = (state, pi) => BLOODLINE_CORE.every(n => fightersOf(state.players[pi]).some(f => is(f.cardId, n)));
+export const rassemblementActive = (state, pi) => !effectsOff(state, pi) && state.players[pi].ongoingMomentum.some(o => o.cardId === 'wyatt-13') && bloodlineComplete(state, pi);
+// The Bloodline Rassemblement : les membres de la Bloodline peuvent attaquer les catcheurs passifs.
+export const canHitPassive = (state, pi, f) => rassemblementActive(state, pi) && factionOf(f.cardId) === 'The Bloodline';
+
 export function heal(state, pi, f, amount, why) {
   f.endurance += amount; // pas de plafond (décision du propriétaire)
   addHistory(state, `${why} : ${label(f.cardId)} regagne ${amount} END.`);
@@ -50,7 +57,8 @@ export function statBonus(state, pi, f) {
   if (has(state, pi, f, 'catcheur-21') && p.active.some(x => is(x.cardId, 'jimmy uso'))) att += 5;      // Jey Uso : Frère inséparable
   if (has(state, pi, f, 'catcheur-22') && p.active.some(x => is(x.cardId, 'jey uso'))) end += 5;        // Jimmy Uso : Duo de choc
   if (has(state, pi, f, 'catcheur-25')) att += 10;                                                     // Rey Mysterio
-  if (onRing(state, pi, 'catcheur-34', 'active')) { att += 5; end += 5; }                              // Cody Rhodes : Héritier de la gloire
+  if (onRing(state, pi, 'catcheur-34', 'active')) { att += 5; end += 5; }
+  if (factionOf(f.cardId) === 'The Bloodline' && rassemblementActive(state, pi)) att += 10;           // The Bloodline Rassemblement                              // Cody Rhodes : Héritier de la gloire
   if (managerIs(state, pi, 'managers-01') && f.position === 'active' && (is(f.cardId, 'roman reigns') || is(f.cardId, 'brock lesnar'))) { att += 10; end += 10; } // Paul Heyman
   if (managerIs(state, pi, 'managers-03') && p.active.some(x => factionOf(x.cardId))) att += 10;       // Triple H (manager)
   for (const o of objectsOf(state, pi, f)) {
@@ -158,6 +166,7 @@ function defense(state, a, f, target, dmg) {
     if (target.cardId === 'catcheur-20' && d.active.length === 1) dmg -= 5;                            // Jey Uso : One-Man Show
   }
   if (onRing(state, di, 'catcheur-39', 'active')) dmg -= 10;                                           // Bray Wyatt : Manipulation mentale
+  if ((d.status.damageReductionUntil ?? 0) >= state.turnNumber && !effectsOff(state, di)) dmg -= 40;  // Défense inébranlable
   if ((f.halfDamageUntil ?? 0) >= state.turnNumber) dmg = Math.floor(dmg / 2);                         // Damien Priest : South of Heaven
   return Math.max(0, dmg);
 }
@@ -182,10 +191,29 @@ export function checkKOs(state, killer = null) {
       }
     }
   }
+  for (const pi of [0, 1]) {
+    const p = state.players[pi];
+    for (const f of fightersOf(p)) delete f.endBeforeHit;
+    // The Bloodline Rassemblement ne reste active que si les quatre membres sont sur le ring.
+    const at = p.ongoingMomentum.findIndex(o => o.cardId === 'wyatt-13');
+    if (at >= 0 && !bloodlineComplete(state, pi)) {
+      p.ongoingMomentum.splice(at, 1);
+      p.grave.push('wyatt-13');
+      addHistory(state, 'The Bloodline Rassemblement quitte le jeu : la Bloodline n’est plus au complet.');
+    }
+  }
 }
 
 function knockOut(state, pi, f, killer) {
   const p = state.players[pi];
+  // Jey Uso (wyatt-09) : il est mis K.O. à la place de Roman Reigns, qui reste sur le ring sans subir le coup.
+  const stand = is(f.cardId, 'roman reigns') && fightersOf(p).find(x => x !== f && has(state, pi, x, 'wyatt-09'));
+  if (stand) {
+    f.endurance = Math.max(f.endBeforeHit ?? -Infinity, 1 - statBonus(state, pi, f).end);
+    addHistory(state, 'Jey Uso est mis K.O. à la place de Roman Reigns.');
+    knockOut(state, pi, stand, killer);
+    return;
+  }
   const cena = p.active.find(x => x !== f && has(state, pi, x, 'catcheur-35'));
   // Bray Wyatt (SSR) : prise de contrôle du catcheur mis K.-O. par son attaque spéciale.
   if (killer?.steal && killer.pi !== pi) {
@@ -227,11 +255,12 @@ export function resolveCombat(state, a) {
   const hit = [];
   for (const id of a.targets) {
     if (id === 'direct') continue;
-    const target = (a.special === 'catcheur-06' ? fightersOf(d) : d.active).find(x => x.instanceId === id);
+    const target = fightersOf(d).find(x => x.instanceId === id);
     if (!target) { addHistory(state, 'La cible a quitté le ring.'); continue; }
     const before = effective(state, di, target).endurance;
     let dmg = previewDamage(state, a, id);
     if (a.special === 'catcheur-20' && before > 80) dmg += 10;                                         // Solo Superkick : -10 END de plus
+    target.endBeforeHit = target.endurance;
     target.endurance -= dmg;
     target.wasAttacked = true;
     if (dmg > 0) target.tookDamage = true;
@@ -321,6 +350,7 @@ export function startOfTurn(state, pi) {
 export function attacksAllowed(state, pi, f) {
   let n = 1 + (state.extraAttacks?.[f.instanceId] ?? 0);
   const p = state.players[pi];
+  if (has(state, pi, f, 'wyatt-08') && bloodlineComplete(state, pi)) n += 1;                           // Roman Reigns : 2 attaques
   if (has(state, pi, f, 'catcheur-06') && state.usedAttackers.some(id => id !== f.instanceId && factionOf(findFighter(p, id)?.cardId) === 'The Shield')) n += 1;
   return n;
 }

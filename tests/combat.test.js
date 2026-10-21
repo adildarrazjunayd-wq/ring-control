@@ -251,3 +251,55 @@ test('Teddy Long invoque deux catcheurs de la même faction depuis la main', () 
   assert.equal(r.ok, true, r.reason);
   assert.equal(p.active.length, 2);
 });
+
+test('Jey Uso (wyatt-09) est mis K.O. à la place de Roman Reigns, qui garde son END', () => {
+  const s = duel(['catcheur-35'], ['catcheur-01', 'wyatt-09']);
+  const [roman, jey] = s.players[1].active;
+  s.players[0].active[0].attack = 200;
+  hit(s, s.players[0].active[0], roman);
+  assert.equal(s.players[1].active.includes(roman), true);
+  assert.equal(roman.endurance, 105);
+  assert.equal(s.players[1].active.includes(jey), false);
+  assert.ok(s.players[1].grave.includes('wyatt-09'));
+});
+
+test('Défense inébranlable : -40 dégâts jusqu’à la fin du prochain tour adverse', () => {
+  const s = duel(['catcheur-09'], ['catcheur-35'], 'actions');
+  s.players[0].hand = ['momentum-07'];
+  game.playMomentum(s, 0, byId('momentum-07'));
+  fx.resolveSimpleMomentum(s, 0, byId('momentum-07'));
+  s.players[0].deck = ['objets-01']; s.players[1].deck = ['objets-01'];
+  game.endTurn(s);
+  s.phase = 'attacks';
+  game.declareAttack(s, 1, s.players[1].active[0].instanceId, s.players[0].active[0].instanceId);
+  game.resolveAttack(s);
+  assert.equal(s.players[0].active[0].endurance, 70 - 35);
+});
+
+test('The Bloodline Rassemblement : Roman depuis le deck, +10 ATT, attaque des passifs, quitte le jeu si incomplet', () => {
+  const s = duel(['catcheur-21', 'catcheur-22', 'wyatt-11'], ['catcheur-19'], 'actions');
+  s.players[1].passive = [slot('catcheur-28', 'passive')];
+  const p = s.players[0];
+  p.deck = ['catcheur-01'];
+  p.hand = ['wyatt-13'];
+  assert.equal(fx.momentumRequirement(s, 0, byId('wyatt-13')).ok, true);
+  game.playMomentum(s, 0, byId('wyatt-13'));
+  assert.equal(act.resolveRassemblement(s, 0, { cardId: 'catcheur-01', position: 'passive' }).ok, true);
+  assert.equal(p.ongoingMomentum[0].cardId, 'wyatt-13');
+  const jey = p.active[0];
+  assert.equal(eff(s, 0, jey).attack, 50 + 5 + 5 + 10); // Jimmy actif, Roman, Rassemblement
+  s.phase = 'attacks';
+  hit(s, jey, s.players[1].passive[0]);
+  assert.equal(s.players[1].passive.length, 0);
+  game.sendFighterToGrave(s, 0, p.active.find(f => f.cardId === 'wyatt-11'), 'K.-O.');
+  combat.checkKOs(s);
+  assert.equal(p.ongoingMomentum.length, 0);
+  assert.ok(p.grave.includes('wyatt-13'));
+});
+
+test('Roman Reigns (wyatt-08) attaque deux fois quand la Bloodline est au complet', () => {
+  const s = duel(['wyatt-08', 'catcheur-21', 'catcheur-22'], ['catcheur-33', 'catcheur-28']);
+  s.players[0].passive = [slot('wyatt-11', 'passive')];
+  const roman = s.players[0].active[0];
+  assert.equal(combat.attacksAllowed(s, 0, roman), 2);
+});

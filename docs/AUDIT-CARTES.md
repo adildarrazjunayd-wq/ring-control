@@ -64,8 +64,8 @@ Les règles d'application et les réponses du propriétaire sont dans `docs/DECI
 | `wyatt-02` Erick Rowan | ✅ auto : au cimetière → carte Wyatt Family R/SR du deck en main (au choix) | ✅ depuis le cimetière : bannir, Bray Wyatt +20 ATT ce tour |
 | `wyatt-03` Luke Harper | ✅ depuis le cimetière : endort un adversaire si Bray Wyatt est actif (1 fois par tour) | ✅ à activer : se sacrifie et invoque Bray Wyatt de la main |
 | `wyatt-04` Bray Wyatt | ✅ à activer : invoque un Wyatt Family du cimetière | ✅ attaque spéciale : prend le contrôle du catcheur mis K.O. (END /2) |
-| `wyatt-08` Roman Reigns | ❓ **manuel** (voir questions) | ✅ attaque spéciale sur tous les actifs si END ≤ 55 |
-| `wyatt-09` Jey Uso | ❓ **manuel** (voir questions) | ✅ à activer : invoque Jimmy Uso du deck, Jey n'attaque pas ce tour |
+| `wyatt-08` Roman Reigns | ✅ auto : 2 attaques si Roman, Jey, Jimmy et Sami sont sur le ring | ✅ attaque spéciale sur tous les actifs si END ≤ 55 |
+| `wyatt-09` Jey Uso | ✅ auto : mis K.O. à la place de Roman Reigns | ✅ à activer : invoque Jimmy Uso du deck, Jey n'attaque pas ce tour |
 | `wyatt-10` Jimmy Uso | ✅ à activer : 10 dégâts à un actif adverse | ✅ cherche Paul Heyman dans le deck |
 | `wyatt-11` Sami Zayn | ✅ cherche un Momentum Bloodline dans le deck | ✅ réponse : protège Roman Reigns |
 
@@ -95,17 +95,13 @@ Les règles d'application et les réponses du propriétaire sont dans `docs/DECI
 
 ## Momenta
 
-Tous automatisés (✅), sauf ceux marqués ❓ :
-`momentum-01` à `06`, `08` à `24`, `26` à `30`, `wyatt-05`, `wyatt-06`, `wyatt-12`.
+Tous automatisés (✅) :
+`momentum-01` à `24`, `26` à `30`, `wyatt-05`, `wyatt-06`, `wyatt-12`, `wyatt-13`.
 
-- ❓ `momentum-07` **Défense inébranlable** — manuel (voir questions).
-- ❓ `wyatt-13` **The Bloodline rassemblement** — manuel (voir questions).
+- `momentum-07` Défense inébranlable : -40 dégâts jusqu'à la fin du prochain tour adverse.
+- `wyatt-13` The Bloodline Rassemblement : Roman Reigns depuis le deck (1 fois), Bloodline +10 ATT et attaque des passifs, tant que Roman, Jey, Jimmy et Sami sont sur le ring.
 
-## Questions encore ouvertes pour le propriétaire
-
-1. **« Tous les membres de la Bloodline sont sur le ring »** (`wyatt-08` passif, `wyatt-13`) : il y a 9 cartes Bloodline mais seulement 5 places sur le ring. Quels membres faut-il exactement ?
-2. **Jey Uso (`wyatt-09`)** : « si Roman Reigns est mis K.O., vous pouvez mettre K.O. cette carte à la place » — Roman reste-t-il sur le ring, et avec combien d'END ?
-3. **Défense inébranlable (`momentum-07`)** : la carte n'est pas rapide et dit « ce tour-ci ». Pendant ton propre tour, l'IA n'attaque pas : la réduction de -40 doit-elle durer jusqu'à la fin du tour suivant de l'adversaire ?
+**Plus aucun effet n'est en attente d'une réponse.** Toutes les cartes jouables sont automatisées.
 
 ## Interprétations prises (à confirmer si besoin)
 
