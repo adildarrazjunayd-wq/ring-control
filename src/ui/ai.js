@@ -35,8 +35,7 @@ export async function runAI() {
         const result = action.run();
         if (result && result.ok === false) { skip.add(action.label); continue; }
         if (m.history.length === before) skip.add(action.label); // rien ne s'est passé : ne pas boucler
-        if (BIG.test(action.label)) banner(`L’IA ${esc(action.label)}`);
-        await step(BIG.test(action.label) ? 900 : 350);
+        await step(BIG.test(action.label) ? 1300 : 350); // laisse le temps de voir la carte montrée en grand
       }
       if (m.turn !== 1 || m.winner !== null) return;
       m.phase = 'attacks';

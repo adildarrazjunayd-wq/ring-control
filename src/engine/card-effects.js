@@ -3,6 +3,7 @@
 // absent d'ici reste en résolution manuelle : le joueur lit la carte et applique.
 import {
   addHistory,
+  emit,
   lookupCard,
   resolveMomentum,
   specialSummon,
@@ -53,6 +54,7 @@ export function takeFromDeck(state, playerIndex, cardId, sourceName) {
   player.deck.splice(at, 1);
   player.hand.push(cardId);
   addHistory(state, `${sourceName} : ${player.name} ajoute ${lookupCard(cardId)?.displayName ?? 'une carte'} du deck à sa main.`);
+  emit(state, { kind: 'reveal', pi: playerIndex, cardIds: [cardId], title: 'Ajoutée à la main', sub: sourceName });
   return { ok: true };
 }
 
@@ -186,6 +188,7 @@ export function managerEffect(state, playerIndex, options = {}) {
     return { ok: false, reason: 'Cet effet de manager est permanent : il s’applique tout seul.' };
   }
   manager.used = true;
+  emit(state, { kind: 'effect', pi: playerIndex, cardId: manager.cardId, title: 'Effet du manager' });
   return { ok: true, automatic: true };
 }
 

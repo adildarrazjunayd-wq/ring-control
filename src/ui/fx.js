@@ -1,7 +1,7 @@
 // Animations du duel : entrée sur le ring, dégâts, K.-O., attaque.
 // On compare l'état avant/après chaque affichage, ce qui anime aussi bien les
 // actions du joueur que celles de l'IA sans les coder une par une.
-import { $, card } from './core.js';
+import { $, card, esc, CARD_BACK } from './core.js';
 import { sfx } from './sound.js';
 
 let previous = null; // { matchId, fighters: Map(instanceId -> {endurance, rect}), hp: [a, b] }
@@ -50,7 +50,13 @@ export function afterRender(match) {
       const el = document.querySelector(`[data-fighter$=":${id}"]`);
       if (!before) { el?.classList.add('fx-enter'); continue; }
       const delta = info.endurance - before.endurance;
-      if (delta && el) { floatText(el.getBoundingClientRect(), `${delta > 0 ? '+' : ''}${delta} END`, delta < 0 ? 'dmg' : 'heal'); el.classList.add(delta < 0 ? 'fx-hit' : 'fx-heal'); hit ||= delta < 0; }
+      if (delta && el) {
+        const r = el.getBoundingClientRect();
+        if (delta < 0) burst(r);
+        floatText(r, delta < 0 ? `${delta}` : `+${delta}`, delta < 0 ? 'dmg' : 'heal', delta < 0 ? 'END' : 'END');
+        el.classList.add(delta < 0 ? 'fx-hit' : 'fx-heal');
+        hit ||= delta < 0;
+      }
     }
     for (const [id, info] of previous.fighters) {
       if (!now.fighters.has(id) && info.rect) { koSplash(info.rect, card(info.cardId)?.displayName); ko = true; }
@@ -59,19 +65,38 @@ export function afterRender(match) {
       const delta = hp - previous.hp[pi];
       const bar = $(`[data-hp="${pi}"]`);
       if (delta && bar) {
-        floatText(bar.getBoundingClientRect(), `${delta > 0 ? '+' : ''}${delta} PV`, delta < 0 ? 'dmg big' : 'heal big');
-        if (delta < 0) { bar.classList.add('fx-shake'); $('.board')?.classList.add('fx-shake'); hit = true; }
+        floatText(bar.getBoundingClientRect(), delta < 0 ? `${delta}` : `+${delta}`, delta < 0 ? 'dmg big' : 'heal big', 'PV');
+        if (delta < 0) {
+          bar.classList.add('fx-shake');
+          $('.board')?.classList.add('fx-shake');
+          const flash = document.createElement('div');
+          flash.className = `fx-screen ${pi === 0 ? 'me' : 'ai'}`;
+          document.body.append(flash);
+          setTimeout(() => flash.remove(), 600);
+          hit = true;
+        }
       }
     });
     if (ko) sfx('ko'); else if (hit) sfx('hit');
   }
   previous = now;
+  drainEvents(match);
 }
 
-function floatText(rect, text, cls) {
+// Onde de choc à l'endroit du coup.
+function burst(rect) {
+  const el = document.createElement('div');
+  el.className = 'fx-burst';
+  el.style.left = `${rect.left + rect.width / 2}px`;
+  el.style.top = `${rect.top + rect.height / 2}px`;
+  document.body.append(el);
+  setTimeout(() => el.remove(), 700);
+}
+
+function floatText(rect, text, cls, unit = '') {
   const el = document.createElement('div');
   el.className = `fx-float ${cls}`;
-  el.textContent = text;
+  el.innerHTML = `${esc(text)}${unit ? `<small>${unit}</small>` : ''}`;
   el.style.left = `${rect.left + rect.width / 2}px`;
   el.style.top = `${rect.top + rect.height / 3}px`;
   document.body.append(el);
@@ -86,6 +111,38 @@ function koSplash(rect, name) {
   el.style.top = `${rect.top + rect.height / 2}px`;
   document.body.append(el);
   setTimeout(() => el.remove(), 1600);
+}
+
+// ---------- Cartes montrées en grand (façon Duel Links) ----------
+// Le moteur remplit match.fxQueue ; on les montre l'une après l'autre sans bloquer le jeu.
+const shows = [];
+let showing = false;
+const SOUND_OF = { effect: 'effect', reveal: 'reveal', draw: 'reveal', summon: 'summon', card: 'card' };
+
+export function drainEvents(match, { silent = false } = {}) {
+  const events = match?.fxQueue ?? [];
+  if (!events.length) return;
+  match.fxQueue = [];
+  if (silent) return;
+  shows.push(...events);
+  if (!showing) nextShow();
+}
+
+function nextShow() {
+  const ev = shows.shift();
+  if (!ev) { showing = false; return; }
+  showing = true;
+  const quick = ev.kind === 'summon';
+  const faces = ev.kind === 'draw' && ev.pi === 1 ? ev.cardIds.map(() => null) : (ev.cardIds ?? [ev.cardId]);
+  const el = document.createElement('div');
+  el.className = `cardshow ${ev.pi === 1 ? 'ai' : 'me'} ${ev.kind}`;
+  const imgs = faces.map(id => `<img src="/${id ? card(id)?.image : CARD_BACK}" alt="">`).join('');
+  el.innerHTML = `<div class="cs-ribbon"><small>${ev.pi === 1 ? 'L’IA' : 'TOI'}</small>${esc(ev.title ?? '')}</div><div class="cs-cards n${Math.min(faces.length, 3)}">${imgs}</div>${ev.sub || (ev.kind === 'draw' && ev.pi === 1) ? `<div class="cs-sub">${esc(ev.kind === 'draw' && ev.pi === 1 ? `${ev.sub} · ${faces.length} carte${faces.length > 1 ? 's' : ''}` : ev.sub)}</div>` : ''}`;
+  document.body.append(el);
+  sfx(SOUND_OF[ev.kind] ?? 'effect');
+  const life = quick ? 850 : 1400;
+  setTimeout(() => el.classList.add('out'), life - 250);
+  setTimeout(() => { el.remove(); nextShow(); }, life);
 }
 
 export function banner(text, cls = '') {

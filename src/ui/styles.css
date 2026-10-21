@@ -531,3 +531,62 @@ body.in-duel #view { min-height: 0; }
 .fxp { position: relative; z-index: 5; }
 .duel .info .tron > img { max-height: 34vh; }
 .duel .info .tron-actions { position: static; background: none; padding-top: 4px; }
+
+/* =====================================================================
+   Refonte du 21/10/2026 : panneau des effets, cartes montrées en grand, dégâts
+   ===================================================================== */
+/* Panneau « Effets en cours » : verre sombre, vignettes de cartes, étiquettes de durée */
+.fxp { background: linear-gradient(180deg, rgba(22, 12, 40, .94), rgba(10, 6, 20, .94)); border: 1px solid rgba(255, 225, 77, .35); border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .06); }
+.fxp header { background: none; border-bottom: 1px solid rgba(255, 255, 255, .08); padding: 10px 12px; font: 13px var(--title); letter-spacing: 2px; color: #fff; }
+.fxp header b { background: linear-gradient(90deg, var(--y), #ffb84d); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.fxp-body { gap: 14px; padding: 10px; }
+.fx-side h4 { display: flex; align-items: center; justify-content: space-between; margin: 0 0 8px; padding: 4px 8px; border-radius: 6px; font: 12px var(--title); letter-spacing: 2px; color: #fff; }
+.fx-side.ai h4 { background: linear-gradient(90deg, rgba(34, 230, 255, .25), transparent); }
+.fx-side.me h4 { background: linear-gradient(90deg, rgba(255, 46, 136, .3), transparent); }
+.fx-side h4 b { min-width: 22px; text-align: center; padding: 1px 6px; border-radius: 10px; background: rgba(255, 255, 255, .12); font-size: 11px; }
+.fx-side article.fx-item { display: grid; grid-template-columns: 38px 1fr; grid-template-rows: auto auto; gap: 2px 9px; align-items: start; margin: 0 0 6px; padding: 7px; background: rgba(255, 255, 255, .04); color: #fff; border: 1px solid rgba(255, 255, 255, .07); border-left: 3px solid #8c7bb8; border-radius: 8px; transition: background .15s, transform .15s; cursor: default; }
+.fx-side article.fx-item:hover { background: rgba(255, 255, 255, .09); transform: translateX(-2px); }
+.fx-item.buff { border-left-color: var(--green); }
+.fx-item.debuff { border-left-color: #ff5d6c; }
+.fx-item.item { border-left-color: var(--y); }
+.fx-thumb { grid-row: span 2; position: relative; width: 38px; aspect-ratio: 496 / 693; border-radius: 4px; overflow: hidden; background: radial-gradient(circle, #2b1b4a, #120a24); display: grid; place-items: center; box-shadow: 0 2px 6px rgba(0, 0, 0, .5); }
+.fx-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.fx-thumb span { position: absolute; right: -2px; bottom: -2px; font-size: 13px; line-height: 1; padding: 2px; background: rgba(0, 0, 0, .75); border-radius: 6px; }
+.fx-thumb:not(:has(img)) span { position: static; background: none; font-size: 18px; }
+.fx-txt b { display: block; font: 600 12.5px/1.25 var(--body); color: #fff; }
+.fx-txt p { margin: 2px 0 0; font: 11.5px/1.35 var(--body); color: #c9bfe0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.fx-chip { grid-column: 2; justify-self: start; margin-top: 3px; font: 600 10px var(--body); font-style: normal; letter-spacing: .5px; padding: 1px 7px; border-radius: 10px; }
+.fx-chip.now { background: rgba(255, 225, 77, .18); color: var(--y); }
+.fx-chip.next { background: rgba(34, 230, 255, .16); color: var(--c); }
+.fx-chip.perm { background: rgba(255, 255, 255, .1); color: #c9bfe0; }
+.fx-none { font: 12px var(--body); color: #8c7bb8; text-align: center; padding: 10px 0; border: 1px dashed rgba(255, 255, 255, .1); border-radius: 8px; }
+
+/* Carte montrée en grand au moment de l'action */
+.cardshow { position: fixed; inset: 0; z-index: 70; pointer-events: none; display: grid; place-content: center; justify-items: center; gap: 12px; background: radial-gradient(ellipse at center, rgba(7, 4, 15, .55), rgba(7, 4, 15, 0) 70%); animation: cs-in .3s ease-out; }
+.cardshow.out { animation: cs-out .25s ease-in forwards; }
+.cs-ribbon { font: clamp(20px, 2.4vw, 32px) var(--title); letter-spacing: 2px; color: #fff; text-shadow: 3px 3px 0 #000; padding: 6px 28px; background: linear-gradient(90deg, transparent, rgba(255, 46, 136, .9), transparent); text-align: center; }
+.cardshow.ai .cs-ribbon { background: linear-gradient(90deg, transparent, rgba(10, 127, 153, .95), transparent); }
+.cs-ribbon small { display: block; font: 600 12px var(--body); letter-spacing: 3px; opacity: .85; }
+.cs-cards { display: flex; gap: 16px; }
+.cs-cards img { height: min(46vh, 420px); width: auto; border-radius: 10px; box-shadow: 0 0 0 3px #fff, 0 0 50px rgba(255, 225, 77, .7), 0 20px 50px #000; animation: cs-card .45s cubic-bezier(.2, 1.3, .4, 1); }
+.cs-cards.n2 img, .cs-cards.n3 img { height: min(36vh, 320px); }
+.cardshow.summon .cs-cards img { height: min(34vh, 300px); }
+.cardshow.effect .cs-cards img { box-shadow: 0 0 0 3px var(--y), 0 0 70px rgba(255, 225, 77, .9), 0 20px 50px #000; }
+.cs-sub { font: 600 clamp(15px, 1.4vw, 20px) var(--body); color: #fff; background: rgba(7, 4, 15, .85); padding: 6px 18px; border-radius: 20px; border: 1px solid rgba(255, 225, 77, .5); text-align: center; max-width: 80vw; }
+@keyframes cs-in { from { opacity: 0; } }
+@keyframes cs-out { to { opacity: 0; transform: scale(1.05); } }
+@keyframes cs-card { from { transform: scale(.3) rotateY(90deg); opacity: 0; } 70% { transform: scale(1.06) rotateY(0); } to { transform: none; } }
+
+/* Dégâts : gros chiffres, onde de choc, flash d'écran */
+.fx-float { font: clamp(40px, 4.4vw, 64px)/1 var(--title); }
+.fx-float small { font-size: .38em; margin-left: 4px; }
+.fx-float.dmg { color: #fff; -webkit-text-stroke: 2px #c4001d; text-shadow: 0 0 18px rgba(255, 40, 60, .9), 4px 4px 0 #000; }
+.fx-float.dmg.big { font-size: clamp(56px, 6vw, 88px); color: var(--y); -webkit-text-stroke: 2px #b00020; }
+.fx-float.heal { color: var(--green); -webkit-text-stroke: 1px #064; text-shadow: 0 0 14px rgba(92, 255, 157, .8), 3px 3px 0 #000; }
+.fx-burst { position: fixed; z-index: 49; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; pointer-events: none; border: 6px solid #fff; box-shadow: 0 0 30px var(--y), inset 0 0 20px var(--m); animation: burst .6s ease-out forwards; }
+@keyframes burst { from { transform: scale(.2); opacity: 1; } to { transform: scale(5); opacity: 0; border-width: 1px; } }
+.fx-screen { position: fixed; inset: 0; z-index: 48; pointer-events: none; animation: screen .55s ease-out forwards; }
+.fx-screen.me { background: radial-gradient(ellipse at center, transparent 40%, rgba(255, 30, 60, .45)); }
+.fx-screen.ai { background: radial-gradient(ellipse at center, transparent 40%, rgba(34, 230, 255, .35)); }
+@keyframes screen { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cs-cards img, .fx-burst { animation: none; } }

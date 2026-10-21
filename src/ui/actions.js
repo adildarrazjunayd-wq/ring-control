@@ -64,12 +64,12 @@ function afterMomentum(c, result) {
     modal(`<h2>${esc(c.displayName)}</h2><p>Choisis le catcheur à invoquer. S’il n’est pas dans ta main, il est pris dans ton deck. Ton invocation normale reste disponible.</p><div class="opts">${opts.map(o => { const t = card(o.cardId); return option(esc(t.displayName), `${t.rarity} · ${t.attack} ATT · ${t.endurance} END · depuis ${o.source === 'deck' ? 'le deck' : 'la main'}`, `data-act="directPick" data-mid="${c.id}" data-id="${o.cardId}"`); }).join('')}</div>${btn('Terminer sans invoquer', 'data-act="skipMomentum"', 'btn ghost')}`);
     return;
   }
-  if (c.id === 'momentum-20' && result.response) { banner('<b>CONTRE !</b> L’attaque est annulée'); done({ ok: true }, 'effect'); if (match.turn === 1) runAI(); return; }
-  if (effects.resolveSimpleMomentum(match, 0, c)) { banner(`<b>${esc(c.displayName)}</b>`); done({ ok: true }, 'effect'); return; }
+  if (c.id === 'momentum-20' && result.response) { done({ ok: true }, 'effect'); if (match.turn === 1) runAI(); return; }
+  if (effects.resolveSimpleMomentum(match, 0, c)) { done({ ok: true }, 'effect'); return; }
   if (effects.SEARCH_RULES[c.id]) { searchModal(c.id, c.displayName); return; }
   if (c.id === 'wyatt-13') {
     const opts = activ.rassemblementOptions(match, 0), romanOn = fighters(p).some(f => combat.is(f.cardId, 'roman reigns'));
-    if (!opts.length) { const r = activ.resolveRassemblement(match, 0); if (r.ok) banner('<b>THE BLOODLINE</b> au complet !'); done(r, 'effect'); return; }
+    if (!opts.length) { const r = activ.resolveRassemblement(match, 0); done(r, 'effect'); return; }
     modal(`<h2>The Bloodline Rassemblement</h2><p>Tu peux invoquer Roman Reigns depuis ton deck (une seule fois dans la partie).</p><div class="opts">${opts.map(o => `<div class="opt row"><img src="/${card(o.cardId).image}" alt=""><b>${esc(card(o.cardId).displayName)}</b>${o.positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="rassemblement" data-id="${o.cardId}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('')}</div>${romanOn ? btn('Ne pas invoquer', 'data-act="rassemblement"', 'btn ghost') : ''}`);
     return;
   }
@@ -227,7 +227,6 @@ export const actions = {
     if (!r.ok) { toast(r.reason); return; }
     persist();
     if (effects.SEARCH_RULES[key]) { searchModal(key, card(f.cardId).displayName); return; }
-    banner(`✨ <b>${esc(card(f.cardId).displayName)}</b><small>Effet passif actif jusqu’à ton prochain tour</small>`);
     done(r, 'effect');
   },
   special: d => {
@@ -237,7 +236,6 @@ export const actions = {
     if (!r.ok) { toast(r.reason); return; }
     persist();
     if (effects.SEARCH_RULES[key]) { searchModal(key, card(f.cardId).displayName); return; }
-    banner(`Effet spécial · <b>${esc(card(f.cardId).displayName)}</b><small>Applique le texte imprimé</small>`);
     done(r, 'effect');
   },
   managerEffect: () => {
@@ -247,13 +245,11 @@ export const actions = {
       return;
     }
     const r = effects.managerEffect(m(), 0);
-    if (r.ok) banner(`<b>${esc(card(me().manager.cardId).displayName)}</b> entre en action`);
     done(r, 'effect');
   },
   teddyConfirm: () => {
     const ids = [...document.querySelectorAll('[data-teddy]:checked')].map(x => x.value);
     const r = effects.managerEffect(m(), 0, { cardIds: ids, positions: ids.map(id => document.querySelector(`[data-teddy-pos="${id}"]`).value) });
-    if (r.ok) banner('<b>TEDDY LONG</b> : tag team match !');
     done(r, 'summon');
   },
 
@@ -270,12 +266,10 @@ export const actions = {
       return;
     }
     const r = activ.activate(m(), 0, d.key, d.iid || null);
-    if (r.ok) banner(`<b>${esc(e.name)}</b>`);
     done(r, 'effect');
   },
   activateSummon: d => {
     const r = activ.activate(m(), 0, d.key, d.iid || null, { cardId: d.id, position: d.pos });
-    if (r.ok) banner(`<b>${esc(activ.ACTIVATED[d.key].name)}</b>`);
     done(r, 'summon');
   },
   graveEffect: d => actions.activate({ key: d.key }),
@@ -285,7 +279,6 @@ export const actions = {
   },
   rassemblement: d => {
     const r = activ.resolveRassemblement(m(), 0, d.id ? { cardId: d.id, position: d.pos } : {});
-    if (r.ok) banner('<b>THE BLOODLINE</b> au complet !');
     done(r, 'summon');
   },
   summonMomentum: d => {
@@ -294,7 +287,6 @@ export const actions = {
   },
   react: d => {
     const r = game.useReaction(m(), 0, d.key, d.iid || null);
-    if (r.ok) banner('<b>ATTAQUE ANNULÉE !</b>');
     if (done(r, 'effect')) runAI();
   },
   adjust: d => done(game.adjustFighter(m(), Number(d.pi), d.iid, d.stat, Number(d.delta), 'correction manuelle')),
@@ -333,7 +325,6 @@ export const actions = {
     const r = t.kind === 'activate'
       ? activ.activate(m(), 0, t.key, t.iid, { targets: t.picked })
       : activ.resolveTargetMomentum(m(), 0, t.key, t.picked);
-    if (r.ok) banner(`<b>${esc(t.name)}</b>`);
     done(r, 'effect');
   },
   launch: () => launchAttack(S.targeting?.picked[0]?.instanceId ?? 'multi'),

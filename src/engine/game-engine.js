@@ -70,6 +70,15 @@ export function createMatch(humanDeck, aiDeck, { random = Math.random, first = 0
   return state;
 }
 
+// Événements à montrer en grand à l'écran (carte jouée, effet activé, carte prise dans le deck…).
+// L'interface les lit puis vide la file ; le moteur ne s'en sert pas pour les règles.
+export function emit(state, event) {
+  (state.fxQueue ??= []).push(event);
+  if (state.fxQueue.length > 12) state.fxQueue.shift();
+}
+
+const effectName = (cardId, kind) => (rarityLookup(cardId)?.effects.find(e => e.kind === kind)?.text ?? '').split(':')[0].trim();
+
 export function addHistory(state, message) {
   state.history.unshift(message);
   state.history = state.history.slice(0, 200);
@@ -179,6 +188,7 @@ export function normalSummon(state, playerIndex, card, sacrificeIds = [], positi
   if (bonusSummon) player.limits.extraNormal -= 1;
   player.limits.normal = true;
   if (free) player.status.freeSsrSummon = false;
+  emit(state, { kind: 'summon', pi: playerIndex, cardId: card.id, title: 'Invocation' });
   addHistory(state, `${player.name} invoque normalement ${card.displayName}${sacrifices.length ? ` en sacrifiant ${sacrifices.length} catcheur${sacrifices.length === 1 ? '' : 's'}` : free ? ' sans sacrifice grâce à Mr. McMahon' : ''}.`);
   return { ok: true, fighter };
 }
@@ -202,6 +212,7 @@ export function specialSummon(state, playerIndex, card, source, position = ZONES
   sourceZone.splice(at, 1);
   player[position].push(slotFor(card, position));
   addHistory(state, `${player.name} invoque spécialement ${card.displayName} depuis ${source === 'grave' ? 'le cimetière' : source === 'deck' ? 'le deck' : 'la main'}.`);
+  emit(state, { kind: 'summon', pi: playerIndex, cardId: card.id, title: source === 'deck' ? 'Invoqué depuis le deck' : source === 'grave' ? 'Retour du cimetière' : 'Invocation spéciale' });
   return { ok: true };
 }
 
@@ -249,6 +260,7 @@ export function playManager(state, playerIndex, card) {
   player.manager = { cardId: card.id, used: false, expiresAfterTurn: null };
   player.limits.manager = true;
   addHistory(state, `${player.name} joue le manager ${card.displayName}.`);
+  emit(state, { kind: 'card', pi: playerIndex, cardId: card.id, title: 'Manager' });
   return { ok: true };
 }
 
@@ -263,6 +275,7 @@ export function equipObject(state, playerIndex, card, fighterId) {
   player.objects.push({ instanceId: crypto.randomUUID(), cardId: card.id, fighterId, expiresAfterTurn: null });
   player.limits.object = true;
   addHistory(state, `${player.name} équipe ${rarityLookup(fighter.cardId)?.displayName ?? 'un catcheur'} avec ${card.displayName}.`);
+  emit(state, { kind: 'card', pi: playerIndex, cardId: card.id, title: 'Objet équipé', sub: rarityLookup(fighter.cardId)?.displayName });
   // Effets immédiats des objets (« ce tour-ci »).
   if (card.id === 'objets-06') { player.limits.extraNormal = (player.limits.extraNormal ?? 0) + 1; addHistory(state, 'Big Gold : une invocation supplémentaire est possible ce tour-ci.'); }
   if (card.id === 'objets-07') { player.limits.momentum -= 1; addHistory(state, 'Ceinture poids lourd : deux Momenta peuvent être joués par tour.'); }
@@ -291,6 +304,7 @@ export function activateWrestlerEffect(state, playerIndex, fighterId, kind) {
     fighter.specialUsed = true;
   } else return { ok: false, reason: 'Type d’effet inconnu.' };
   addHistory(state, `${player.name} active l’effet ${kind === 'passive' ? 'passif' : 'spécial'} de ${rarityLookup(fighter.cardId)?.displayName ?? 'son catcheur'}.`);
+  emit(state, { kind: 'effect', pi: playerIndex, cardId: fighter.cardId, title: kind === 'passive' ? 'Effet passif' : 'Effet spécial', sub: effectName(fighter.cardId, kind === 'passive' ? 'passif' : 'spécial') });
   return { ok: true, fighter };
 }
 
@@ -311,6 +325,7 @@ export function playMomentum(state, playerIndex, card, { allowTimingException = 
   if (response) state.outOfTurnMomentumUsed[playerIndex] += 1;
   addHistory(state, `${player.name} joue ${card.rapid ? 'un Momentum rapide' : 'un Momentum'} : ${card.displayName}.`);
   (state.momentumsThisTurn ??= [0, 0])[playerIndex] += 1;
+  emit(state, { kind: 'card', pi: playerIndex, cardId: card.id, title: card.rapid ? 'Momentum rapide !' : 'Momentum' });
   if (player.active.some(f => f.cardId === 'catcheur-34' && combat.passiveOn(state, playerIndex, f))) combat.draw(state, playerIndex, 1, 'Cody Rhodes : Héritier de la gloire');
   if (card.id === 'momentum-20' && state.pendingAttack) counterPendingAttack(state, playerIndex, card);
   return { ok: true, response };
@@ -443,6 +458,7 @@ export function useReaction(state, playerIndex, key, fighterId = null) {
   state.pendingAttack = null;
   state.phase = 'attacks';
   addHistory(state, `${option.label} : l’attaque est annulée.`);
+  emit(state, { kind: 'effect', pi: playerIndex, cardId: fighter?.cardId ?? key, title: 'Attaque annulée !', sub: option.label });
   const counter = { 'catcheur-10': 5, 'catcheur-13': 10 }[key];
   if (counter && attacker) { attacker.endurance -= counter; addHistory(state, `${rarityLookup(attacker.cardId)?.displayName} subit ${counter} dégâts.`); combat.checkKOs(state); }
   return { ok: true };
@@ -513,6 +529,7 @@ export function reviveFromGrave(state, playerIndex, card, position) {
   player.grave.splice(at, 1);
   const fighter = slotFor(card, position);
   player[position].push(fighter);
+  emit(state, { kind: 'summon', pi: playerIndex, cardId: card.id, title: 'Retour du cimetière' });
   addHistory(state, `${player.name} fait revenir ${card.displayName} du cimetière en position ${position === 'active' ? 'active' : 'passive'}, avec ${fighter.endurance} END.`);
   return { ok: true, fighter };
 }

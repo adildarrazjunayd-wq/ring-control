@@ -82,5 +82,6 @@ const start = location.hash.slice(1);
 S.page = TITLES[start] ? start : 'home';
 history.replaceState({ ringControl: true, page: S.page }, '', `#${S.page}`);
 $('[data-act="sound"]').textContent = soundOn() ? '🔊' : '🔇';
+if (S.match) S.match.fxQueue = []; // ne pas rejouer les animations d'une partie reprise
 render();
 if (S.match?.turn === 1 && S.match.winner === null && !S.match.pendingAttack) runAI();

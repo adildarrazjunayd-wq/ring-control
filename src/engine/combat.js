@@ -1,6 +1,6 @@
 // Bonus, combat et déclencheurs automatiques des cartes.
 // Règles d'application : docs/DECISIONS-REGLES.md (effets continus, déclenchés, attaques spéciales).
-import { addHistory, lookupCard, sendFighterToGrave, finishMatch, legalPositions } from './game-engine.js';
+import { addHistory, emit, lookupCard, sendFighterToGrave, finishMatch, legalPositions } from './game-engine.js';
 
 // ---------- Outils ----------
 
@@ -37,8 +37,9 @@ export function heal(state, pi, f, amount, why) {
 
 export function draw(state, pi, amount, why) {
   const p = state.players[pi], n = Math.min(amount, p.deck.length);
-  for (let i = 0; i < n; i += 1) p.hand.push(p.deck.shift());
-  if (n) addHistory(state, `${why} : ${p.name} pioche ${n} carte${n > 1 ? 's' : ''}.`);
+  const drawn = p.deck.splice(0, n);
+  p.hand.push(...drawn);
+  if (n) { addHistory(state, `${why} : ${p.name} pioche ${n} carte${n > 1 ? 's' : ''}.`); emit(state, { kind: 'draw', pi, cardIds: drawn, title: 'Pioche', sub: why }); }
 }
 
 export function addModifier(f, stat, value, until, source) {
@@ -98,29 +99,29 @@ export function activeEffects(state, pi) {
   const effectText = (id, kind) => lookupCard(id)?.effects.find(e => e.kind === kind)?.text ?? '';
   for (const f of fightersOf(p)) {
     const who = nameAt(f.cardId);
-    if (passiveOn(state, pi, f)) { const t = effectText(f.cardId, 'passif'); out.push({ icon: '✨', title: `${who} — ${t.split(':')[0]}`, text: t.includes(':') ? t.split(':').slice(1).join(':').trim() : t, until: f.passiveActiveUntil }); }
-    if ((f.noAttackUntil ?? 0) >= n) out.push({ icon: '💤', title: `${who} ne peut pas attaquer`, text: f.noAttackUntilWhy ? `Cause : ${f.noAttackUntilWhy}.` : '', until: f.noAttackUntil });
-    if ((f.passivesOffUntil ?? 0) >= n) out.push({ icon: '🚫', title: `Effets passifs de ${who} annulés`, text: f.passivesOffUntilWhy ? `Cause : ${f.passivesOffUntilWhy}.` : '', until: f.passivesOffUntil });
-    if ((f.halfDamageUntil ?? 0) >= n) out.push({ icon: '½', title: `${who} inflige moitié moins de dégâts`, text: f.halfDamageUntilWhy ? `Cause : ${f.halfDamageUntilWhy}.` : '', until: f.halfDamageUntil });
-    if (state.extraAttacks?.[f.instanceId] && state.turn === pi) out.push({ icon: '×2', title: `${who} peut attaquer une fois de plus`, text: '', until: n });
-    for (const m of f.modifiers ?? []) if (m.until == null || m.until >= n) out.push({ icon: m.value > 0 ? '⬆' : '⬇', title: `${who} : ${m.value > 0 ? '+' : ''}${m.value} ${m.stat === 'attack' ? 'ATT' : 'END'}`, text: nameAt(m.source), until: m.until });
+    if (passiveOn(state, pi, f)) { const t = effectText(f.cardId, 'passif'); out.push({ cardId: f.cardId, tone: 'buff', icon: '✨', title: `${who} — ${t.split(':')[0]}`, text: t.includes(':') ? t.split(':').slice(1).join(':').trim() : t, until: f.passiveActiveUntil }); }
+    if ((f.noAttackUntil ?? 0) >= n) out.push({ cardId: f.cardId, tone: 'debuff', icon: '💤', title: `${who} ne peut pas attaquer`, text: f.noAttackUntilWhy ? `Cause : ${f.noAttackUntilWhy}.` : '', until: f.noAttackUntil });
+    if ((f.passivesOffUntil ?? 0) >= n) out.push({ cardId: f.cardId, tone: 'debuff', icon: '🚫', title: `Effets passifs de ${who} annulés`, text: f.passivesOffUntilWhy ? `Cause : ${f.passivesOffUntilWhy}.` : '', until: f.passivesOffUntil });
+    if ((f.halfDamageUntil ?? 0) >= n) out.push({ cardId: f.cardId, tone: 'debuff', icon: '½', title: `${who} inflige moitié moins de dégâts`, text: f.halfDamageUntilWhy ? `Cause : ${f.halfDamageUntilWhy}.` : '', until: f.halfDamageUntil });
+    if (state.extraAttacks?.[f.instanceId] && state.turn === pi) out.push({ cardId: f.cardId, tone: 'buff', icon: '×2', title: `${who} peut attaquer une fois de plus`, text: '', until: n });
+    for (const m of f.modifiers ?? []) if (m.until == null || m.until >= n) out.push({ cardId: m.source, tone: m.value > 0 ? 'buff' : 'debuff', icon: m.value > 0 ? '⬆' : '⬇', title: `${who} : ${m.value > 0 ? '+' : ''}${m.value} ${m.stat === 'attack' ? 'ATT' : 'END'}`, text: nameAt(m.source), until: m.until });
   }
   for (const o of p.objects) {
     const holder = fightersOf(p).find(f => f.instanceId === o.fighterId);
-    out.push({ icon: '⚙', title: `${nameAt(o.cardId)} sur ${holder ? nameAt(holder.cardId) : '?'}`, text: effectText(o.cardId, 'effet'), until: null });
+    out.push({ cardId: o.cardId, tone: 'item', icon: '⚙', title: `${nameAt(o.cardId)} sur ${holder ? nameAt(holder.cardId) : '?'}`, text: effectText(o.cardId, 'effet'), until: null });
   }
-  if (p.manager) out.push({ icon: '👔', title: `Manager : ${nameAt(p.manager.cardId)}${p.manager.used ? ' (effet utilisé)' : ''}`, text: effectText(p.manager.cardId, 'effet'), until: null });
-  for (const o of p.ongoingMomentum) out.push({ icon: '🔥', title: nameAt(o.cardId), text: effectText(o.cardId, 'effet'), until: null });
+  if (p.manager) out.push({ cardId: p.manager.cardId, tone: 'item', icon: '👔', title: `Manager : ${nameAt(p.manager.cardId)}${p.manager.used ? ' (effet utilisé)' : ''}`, text: effectText(p.manager.cardId, 'effet'), until: null });
+  for (const o of p.ongoingMomentum) out.push({ cardId: o.cardId, tone: 'buff', icon: '🔥', title: nameAt(o.cardId), text: effectText(o.cardId, 'effet'), until: null });
   const s = p.status;
-  if ((s.noMomentumThroughTurn ?? 0) >= n) out.push({ icon: '⛔', title: 'Ne peut pas jouer de Momentum', text: '', until: s.noMomentumThroughTurn });
-  if ((s.noSsrSacrificeThroughTurn ?? 0) >= n) out.push({ icon: '⛔', title: 'Ne peut pas sacrifier pour invoquer une SSR', text: 'Domination Totale', until: s.noSsrSacrificeThroughTurn });
-  if ((s.effectsCancelledThroughTurn ?? 0) >= n) out.push({ icon: '🚫', title: 'Tous ses effets sont annulés', text: '', until: s.effectsCancelledThroughTurn });
-  if ((s.damageReductionUntil ?? 0) >= n) out.push({ icon: '🛡', title: 'Défense inébranlable', text: 'Les attaques adverses infligent 40 dégâts de moins.', until: s.damageReductionUntil });
-  if (s.noAttackThroughTurn >= n) out.push({ icon: '⛔', title: 'Ne peut plus attaquer ce tour', text: 'Contre', until: s.noAttackThroughTurn });
-  if (s.freeSsrSummon) out.push({ icon: '👔', title: 'Prochaine SSR sans sacrifice', text: 'Mr. McMahon', until: null });
-  if (state.turn === pi && p.limits.momentum < 0) out.push({ icon: '➕', title: `${1 - p.limits.momentum} Momenta autorisés ce tour`, text: '', until: n });
-  if (state.turn === pi && (p.limits.extraNormal ?? 0) > 0) out.push({ icon: '➕', title: 'Une invocation normale de plus ce tour', text: 'Big Gold', until: n });
-  if (state.botteCeltesBoostPlayer === pi && state.botteCeltesBoostTurn === n) out.push({ icon: '⬆', title: 'Sheamus : +15 ATT s’il attaque', text: 'Botte Celte', until: n });
+  if ((s.noMomentumThroughTurn ?? 0) >= n) out.push({ tone: 'debuff', icon: '⛔', title: 'Ne peut pas jouer de Momentum', text: '', until: s.noMomentumThroughTurn });
+  if ((s.noSsrSacrificeThroughTurn ?? 0) >= n) out.push({ cardId: 'momentum-01', tone: 'debuff', icon: '⛔', title: 'Ne peut pas sacrifier pour invoquer une SSR', text: 'Domination Totale', until: s.noSsrSacrificeThroughTurn });
+  if ((s.effectsCancelledThroughTurn ?? 0) >= n) out.push({ tone: 'debuff', icon: '🚫', title: 'Tous ses effets sont annulés', text: '', until: s.effectsCancelledThroughTurn });
+  if ((s.damageReductionUntil ?? 0) >= n) out.push({ cardId: 'momentum-07', tone: 'buff', icon: '🛡', title: 'Défense inébranlable', text: 'Les attaques adverses infligent 40 dégâts de moins.', until: s.damageReductionUntil });
+  if (s.noAttackThroughTurn >= n) out.push({ cardId: 'momentum-20', tone: 'debuff', icon: '⛔', title: 'Ne peut plus attaquer ce tour', text: 'Contre', until: s.noAttackThroughTurn });
+  if (s.freeSsrSummon) out.push({ cardId: 'managers-02', tone: 'buff', icon: '👔', title: 'Prochaine SSR sans sacrifice', text: 'Mr. McMahon', until: null });
+  if (state.turn === pi && p.limits.momentum < 0) out.push({ tone: 'buff', icon: '➕', title: `${1 - p.limits.momentum} Momenta autorisés ce tour`, text: '', until: n });
+  if (state.turn === pi && (p.limits.extraNormal ?? 0) > 0) out.push({ cardId: 'objets-06', tone: 'buff', icon: '➕', title: 'Une invocation normale de plus ce tour', text: 'Big Gold', until: n });
+  if (state.botteCeltesBoostPlayer === pi && state.botteCeltesBoostTurn === n) out.push({ cardId: 'momentum-26', tone: 'buff', icon: '⬆', title: 'Sheamus : +15 ATT s’il attaque', text: 'Botte Celte', until: n });
   return out;
 }
 

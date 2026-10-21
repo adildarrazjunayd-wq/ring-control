@@ -1,135 +1,110 @@
-// Bruitages « ambiance catch », fabriqués par le navigateur (aucun fichier à télécharger) :
-// cloche du ring, foule, coups, chutes, pyrotechnie d'entrée. Coupables depuis le bouton son.
+// Bruitages fabriqués par le navigateur (aucun fichier à télécharger).
+// Version du 21/10/2026 : sons ronds et propres (ondes douces filtrées + petite réverbération d'arène),
+// sans bruit de foule. Coupables depuis le bouton son.
 let enabled = localStorage.getItem('ring-control-sound') !== 'off';
-let ctx = null, master = null, noise = null, crowdLoop = null;
+let ctx = null, out = null, verb = null;
 
 export const soundOn = () => enabled;
 
 export function toggleSound() {
   enabled = !enabled;
   try { localStorage.setItem('ring-control-sound', enabled ? 'on' : 'off'); } catch { /* ignore */ }
-  if (!enabled) stopCrowd();
   return enabled;
 }
+
+// Gardés pour compatibilité : plus de rumeur de foule en fond.
+export function startCrowd() {}
+export function stopCrowd() {}
 
 function audio() {
   const Audio = window.AudioContext || window.webkitAudioContext;
   if (!Audio) return null;
   if (!ctx) {
     ctx = new Audio();
-    master = ctx.createGain();
-    master.gain.value = 0.7;
     const comp = ctx.createDynamicsCompressor();
-    master.connect(comp).connect(ctx.destination);
-    // Bruit blanc réutilisé pour la foule, les coups et les souffles.
-    noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-    const data = noise.getChannelData(0);
-    for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+    comp.threshold.value = -18;
+    comp.ratio.value = 4;
+    out = ctx.createGain();
+    out.gain.value = 0.55;
+    out.connect(comp).connect(ctx.destination);
+    // Réverbération courte et douce (impulsion décroissante générée).
+    const len = ctx.sampleRate * 1.4, impulse = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch += 1) {
+      const d = impulse.getChannelData(ch);
+      for (let i = 0; i < len; i += 1) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3;
+    }
+    const conv = ctx.createConvolver(), damp = ctx.createBiquadFilter();
+    conv.buffer = impulse;
+    damp.type = 'lowpass';
+    damp.frequency.value = 3200;
+    verb = ctx.createGain();
+    verb.gain.value = 0.22;
+    verb.connect(conv).connect(damp).connect(out);
   }
   if (ctx.state === 'suspended') ctx.resume();
   return ctx;
 }
 
-// Petit outil : enveloppe attaque/déclin sur un gain.
-function env(gain, t, peak, attack, decay) {
-  gain.gain.setValueAtTime(0.0001, t);
-  gain.gain.exponentialRampToValueAtTime(peak, t + attack);
-  gain.gain.exponentialRampToValueAtTime(0.0001, t + attack + decay);
-}
-
-function tone(freq, t, { type = 'sine', peak = 0.2, attack = 0.005, decay = 0.4, to = null } = {}) {
-  const o = ctx.createOscillator(), g = ctx.createGain();
+// Une note douce : onde + filtre passe-bas + enveloppe, envoyée aussi dans la réverbération.
+function note(freq, t, { type = 'sine', vol = 0.12, attack = 0.008, decay = 0.35, to = null, cutoff = 4000, wet = 1 } = {}) {
+  const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
   o.type = type;
   o.frequency.setValueAtTime(freq, t);
   if (to) o.frequency.exponentialRampToValueAtTime(to, t + attack + decay);
-  env(g, t, peak, attack, decay);
-  o.connect(g).connect(master);
+  f.type = 'lowpass';
+  f.frequency.value = cutoff;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + attack);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + attack + decay);
+  o.connect(f).connect(g);
+  g.connect(out);
+  if (wet) { const s = ctx.createGain(); s.gain.value = wet; g.connect(s).connect(verb); }
   o.start(t);
   o.stop(t + attack + decay + 0.05);
 }
 
-function hiss(t, { filter = 'bandpass', freq = 1000, q = 1, peak = 0.2, attack = 0.01, decay = 0.3, sweepTo = null } = {}) {
-  const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-  src.buffer = noise;
-  src.loop = true;
-  f.type = filter;
-  f.frequency.setValueAtTime(freq, t);
-  if (sweepTo) f.frequency.exponentialRampToValueAtTime(sweepTo, t + attack + decay);
-  f.Q.value = q;
-  env(g, t, peak, attack, decay);
-  src.connect(f).connect(g).connect(master);
-  src.start(t, Math.random());
-  src.stop(t + attack + decay + 0.05);
+const chord = (freqs, t, opts) => freqs.forEach((f, i) => note(f, t + i * (opts?.spread ?? 0), opts));
+
+// Coup : grosse basse qui chute + petit « clac » adouci.
+function thump(t, power = 1) {
+  note(150, t, { vol: 0.35 * power, attack: 0.003, decay: 0.22, to: 48, wet: 0.3 });
+  note(900, t, { type: 'triangle', vol: 0.05 * power, attack: 0.001, decay: 0.04, to: 300, cutoff: 2500, wet: 0.2 });
 }
 
-// Cloche du ring : partiels métalliques inharmoniques qui résonnent.
-function bell(t, hits = 1) {
+// Cloche du ring : deux partiels propres, longue résonance.
+function bell(t, hits = 3) {
   for (let i = 0; i < hits; i += 1) {
-    const s = t + i * 0.32;
-    for (const [ratio, peak] of [[1, 0.16], [2.76, 0.1], [5.4, 0.06], [8.93, 0.035]]) tone(820 * ratio, s, { peak, attack: 0.002, decay: 1.6 / ratio + 0.3 });
+    const s = t + i * 0.28;
+    note(1046, s, { vol: 0.09, attack: 0.002, decay: 1.1 });
+    note(2637, s, { vol: 0.035, attack: 0.002, decay: 0.6 });
+    note(523, s, { vol: 0.04, attack: 0.004, decay: 0.9 });
   }
 }
 
-// Foule : bruit filtré qui monte puis redescend, avec un léger tremblement.
-function crowd(t, { peak = 0.12, attack = 0.25, decay = 1.6, freq = 900 } = {}) {
-  hiss(t, { freq, q: 0.6, peak, attack, decay });
-  hiss(t + 0.05, { freq: freq * 2.2, q: 1.2, peak: peak * 0.5, attack, decay: decay * 0.8 });
-}
-
-function punch(t, power = 1) {
-  tone(140, t, { type: 'sine', peak: 0.5 * power, attack: 0.003, decay: 0.18, to: 45 });
-  hiss(t, { filter: 'lowpass', freq: 2500, peak: 0.35 * power, attack: 0.002, decay: 0.09 });
-}
-
-function slam(t) {
-  tone(90, t, { type: 'sine', peak: 0.6, attack: 0.004, decay: 0.45, to: 32 });
-  hiss(t, { filter: 'lowpass', freq: 900, peak: 0.4, attack: 0.003, decay: 0.35 });
-  hiss(t + 0.02, { filter: 'highpass', freq: 3000, peak: 0.08, attack: 0.002, decay: 0.15 }); // claquement du tapis
-}
+const C5 = 523.25, E5 = 659.25, G5 = 783.99, C6 = 1046.5, E6 = 1318.5, G6 = 1568, A4 = 440, F4 = 349.2, D5 = 587.3;
 
 const SOUNDS = {
-  tap: t => tone(1200, t, { type: 'triangle', peak: 0.05, decay: 0.05 }),
-  phase: t => { tone(523, t, { type: 'square', peak: 0.05, decay: 0.12 }); tone(784, t + 0.1, { type: 'square', peak: 0.05, decay: 0.2 }); },
-  // Entrée sur le ring : souffle pyrotechnique + explosion + foule.
-  summon: t => { hiss(t, { freq: 300, sweepTo: 4000, q: 2, peak: 0.18, attack: 0.25, decay: 0.2 }); slam(t + 0.42); crowd(t + 0.45, { peak: 0.1, decay: 1.4 }); },
-  effect: t => { [880, 1175, 1568, 2093].forEach((f, i) => tone(f, t + i * 0.06, { type: 'triangle', peak: 0.06, decay: 0.35 })); hiss(t, { freq: 6000, q: 3, peak: 0.04, attack: 0.05, decay: 0.4 }); },
-  attack: t => { hiss(t, { freq: 600, sweepTo: 2500, q: 1.5, peak: 0.12, attack: 0.08, decay: 0.12 }); },
-  hit: t => { punch(t, 1); crowd(t + 0.05, { peak: 0.08, attack: 0.05, decay: 0.8, freq: 1100 }); },
-  ko: t => { slam(t); bell(t + 0.35, 3); crowd(t + 0.3, { peak: 0.2, attack: 0.3, decay: 2.5 }); },
+  tap: t => note(1400, t, { type: 'triangle', vol: 0.03, attack: 0.002, decay: 0.05, wet: 0 }),
+  phase: t => { note(G5, t, { type: 'triangle', vol: 0.07, decay: 0.18 }); note(C6, t + 0.09, { type: 'triangle', vol: 0.07, decay: 0.3 }); },
+  // Entrée sur le ring : montée + accord lumineux + impact.
+  summon: t => { note(220, t, { vol: 0.08, attack: 0.18, decay: 0.05, to: 880 }); chord([C5, E5, G5, C6], t + 0.2, { type: 'triangle', vol: 0.06, decay: 0.6, spread: 0.035 }); thump(t + 0.2, 0.7); },
+  // Effet activé : scintillement cristallin.
+  effect: t => chord([E6, G6, C6 * 2, G6 * 1.5], t, { vol: 0.045, decay: 0.5, spread: 0.06 }),
+  // Carte révélée (prise dans le deck, piochée) : petit « ding-ding ».
+  reveal: t => { note(G5, t, { vol: 0.08, decay: 0.25 }); note(C6, t + 0.08, { vol: 0.08, decay: 0.5 }); },
+  card: t => { note(D5, t, { type: 'triangle', vol: 0.07, decay: 0.2 }); note(A4 * 2, t + 0.07, { type: 'triangle', vol: 0.07, decay: 0.45 }); },
+  attack: t => note(500, t, { type: 'triangle', vol: 0.06, attack: 0.01, decay: 0.16, to: 1400, cutoff: 3000, wet: 0.3 }),
+  hit: t => thump(t, 1),
+  ko: t => { thump(t, 1.3); note(392, t + 0.15, { type: 'triangle', vol: 0.08, decay: 0.7, to: 98 }); bell(t + 0.4, 3); },
   bell: t => bell(t, 3),
-  coin: t => { for (let i = 0; i < 9; i += 1) tone(2400 + (i % 2) * 300, t + i * 0.16, { type: 'triangle', peak: 0.04, decay: 0.06 }); },
-  cheer: t => crowd(t, { peak: 0.18, attack: 0.3, decay: 2 }),
-  boo: t => { hiss(t, { freq: 320, q: 4, peak: 0.12, attack: 0.3, decay: 1.4 }); tone(150, t, { type: 'sawtooth', peak: 0.03, attack: 0.3, decay: 1.2, to: 110 }); },
-  win: t => { bell(t, 3); crowd(t + 0.2, { peak: 0.25, attack: 0.5, decay: 3 }); [523, 659, 784, 1046].forEach((f, i) => tone(f, t + 0.9 + i * 0.14, { type: 'square', peak: 0.05, decay: 0.4 })); },
-  lose: t => { bell(t, 3); [392, 330, 262, 196].forEach((f, i) => tone(f, t + 0.9 + i * 0.22, { type: 'sawtooth', peak: 0.05, decay: 0.45 })); hiss(t + 0.5, { freq: 320, q: 4, peak: 0.1, attack: 0.3, decay: 1.6 }); },
+  coin: t => { for (let i = 0; i < 8; i += 1) note(2400 + (i % 2) * 400, t + i * 0.15, { vol: 0.03, attack: 0.001, decay: 0.08, wet: 0.4 }); },
+  cheer: t => chord([C5, E5, G5, C6], t, { type: 'triangle', vol: 0.07, decay: 0.7, spread: 0.08 }),
+  boo: t => { note(E5, t, { type: 'triangle', vol: 0.07, decay: 0.3 }); note(C5 * 0.9, t + 0.18, { type: 'triangle', vol: 0.07, decay: 0.6 }); },
+  win: t => { bell(t, 3); chord([C5, E5, G5, C6, E6], t + 0.9, { type: 'triangle', vol: 0.07, decay: 1.2, spread: 0.12 }); },
+  lose: t => { bell(t, 3); chord([G5, E5, C5, F4], t + 0.9, { type: 'triangle', vol: 0.06, decay: 0.9, spread: 0.22 }); },
 };
 
 export function sfx(kind = 'tap') {
   if (!enabled || !audio()) return;
   try { (SOUNDS[kind] ?? SOUNDS.tap)(ctx.currentTime + 0.01); } catch { /* audio indisponible */ }
-}
-
-// Rumeur de la foule en fond pendant le duel, très discrète.
-export function startCrowd() {
-  if (!enabled || crowdLoop || !audio()) return;
-  const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(), lfo = ctx.createOscillator(), depth = ctx.createGain();
-  src.buffer = noise;
-  src.loop = true;
-  f.type = 'bandpass';
-  f.frequency.value = 700;
-  f.Q.value = 0.5;
-  g.gain.value = 0.018;
-  lfo.frequency.value = 0.15;
-  depth.gain.value = 0.008;
-  lfo.connect(depth).connect(g.gain);
-  src.connect(f).connect(g).connect(master);
-  src.start();
-  lfo.start();
-  crowdLoop = { src, lfo };
-}
-
-export function stopCrowd() {
-  if (!crowdLoop) return;
-  try { crowdLoop.src.stop(); crowdLoop.lfo.stop(); } catch { /* déjà arrêté */ }
-  crowdLoop = null;
 }

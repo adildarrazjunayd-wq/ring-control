@@ -138,6 +138,7 @@ function selectedCard(m) {
 function statusScreen(m) {
   if (m.winner !== null) return { kicker: 'FIN DU MATCH', title: m.winner === 0 ? 'VICTOIRE !' : 'DÉFAITE', text: esc(m.history[0]) };
   if (m.pendingAttack?.playerIndex === 1) return { kicker: '⚡ FENÊTRE DE RÉPONSE', title: 'L’IA ATTAQUE !', text: 'Réponds avec un Momentum rapide ou laisse passer l’attaque.' };
+  if (m.pendingAttack?.playerIndex === 0) return { kicker: `TOUR ${m.turnNumber} · COMBAT`, title: 'ATTAQUE EN COURS !', text: esc(m.history[0]) };
   if (m.turn === 1) return { kicker: `TOUR ${m.turnNumber}`, title: 'L’IA JOUE…', text: esc(m.history[0]) };
   if (m.phase === 'attacks') return { kicker: `TOUR ${m.turnNumber} · COMBAT`, title: 'À L’ATTAQUE !', text: 'Clique sur un de tes catcheurs actifs, puis sur sa cible.' };
   return { kicker: `TOUR ${m.turnNumber} · ACTIONS`, title: 'À TOI DE JOUER', text: 'Les cartes jouables brillent dans ta main. Survole une carte pour la lire, clique pour agir.' };
@@ -186,9 +187,17 @@ function fighterStats(m, pi, f) {
 
 // Panneau « Effets en cours » : ce qui agit maintenant, pour toi et pour l'IA.
 function effectsPanel(m) {
+  const chip = until => (until == null ? ['perm', 'PERMANENT'] : until === m.turnNumber ? ['now', 'CE TOUR'] : ['next', 'PROCHAIN TOUR']);
   const section = (pi, title) => {
     const list = combat.activeEffects(m, pi);
-    return `<section class="fx-side ${pi ? 'ai' : 'me'}"><h4>${title} <b>${list.length}</b></h4>${list.map(x => `<article><span class="ico">${x.icon}</span><div><b>${esc(x.title)}</b>${x.text ? `<p>${esc(x.text)}</p>` : ''}<small>${esc(combat.untilText(m, x.until, 0))}</small></div></article>`).join('') || '<p class="muted">Aucun effet en cours.</p>'}</section>`;
+    const items = list.map(x => {
+      const [cls, label] = chip(x.until), img = x.cardId && card(x.cardId)?.image;
+      return `<article class="fx-item ${x.tone ?? ''}" ${x.cardId ? `data-preview="${x.cardId}"` : ''} title="${esc(combat.untilText(m, x.until, 0))}">
+        <div class="fx-thumb">${img ? `<img src="/${img}" alt="">` : ''}<span>${x.icon}</span></div>
+        <div class="fx-txt"><b>${esc(x.title)}</b>${x.text ? `<p>${esc(x.text)}</p>` : ''}</div>
+        <em class="fx-chip ${cls}">${label}</em></article>`;
+    }).join('');
+    return `<section class="fx-side ${pi ? 'ai' : 'me'}"><h4><span>${title}</span><b>${list.length}</b></h4>${items || '<p class="fx-none">Aucun effet en cours</p>'}</section>`;
   };
   if (!S.effectsOpen) return `<aside class="fxp closed"><button class="fxp-toggle" data-act="toggleEffects" title="Afficher les effets en cours">◀<span>EFFETS EN COURS</span></button></aside>`;
   return `<aside class="fxp"><header><b>EFFETS EN COURS</b><button class="fxp-toggle" data-act="toggleEffects" title="Réduire">▶</button></header><div class="fxp-body">${section(1, 'L’IA')}${section(0, 'TOI')}</div></aside>`;

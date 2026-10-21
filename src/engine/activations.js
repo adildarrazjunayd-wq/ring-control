@@ -1,6 +1,6 @@
 // Effets que le joueur déclenche lui-même (effets passifs « à action », effets spéciaux hors attaque,
 // effets depuis le cimetière, Momenta qui visent une carte) et choix déclenchés par l'arrivée au cimetière.
-import { addHistory, lookupCard, specialSummon, legalPositions, resolveMomentum, activateWrestlerEffect, sendFighterToGrave } from './game-engine.js';
+import { addHistory, emit, lookupCard, specialSummon, legalPositions, resolveMomentum, activateWrestlerEffect, sendFighterToGrave } from './game-engine.js';
 import { effective, effectsOff, is, fightersOf, addModifier, checkKOs, heal, draw, bloodlineComplete, snapshotStatus, stampWhy } from './combat.js';
 
 const label = id => lookupCard(id)?.displayName ?? 'la carte';
@@ -126,6 +126,7 @@ export function activate(state, pi, key, sourceId, options = {}) {
   // L'effet est consommé dès l'activation (cahier des charges §11).
   if (e.grave) {
     const id = key.split(':')[0];
+    emit(state, { kind: 'effect', pi, cardId: id, title: 'Effet depuis le cimetière', sub: e.name });
     if (e.banish) { p.grave.splice(p.grave.indexOf(id), 1); (p.banished ??= []).push(id); }
     if (e.perTurn) (p.status.graveUsed ??= []).push(`${key}@${state.turnNumber}`);
   } else activateWrestlerEffect(state, pi, f.instanceId, key.endsWith(':passive') ? 'passive' : 'special');
@@ -259,6 +260,7 @@ export function resolveChoice(state, choiceId, cardId, direct = null) {
   if (!cardId) return { ok: true };
   if (!choiceOptions(state, choice).includes(cardId)) return { ok: false, reason: 'Carte non valide.' };
   addHistory(state, `${CHOICES[choice.key].title} : ${CHOICES[choice.key].apply(state, choice.pi, cardId)}.`);
+  emit(state, { kind: 'reveal', pi: choice.pi, cardIds: [cardId], title: choice.key === 'wyatt-01' ? 'Envoyée au cimetière' : 'Ajoutée à la main', sub: CHOICES[choice.key].title });
   return { ok: true };
 }
 
