@@ -28,4 +28,8 @@ navigateur) et ce qui ne l'a pas été.
 
 - Lancer : `node server.mjs` (ou `LANCER-LE-JEU.bat`), puis `http://localhost:4173`.
 - Tests : `node --test`. Vérifier aussi dans le navigateur après un changement d'interface.
-- Git : `C:\Program Files\Git\cmd\git.exe` (pas dans le PATH de cette machine).
+- Git : `C:\Program Files\Git\cmd\git.exe` (pas dans le PATH de cette machine). E-mail des commits : adresse anonyme
+  `adild@users.noreply.github.com` (ne jamais remettre la vraie adresse : le dépôt est public).
+- En ligne : https://adildarrazjunayd-wq.github.io/ring-control/ (GitHub Pages, dépôt public). Publier avec `git push`
+  lancé dans le panneau Terminal (l'outil PowerShell de l'agent ne peut pas afficher la connexion GitHub).
+- Le propriétaire ne comprend pas l'anglais : tout lui écrire en français, y compris les résumés et les boutons.

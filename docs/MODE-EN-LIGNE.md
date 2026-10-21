@@ -14,6 +14,14 @@
 **Limite connue** : la partie tourne chez l'hôte. Un joueur très bricoleur pourrait regarder les cartes cachées dans
 les outils du navigateur. Pour jouer entre amis, ce n'est pas un problème.
 
+## Adresse du jeu en ligne
+
+**https://adildarrazjunayd-wq.github.io/ring-control/** — dépôt public `adildarrazjunayd-wq/ring-control`,
+publié le 21/10/2026 (GitHub Pages, branche `main`, dossier racine).
+
+Pour publier une nouvelle version : faire la sauvegarde Git, puis `git push` (dans le panneau Terminal de
+l'application, pour que GitHub puisse demander l'autorisation si besoin). La page se met à jour en 1 à 2 minutes.
+
 ## Mettre le jeu en ligne gratuitement (GitHub Pages)
 
 Conditions vérifiées le 21/10/2026 (docs GitHub) : avec un compte **GitHub Free**, GitHub Pages ne fonctionne que pour
@@ -37,5 +45,7 @@ Pour publier une nouvelle version plus tard : dans GitHub Desktop, *Push origin*
 - 21/10/2026, sur un seul PC avec deux fenêtres séparées (`localhost` et `127.0.0.1`, comme deux ordinateurs) :
   création de salle, connexion, tirage au sort, invocations des deux côtés, attaques dans les deux sens avec fenêtre
   de réponse, dégâts identiques des deux côtés, fin de tour, reconnexion de l'invité.
+- 21/10/2026, depuis la version publiée sur GitHub Pages : salle créée sur `github.io`, rejointe depuis une autre
+  fenêtre, partie lancée des deux côtés.
 - **Pas encore testé** : deux ordinateurs sur deux connexions Internet différentes. Certaines box ou réseaux
   d'entreprise bloquent les connexions directes ; si la connexion échoue, le noter et me le dire.
