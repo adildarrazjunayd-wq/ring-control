@@ -259,9 +259,13 @@ function support(m, pi) {
   return `<div class="support"><div class="zt">MANAGER</div>${mg}${objects ? `<div class="zt">OBJETS</div><div class="minis">${objects}</div>` : ''}${momenta ? `<div class="zt">MOMENTUM</div><div class="minis">${momenta}</div>` : ''}</div>`;
 }
 
+const GRAVE_KEYS = ['wyatt-02:grave', 'wyatt-03:grave'];
+
 function piles(m, pi) {
   const p = m.players[pi], top = p.grave.at(-1);
-  return `<div class="piles"><button class="pile deck" data-act="pile" data-pi="${pi}" data-zone="deck" ${pi ? 'disabled' : ''}><img src="${CARD_BACK}" alt=""><b>${p.deck.length}</b><small>DECK</small></button><button class="pile grave" data-act="pile" data-pi="${pi}" data-zone="grave">${top ? `<img src="${card(top).image}" alt="">` : '<span class="void"></span>'}<b>${p.grave.length}</b><small>CIMETIÈRE</small></button></div>`;
+  // Un effet utilisable depuis le cimetière fait briller la pile.
+  const graveReady = pi === 0 && GRAVE_KEYS.some(key => p.grave.includes(key.split(':')[0]) && !activ.activationCheck(m, 0, key, null));
+  return `<div class="piles"><button class="pile deck" data-act="pile" data-pi="${pi}" data-zone="deck" ${pi ? 'disabled' : ''}><img src="${CARD_BACK}" alt=""><b>${p.deck.length}</b><small>DECK</small></button><button class="pile grave ${graveReady ? 'ready' : ''}" data-act="pile" data-pi="${pi}" data-zone="grave" title="${graveReady ? 'Un effet peut être activé depuis ton cimetière' : 'Voir le cimetière'}">${top ? `<img src="${card(top).image}" alt="">` : '<span class="void"></span>'}<b>${p.grave.length}</b><small>CIMETIÈRE</small>${graveReady ? '<em class="pile-fx">⚡ EFFET</em>' : ''}</button></div>`;
 }
 
 const side = (m, pi) => `<div class="side ${pi ? 'ai' : 'me'}">${piles(m, pi)}${zone(m, pi, 'active')}${zone(m, pi, 'passive')}${support(m, pi)}</div>`;

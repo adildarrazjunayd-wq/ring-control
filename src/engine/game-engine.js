@@ -380,8 +380,7 @@ export function declareAttack(state, playerIndex, attackerId, targetId = 'direct
     if (targets.length !== Math.min(2, defender.active.length) || targets.some(id => !defender.active.some(x => x.instanceId === id))) return { ok: false, reason: 'Choisis deux catcheurs actifs adverses.' };
   } else {
     if (targetId === 'direct') {
-      const directLimit = Math.max(0, player.active.length - defender.active.length);
-      if (!canDirectAttack(player.active.length, defender.active.length) || state.directAttacksUsed >= directLimit) return { ok: false, reason: 'Le nombre d’attaques directes autorisé ce tour est atteint.' };
+      if (!combat.directAttackAllowed(state, playerIndex)) return { ok: false, reason: 'Le nombre d’attaques directes autorisé ce tour est atteint.' };
     } else {
       const pool = combat.canHitPassive(state, playerIndex, attacker) ? getCards(defender) : defender.active;
       if (!pool.some(x => x.instanceId === targetId)) return { ok: false, reason: 'Une attaque doit viser un catcheur actif adverse.' };

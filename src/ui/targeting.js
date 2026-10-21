@@ -11,8 +11,7 @@ function attacker(m, t) { return m.players[0].active.find(f => f.instanceId === 
 
 export function directAllowed(m, t = S.targeting) {
   if (!t || t.mode !== 'attack' || typeOf(t) !== 'one' || t.picked.length) return false;
-  const p = m.players[0], d = m.players[1];
-  if (Math.max(0, p.active.length - d.active.length) <= m.directAttacksUsed) return false;
+  if (!combat.directAttackAllowed(m, 0)) return false;
   return !t.special || combat.specialBonusAgainst(m, 0, attacker(m, t), null) != null;
 }
 

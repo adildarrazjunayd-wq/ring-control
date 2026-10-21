@@ -311,7 +311,7 @@ export function bestAttack(state, pi) {
         const extra = v.special === 'catcheur-08' ? d.active.filter(x => x !== t).sort((a, b) => effective(state, 1 - pi, b).endurance - effective(state, 1 - pi, a).endurance)[0] : null;
         consider(s - cost, { attackerId: f.instanceId, target: t.instanceId, options: { special: v.special, secondTarget: extra?.instanceId ?? null } });
       }
-      const directOk = Math.max(0, p.active.length - d.active.length) > state.directAttacksUsed && (!v.special || (type === 'one' && combat.specialBonusAgainst(state, pi, f, null) != null));
+      const directOk = combat.directAttackAllowed(state, pi) && (!v.special || (type === 'one' && combat.specialBonusAgainst(state, pi, f, null) != null));
       if (directOk) consider(hitScore(state, pi, null, combat.previewDamage(state, { ...base, targets: ['direct'] }, 'direct')) - cost, { attackerId: f.instanceId, target: 'direct', options: { special: v.special } });
     }
   }

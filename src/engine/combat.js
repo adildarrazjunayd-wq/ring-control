@@ -419,6 +419,15 @@ export function attacksAllowed(state, pi, f) {
 
 export function attacksUsed(state, f) { return state.usedAttackers.filter(id => id === f.instanceId).length; }
 
+// Attaque directe des PV : règle de base (plus d'actifs que l'adversaire, une attaque directe par actif en plus),
+// ou bien, à la demande du propriétaire (21/10/2026), dès que tous les actifs adverses ont déjà été attaqués ce tour
+// (par exemple après Leap of Faith) : les catcheurs qui n'ont pas encore attaqué peuvent alors frapper les PV.
+export function directAttackAllowed(state, pi) {
+  const p = state.players[pi], d = state.players[1 - pi];
+  if (p.active.length > d.active.length && Math.max(0, p.active.length - d.active.length) > state.directAttacksUsed) return true;
+  return d.active.length > 0 && d.active.every(x => state.usedTargets.includes(x.instanceId));
+}
+
 export function canAttack(state, pi, f) {
   if (f.position !== 'active') return { ok: false, reason: 'Seuls les catcheurs actifs peuvent attaquer.' };
   if ((f.noAttackUntil ?? 0) >= state.turnNumber) return { ok: false, reason: `${label(f.cardId)} ne peut pas attaquer ce tour.` };

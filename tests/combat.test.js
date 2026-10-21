@@ -325,3 +325,28 @@ test('Un effet passif ne marche qu’une fois activé, et dure jusqu’au procha
   hit(s, lashley, gunther);
   assert.equal(gunther.endurance, 40 - 35);
 });
+
+test('Après Leap of Faith (tous les actifs adverses déjà attaqués), les autres catcheurs peuvent frapper les PV', () => {
+  const s = duel(['catcheur-06', 'catcheur-19'], ['catcheur-01', 'catcheur-34']);
+  const [seth, braun] = s.players[0].active;
+  hit(s, seth, 'multi', { special: 'catcheur-06' });
+  assert.equal(s.players[1].active.length, 2);
+  const hp = s.players[1].hp;
+  hit(s, braun, 'direct');
+  assert.equal(s.players[1].hp, hp - 50);
+});
+
+test('Sans attaque préalable, la règle de base s’applique : pas d’attaque directe à 2 contre 2', () => {
+  const s = duel(['catcheur-06', 'catcheur-19'], ['catcheur-01', 'catcheur-34']);
+  assert.equal(game.declareAttack(s, 0, s.players[0].active[1].instanceId, 'direct').ok, false);
+});
+
+test('Luke Harper depuis le cimetière : endort un adversaire si Bray Wyatt est actif', () => {
+  const s = duel(['wyatt-04'], ['catcheur-01'], 'actions');
+  s.players[0].grave = ['wyatt-03'];
+  const roman = s.players[1].active[0];
+  const r = act.activate(s, 0, 'wyatt-03:grave', null, { targets: [{ pi: 1, instanceId: roman.instanceId }] });
+  assert.equal(r.ok, true, r.reason);
+  assert.equal(roman.noAttackUntil, s.turnNumber + 1);
+  assert.notEqual(act.activationCheck(s, 0, 'wyatt-03:grave', null), null); // une fois par tour
+});

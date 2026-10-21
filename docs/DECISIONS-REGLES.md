@@ -22,6 +22,7 @@
 
 - **Invocation SSR** : sacrifice de **1 SR, 1 SSR ou 2 R** (une SSR peut désormais être sacrifiée pour en invoquer une autre).
 - **Changement de position** : une fois par tour, en phase d'action : passer un catcheur d'actif à passif (en gardant au moins un actif), de passif à actif, ou **échanger** un actif et un passif (utile quand les deux zones sont pleines).
+- **Attaque directe** : en plus de la règle de base (plus d'actifs que l'adversaire), dès que **tous les actifs adverses ont déjà été attaqués ce tour** (par exemple après Leap of Faith), les catcheurs qui n'ont pas encore attaqué peuvent frapper directement les PV.
 - **Premier tour** : le joueur qui commence ne peut pas attaquer pendant le tout premier tour de la partie.
 - **Pile ou face** : avant chaque duel, le joueur choisit pile ou face ; le gagnant commence (et pioche sa carte de début de tour).
 - **Decks de l'IA** : l'IA joue un deck de faction tiré au hasard (decks signature, The Shield, D-Generation X) — `data/ai-decks.js`.

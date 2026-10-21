@@ -66,7 +66,7 @@ export const ACTIVATED = Object.freeze({
   'wyatt-10:passive': { name: 'Frappe de Jimmy', check: (s, pi, f) => (f.position === 'active' && s.players[pi].active.some(x => x !== f && lookupCard(x.cardId)?.faction === 'The Bloodline') ? null : 'Jimmy Uso et un autre membre de la Bloodline doivent être actifs.'), targets: [{ side: 'opp', zone: 'active' }], run: (s, pi, f, [t]) => { t.endurance -= 10; return `${label(t.cardId)} subit 10 dégâts`; } },
   // Depuis le cimetière.
   'wyatt-02:grave': { name: 'Erick Rowan (cimetière)', grave: true, banish: true, targets: [{ side: 'me', zone: 'any', filter: (s, pi, t) => is(t.cardId, 'bray wyatt') }], run: (s, pi, f, [t]) => { addModifier(t, 'attack', 20, s.turnNumber, 'wyatt-02'); return 'Bray Wyatt gagne +20 ATT ce tour-ci'; } },
-  'wyatt-03:grave': { name: 'Luke Harper (cimetière)', grave: true, perTurn: true, check: (s, pi) => (s.players[pi].active.some(x => is(x.cardId, 'bray wyatt')) ? null : 'Bray Wyatt doit être actif.'), targets: [opp()], run: (s, pi, f, [t]) => { t.noAttackUntil = s.turnNumber + 1; return `${label(t.cardId)} est endormi`; } },
+  'wyatt-03:grave': { name: 'Luke Harper (cimetière)', grave: true, perTurn: true, check: (s, pi) => (s.players[pi].active.some(x => is(x.cardId, 'bray wyatt')) ? null : 'Bray Wyatt doit être sur ton ring, en zone ACTIVE (pas passive).'), targets: [opp()], run: (s, pi, f, [t]) => { t.noAttackUntil = s.turnNumber + 1; return `${label(t.cardId)} est endormi`; } },
 });
 
 // Mode d'un effet imprimé, pour l'affichage.

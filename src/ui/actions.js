@@ -208,11 +208,13 @@ export const actions = {
       modal(`<h2>Ton deck · ${p.deck.length} cartes</h2><div class="list">${tally.map(x => `<div class="opt row"><img src="${x.c.image}" alt=""><b>${esc(x.c.displayName)}</b><small>${x.c.category} · ×${x.n}</small></div>`).join('')}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`);
       return;
     }
+    // Cartes qui ont un effet utilisable depuis le cimetière : image, texte et bouton « Activer ».
     const graveActs = Number(d.pi) === 0 ? ['wyatt-02:grave', 'wyatt-03:grave'].filter(key => p.grave.includes(key.split(':')[0])).map(key => {
-      const refused = activ.activationCheck(m(), 0, key, null);
-      return option(esc(activ.ACTIVATED[key].name), refused ?? esc(card(key.split(':')[0]).effects[key.startsWith('wyatt-02') ? 1 : 0].text), `data-act="graveEffect" data-key="${key}" ${refused ? 'disabled' : ''}`);
+      const id = key.split(':')[0], c = card(id), refused = activ.activationCheck(m(), 0, key, null);
+      const text = c.effects[key.startsWith('wyatt-02') ? 1 : 0].text;
+      return `<article class="grave-fx ${refused ? 'off' : 'on'}"><img src="${c.image}" alt=""><div><b>${esc(c.displayName)}</b><p>${esc(text)}</p>${refused ? `<small>✖ ${esc(refused)}</small>` : ''}</div>${btn(refused ? 'Indisponible' : 'Activer ▶', `data-act="graveEffect" data-key="${key}" ${refused ? 'disabled' : ''}`, 'btn hot')}</article>`;
     }).join('') : '';
-    modal(`<h2>Cimetière · ${esc(p.name)}</h2>${graveActs ? `<div class="opts">${graveActs}</div>` : ''}<div class="grid small">${p.grave.map(id => `<img src="${card(id).image}" alt="${esc(card(id).displayName)}" data-act="viewCard" data-id="${id}">`).join('') || '<p class="muted">Vide.</p>'}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`, { wide: true });
+    modal(`<h2>Cimetière · ${esc(p.name)}</h2>${graveActs ? `<h4 class="grave-title">EFFETS DEPUIS LE CIMETIÈRE</h4>${graveActs}` : ''}<h4 class="grave-title">TOUTES LES CARTES (${p.grave.length})</h4><div class="grid small">${p.grave.map(id => `<img src="${card(id).image}" alt="${esc(card(id).displayName)}" data-act="viewCard" data-id="${id}">`).join('') || '<p class="muted">Vide.</p>'}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`, { wide: true });
   },
   log: () => modal(`<h2>Journal du match</h2><div class="log">${m().history.slice(0, 60).map(x => `<p>${esc(x)}</p>`).join('')}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`),
   quit: () => { if (confirm('Quitter le duel ? Il reste sauvegardé et tu pourras le reprendre.')) go('home'); },
