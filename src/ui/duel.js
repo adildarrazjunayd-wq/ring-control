@@ -1,8 +1,11 @@
 // Écran de duel « Arcade Titantron » : barres de vie, écran géant, plateau, main.
 import { normalSummonRequirement } from '../engine/rules.js';
 import * as effects from '../engine/card-effects.js';
+import * as combat from '../engine/combat.js';
+import * as activ from '../engine/activations.js';
 import { S, card, esc, game, CARD_BACK, KIND_LABEL } from './core.js';
 import { cardFacts } from './screens.js';
+import { pickable, directAllowed, targetingScreen } from './targeting.js';
 
 const fightersOf = p => [...p.active, ...p.passive];
 const myTurn = m => m.turn === 0 && m.winner === null;
@@ -14,7 +17,7 @@ const act = (label, attrs, sub = '', cls = '') => ({ label, attrs, sub, cls });
 export function handActions(m, id) {
   const c = card(id), p = m.players[0], acting = myTurn(m) && m.phase === 'actions', out = [];
   if (!c || !p.hand.includes(id)) return out;
-  if (c.category === 'Catcheur' && acting && !p.limits.normal && normalSummonRequirement(c).allowed) {
+  if (c.category === 'Catcheur' && acting && (!p.limits.normal || p.limits.extraNormal > 0) && normalSummonRequirement(c).allowed) {
     const positions = game.legalPositions(p);
     if (c.rarity === 'SSR' && !p.status.freeSsrSummon) {
       const board = fightersOf(p).map(f => card(f.cardId)?.rarity);
@@ -28,7 +31,7 @@ export function handActions(m, id) {
   }
   if (c.category === 'Manager' && acting && !p.limits.manager && !p.manager) out.push(act('Jouer le manager', `data-act="playManager" data-id="${id}"`, 'Occupe ton emplacement Manager', 'hot'));
   if (c.category === 'Objet' && acting && !p.limits.object) {
-    for (const f of fightersOf(p)) out.push(act(`Équiper à ${esc(card(f.cardId).displayName)}`, `data-act="equip" data-id="${id}" data-iid="${f.instanceId}"`, `${f.attack} ATT · ${f.endurance} END`));
+    for (const f of fightersOf(p)) { const e = combat.effective(m, 0, f); out.push(act(`Équiper à ${esc(card(f.cardId).displayName)}`, `data-act="equip" data-id="${id}" data-iid="${f.instanceId}"`, `${e.attack} ATT · ${e.endurance} END`)); }
   }
   if (c.category === 'Momentum') {
     const reaction = m.pendingAttack?.playerIndex === 1 && c.rapid && m.outOfTurnMomentumUsed[0] < 1;
@@ -48,23 +51,44 @@ function momentumCheck(m, c) {
   return { ok: true };
 }
 
+const modeOf = (cardId, kind) => activ.effectMode(cardId, kind, { attackSpecial: combat.ATTACK_SPECIALS, search: effects.SEARCH_RULES });
+const MODE_LABEL = { auto: 'automatique', attack: 'au moment d’attaquer', reaction: 'en réponse à une attaque', activated: 'à activer', search: 'à activer', grave: 'depuis le cimetière', manual: 'à appliquer à la main' };
+
 function fighterActions(m, pi, f) {
   const p = m.players[pi], c = card(f.cardId), out = [];
-  if (pi === 0 && myTurn(m) && m.phase === 'attacks' && f.position === 'active' && !m.usedAttackers.includes(f.instanceId) && !m.attackLock && !(p.status.noAttackThroughTurn >= m.turnNumber)) {
-    const d = m.players[1], direct = Math.max(0, p.active.length - d.active.length) > m.directAttacksUsed;
-    if (direct || d.active.some(x => !m.usedTargets.includes(x.instanceId))) out.push(act('Attaquer !', `data-act="attack" data-iid="${f.instanceId}"`, `${f.attack} ATT · choisis ta cible sur le ring`, 'hot'));
+  if (pi === 0 && myTurn(m) && m.phase === 'attacks' && !m.attackLock && !(p.status.noAttackThroughTurn >= m.turnNumber)) {
+    const can = combat.canAttack(m, 0, f);
+    if (!can.ok) { if (f.position === 'active') out.push(act('Attaquer', 'disabled', can.reason)); }
+    else {
+      const eff = combat.effective(m, 0, f);
+      out.push(act('Attaquer !', `data-act="attack" data-iid="${f.instanceId}"`, `${eff.attack} ATT · choisis ta cible sur le ring`, 'hot'));
+      const sp = combat.specialAvailable(m, 0, f);
+      if (sp) {
+        const probe = { mode: 'attack', iid: f.instanceId, special: f.cardId, picked: [] };
+        const ok = sp.targets.startsWith('all') ? combat.specialBonusAgainst(m, 0, f, m.players[1].active[0] ?? null) != null && m.players[1].active.length > 0 : pickable(m, probe).size > 0 || directAllowed(m, probe);
+        out.push(act(`Attaque spéciale : ${esc(sp.name)}`, `data-act="attack" data-iid="${f.instanceId}" data-special="${f.cardId}" ${ok ? '' : 'disabled'}`, ok ? 'Effet spécial · une fois tant qu’il reste sur le ring' : 'Condition non remplie pour l’instant', 'hot'));
+      }
+      if (p.objects.some(o => o.fighterId === f.instanceId && o.cardId === 'objets-01')) out.push(act('Attaque à l’Échelle', `data-act="attack" data-iid="${f.instanceId}" data-ladder="1"`, '10 dégâts à chaque actif adverse, puis -10 END'));
+    }
   }
   if (pi === 0 && myTurn(m) && m.phase === 'actions') {
     if (!p.limits.move) {
       if (f.position === 'active' && p.active.length > 1 && p.passive.length < 2) out.push(act('Passer en passif', `data-act="move" data-iid="${f.instanceId}" data-dest="passive"`, 'Un déplacement par tour'));
       if (f.position === 'passive' && p.active.length < 3) out.push(act('Passer en actif', `data-act="move" data-iid="${f.instanceId}" data-dest="active"`, 'Un déplacement par tour'));
     }
-    if (hasEffect(c, 'passif')) {
-      const used = f.passiveUsedTurn === m.turnNumber;
-      out.push(act('Activer l’effet passif', `data-act="passive" data-iid="${f.instanceId}" ${used ? 'disabled' : ''}`, used ? 'Déjà activé ce tour' : 'Une fois par tour'));
-    }
-    if (f.position === 'active' && hasEffect(c, 'spécial') && c.id !== 'wyatt-11') {
-      out.push(act('Activer l’effet spécial', `data-act="special" data-iid="${f.instanceId}" ${f.specialUsed ? 'disabled' : ''}`, f.specialUsed ? 'Déjà utilisé' : 'Une fois tant qu’il reste sur le ring'));
+    for (const [kind, key] of [['passif', 'passive'], ['spécial', 'special']]) {
+      if (!hasEffect(c, kind)) continue;
+      const mode = modeOf(c.id, kind), full = `${c.id}:${key}`, title = `Effet ${kind}`;
+      if (mode === 'activated') {
+        const refused = activ.activationCheck(m, 0, full, f);
+        out.push(act(`${title} : ${esc(activ.ACTIVATED[full].name)}`, `data-act="activate" data-key="${full}" data-iid="${f.instanceId}" ${refused ? 'disabled' : ''}`, refused ?? 'Activer', 'hot'));
+      } else if (mode === 'search') {
+        const used = key === 'passive' ? f.passiveUsedTurn === m.turnNumber : f.specialUsed;
+        out.push(act(`${title} : chercher dans le deck`, `data-act="${key}" data-iid="${f.instanceId}" ${used ? 'disabled' : ''}`, used ? 'Déjà utilisé' : 'Activer', 'hot'));
+      } else if (mode === 'manual' && (key === 'passive' || f.position === 'active')) {
+        const used = key === 'passive' ? f.passiveUsedTurn === m.turnNumber : f.specialUsed;
+        out.push(act(`${title} (manuel)`, `data-act="${key}" data-iid="${f.instanceId}" ${used ? 'disabled' : ''}`, used ? 'Déjà utilisé' : 'Applique le texte imprimé'));
+      }
     }
   }
   return out;
@@ -72,8 +96,10 @@ function fighterActions(m, pi, f) {
 
 function managerActions(m, pi) {
   const p = m.players[pi];
-  if (pi !== 0 || !p.manager || p.manager.used || m.winner !== null) return [];
-  return [act('Activer l’effet du manager', 'data-act="managerEffect"', 'Une fois pendant sa présence', 'hot')];
+  if (pi !== 0 || !p.manager || p.manager.used || m.winner !== null || !['managers-02', 'managers-04', 'managers-05'].includes(p.manager.cardId)) return [];
+  const teddy = p.manager.cardId === 'managers-04';
+  const ok = !teddy || (myTurn(m) && m.phase === 'actions' && effects.teddyLongOptions(m, 0).length && game.legalPositions(p).length);
+  return [act('Activer l’effet du manager', `data-act="managerEffect" ${ok ? '' : 'disabled'}`, ok ? 'Une fois pendant sa présence' : 'Il faut deux catcheurs d’une même faction en main', 'hot')];
 }
 
 const corrections = (pi, f) => `<details class="manual"><summary>Correction manuelle</summary><div>${[['attack', 'ATT'], ['endurance', 'END']].flatMap(([stat, label]) => [-5, 5].map(d => `<button class="btn small ghost" data-act="adjust" data-pi="${pi}" data-iid="${f.instanceId}" data-stat="${stat}" data-delta="${d}">${label} ${d > 0 ? '+' : ''}${d}</button>`)).join('')}</div></details>`;
@@ -102,20 +128,41 @@ function statusScreen(m) {
 
 function titantron(m) {
   if (S.targeting) {
-    const p = m.players[0], f = p.active.find(x => x.instanceId === S.targeting);
-    if (f) {
-      const d = m.players[1], direct = Math.max(0, p.active.length - d.active.length) > m.directAttacksUsed;
-      return `<div class="tron targeting"><img src="/${card(f.cardId).image}" alt=""><div class="tron-body"><span class="k">COMBAT · ${f.attack} ATT</span><h2>CHOISIS LA CIBLE</h2><p>Clique sur un catcheur actif de l’IA qui brille.${direct ? ' Ou frappe directement ses PV.' : ''}</p><div class="tron-actions">${direct ? `<button class="btn hot" data-act="target" data-target="direct">Attaque directe ▶</button>` : ''}<button class="btn ghost" data-act="cancelTarget">Annuler</button></div></div></div>`;
-    }
+    const screen = targetingScreen(m);
+    if (screen) return screen;
   }
   const sel = selectedCard(m), id = sel?.id ?? S.hovered, c = id && card(id);
   if (!c) {
     const s = statusScreen(m);
     return `<div class="tron idle"><div class="tron-body"><span class="k">${s.kicker}</span><h2>${s.title}</h2><p>${s.text}</p></div></div>`;
   }
-  const f = sel?.fighter, stats = f ? `<div class="live-stats"><span>${f.attack} <small>ATT</small></span><span class="${f.endurance < f.baseEndurance ? 'hurt' : ''}">${f.endurance}<small>/${f.baseEndurance} END</small></span></div>` : '';
+  const f = sel?.fighter ?? hoveredFighter(m, id), fpi = sel?.pi ?? (f && m.players[0].active.concat(m.players[0].passive).includes(f) ? 0 : 1);
+  const stats = f ? fighterStats(m, fpi, f) : '';
   const actions = (sel?.actions ?? []).map(a => `<button class="btn ${a.cls}" ${a.attrs}><b>${a.label}</b>${a.sub ? `<small>${a.sub}</small>` : ''}</button>`).join('');
-  return `<div class="tron ${sel ? 'pinned' : ''}"><img src="/${c.image}" alt="${esc(c.displayName)}" data-act="zoom" data-id="${c.id}"><div class="tron-body"><div class="facts">${cardFacts(c)}</div><h2>${esc(c.displayName)}</h2>${stats}<div class="tron-effects">${c.effects.map(e => `<p><b>${KIND_LABEL[e.kind]} :</b> ${esc(e.text)}</p>`).join('') || '<p class="muted">Aucun effet imprimé.</p>'}</div>${sel ? `<div class="tron-actions">${actions || '<p class="hint">Aucune action possible avec cette carte pour l’instant.</p>'}${f ? corrections(sel.pi, f) : ''}</div>` : '<p class="hint">Clique la carte pour voir ses actions.</p>'}</div></div>`;
+  const effectText = c.effects.map(e => { const mode = c.category === 'Catcheur' ? modeOf(c.id, e.kind) : null; return `<p><b>${KIND_LABEL[e.kind]} :</b> ${esc(e.text)}${mode ? ` <em class="mode ${mode}">${MODE_LABEL[mode]}</em>` : ''}</p>`; }).join('');
+  return `<div class="tron ${sel ? 'pinned' : ''}"><img src="/${c.image}" alt="${esc(c.displayName)}" data-act="zoom" data-id="${c.id}"><div class="tron-body"><div class="facts">${cardFacts(c)}</div><h2>${esc(c.displayName)}</h2>${stats}<div class="tron-effects">${effectText || '<p class="muted">Aucun effet imprimé.</p>'}</div>${sel ? `<div class="tron-actions">${actions || '<p class="hint">Aucune action possible avec cette carte pour l’instant.</p>'}${sel.fighter ? corrections(sel.pi, sel.fighter) : ''}</div>` : '<p class="hint">Clique la carte pour voir ses actions.</p>'}</div></div>`;
+}
+
+// Le survol d'un catcheur sur le ring montre aussi ses stats du moment.
+function hoveredFighter(m, cardId) {
+  const el = document.querySelector('.fcard:hover');
+  if (!el || el.dataset.preview !== cardId) return null;
+  return fightersOf(m.players[Number(el.dataset.pi)]).find(f => f.instanceId === el.dataset.id) ?? null;
+}
+
+function fighterStats(m, pi, f) {
+  const e = combat.effective(m, pi, f), tag = n => (n ? ` <small class="${n > 0 ? 'up' : 'down'}">(${n > 0 ? '+' : ''}${n})</small>` : '');
+  const states = statusBadges(m, f).map(([, t]) => `<span class="state">${t}</span>`).join('');
+  return `<div class="live-stats"><span>${e.attack}${tag(e.bonusAtt)} <small>ATT</small></span><span class="${f.endurance < f.baseEndurance ? 'hurt' : ''}">${e.endurance}${tag(e.bonusEnd)}<small> END</small></span>${states}</div>`;
+}
+
+function statusBadges(m, f) {
+  const out = [];
+  if ((f.noAttackUntil ?? 0) >= m.turnNumber) out.push(['💤', 'Ne peut pas attaquer']);
+  if ((f.passivesOffUntil ?? 0) >= m.turnNumber) out.push(['🚫', 'Effets passifs annulés']);
+  if ((f.halfDamageUntil ?? 0) >= m.turnNumber) out.push(['½', 'Dégâts divisés par 2']);
+  if (m.extraAttacks?.[f.instanceId]) out.push(['×2', 'Attaque deux fois']);
+  return out;
 }
 
 // ---------- Plateau ----------
@@ -126,17 +173,21 @@ function life(m, pi) {
     <div class="who"><b>${pi ? 'L’IA' : 'VOUS'}</b><small>${m.turn === pi && m.winner === null ? '● À SON TOUR' : ''}</small></div>
     <button class="gauge" data-act="hp" data-pi="${pi}" data-hp="${pi}" title="Points de vie"><i style="width:${pct}%"></i></button>
     <div class="pv">${p.hp}<small>PV</small></div>
-    <div class="chips"><span>MAIN <b>${p.hand.length}</b></span><span>DECK <b>${p.deck.length}</b></span><span>MOMENTUM <b>${m.turn === pi ? `${Math.max(0, p.limits.momentum)}/1` : '—'}</b></span></div>
+    <div class="chips"><span>MAIN <b>${p.hand.length}</b></span><span>DECK <b>${p.deck.length}</b></span><span title="Momenta encore jouables ce tour">MOMENTUM <b>${m.turn === pi ? Math.max(0, 1 - p.limits.momentum) : '—'}</b></span></div>
   </div>`;
 }
 
 function fighterCard(m, pi, f) {
   const c = card(f.cardId), sel = S.selected?.kind === 'fighter' && S.selected.id === f.instanceId;
-  const targetable = S.targeting && pi === 1 && f.position === 'active' && !m.usedTargets.includes(f.instanceId);
-  const spent = m.turn === pi && m.usedAttackers.includes(f.instanceId);
+  const targetable = S.targeting && targets.has(f.instanceId);
+  const picked = S.targeting?.picked?.some(x => x.instanceId === f.instanceId);
+  const spent = m.turn === pi && !combat.canAttack(m, pi, f).ok && f.position === 'active';
   const objects = m.players[pi].objects.filter(o => o.fighterId === f.instanceId);
-  const cls = [sel && 'sel', targetable && 'target', spent && 'spent', f.endurance < f.baseEndurance && 'hurt', m.pendingAttack?.targetId === f.instanceId && 'aimed', m.pendingAttack?.attackerId === f.instanceId && 'attacking'].filter(Boolean).join(' ');
-  return `<button class="fcard ${cls}" data-act="${targetable ? 'target' : 'select'}" data-kind="fighter" data-pi="${pi}" data-id="${f.instanceId}" data-target="${f.instanceId}" data-fighter="${pi}:${f.instanceId}" data-preview="${c.id}" aria-label="${esc(c.displayName)} ${f.attack} ATT ${f.endurance} END"><img src="/${c.image}" alt=""><span class="pill"><b class="at">${f.attack}<i> ATT</i></b><b class="en">${f.endurance}<i> END</i></b></span>${objects.length ? `<span class="equip" title="${objects.map(o => esc(card(o.cardId).displayName)).join(', ')}">⚙ ${objects.length}</span>` : ''}</button>`;
+  const e = combat.effective(m, pi, f);
+  const aimed = m.pendingAttack && (m.pendingAttack.targets ?? [m.pendingAttack.targetId]).includes(f.instanceId);
+  const cls = [sel && 'sel', targetable && 'target', picked && 'picked', spent && 'spent', f.endurance < f.baseEndurance && 'hurt', aimed && 'aimed', m.pendingAttack?.attackerId === f.instanceId && 'attacking'].filter(Boolean).join(' ');
+  const badges = statusBadges(m, f).map(([icon, t]) => `<i title="${t}">${icon}</i>`).join('');
+  return `<button class="fcard ${cls}" data-act="${targetable ? 'target' : 'select'}" data-kind="fighter" data-pi="${pi}" data-id="${f.instanceId}" data-target="${f.instanceId}" data-fighter="${pi}:${f.instanceId}" data-preview="${c.id}" aria-label="${esc(c.displayName)} ${e.attack} ATT ${e.endurance} END"><img src="/${c.image}" alt=""><span class="pill"><b class="at ${e.bonusAtt > 0 ? 'up' : e.bonusAtt < 0 ? 'down' : ''}">${e.attack}<i> ATT</i></b><b class="en ${e.bonusEnd > 0 ? 'up' : e.bonusEnd < 0 ? 'down' : ''}">${e.endurance}<i> END</i></b></span>${objects.length ? `<span class="equip" title="${objects.map(o => esc(card(o.cardId).displayName)).join(', ')}">⚙ ${objects.length}</span>` : ''}${badges ? `<span class="badges">${badges}</span>` : ''}</button>`;
 }
 
 function zone(m, pi, kind) {
@@ -164,12 +215,13 @@ function reaction(m) {
   const a = m.pendingAttack;
   if (!a || a.playerIndex !== 1) return '';
   const p = m.players[0], attacker = m.players[1].active.find(f => f.instanceId === a.attackerId);
-  const target = a.targetId === 'direct' ? 'TES PV' : esc(card(p.active.find(f => f.instanceId === a.targetId)?.cardId)?.displayName);
+  const ids = a.targets ?? [a.targetId];
+  const target = ids[0] === 'direct' ? 'TES PV' : ids.map(id => esc(card(fightersOf(p).find(f => f.instanceId === id)?.cardId)?.displayName)).join(', ');
   const canMomentum = m.outOfTurnMomentumUsed[0] < 1 && !(p.status.noMomentumThroughTurn >= m.turnNumber);
   const rapid = canMomentum ? [...new Set(p.hand)].map(card).filter(c => c?.category === 'Momentum' && c.rapid && momentumCheck(m, c).ok) : [];
-  const roman = a.targetId !== 'direct' && /roman reigns/i.test(card(p.active.find(f => f.instanceId === a.targetId)?.cardId)?.displayName ?? '');
-  const sami = roman ? p.active.find(f => f.cardId === 'wyatt-11' && !f.specialUsed) : null;
-  return `<div class="reaction"><div class="r-head">⚡ ${esc(card(attacker?.cardId)?.displayName)} <small>${a.attack} ATT</small> ➜ ${target}</div><div class="r-actions">${rapid.map(c => `<button class="btn hot" data-act="momentum" data-id="${c.id}" data-preview="${c.id}"><b>${esc(c.displayName)}</b><small>Momentum rapide</small></button>`).join('')}${sami ? `<button class="btn hot" data-act="sami" data-iid="${sami.instanceId}"><b>Sami Zayn protège Roman</b><small>Effet spécial : annule l’attaque</small></button>` : ''}<button class="btn" data-act="letPass"><b>Laisser passer</b><small>${a.targetId === 'direct' ? `-${a.attack} PV` : `-${a.attack} END`}</small></button></div></div>`;
+  const answers = game.reactionOptions(m, 0);
+  const sp = a.special ? combat.ATTACK_SPECIALS[a.special]?.name : a.ladder ? 'Échelle' : '';
+  return `<div class="reaction"><div class="r-head">⚡ ${esc(card(attacker?.cardId)?.displayName)}${sp ? ` · ${esc(sp)}` : ''} <small>${a.attack} dégâts</small> ➜ ${target}</div><div class="r-actions">${rapid.map(c => `<button class="btn hot" data-act="momentum" data-id="${c.id}" data-preview="${c.id}"><b>${esc(c.displayName)}</b><small>Momentum rapide</small></button>`).join('')}${answers.map(o => `<button class="btn hot" data-act="react" data-key="${o.key}" data-iid="${o.fighterId ?? ''}"><b>${esc(o.label)}</b><small>${esc(o.detail)}</small></button>`).join('')}<button class="btn" data-act="letPass"><b>Laisser passer</b><small>${ids[0] === 'direct' ? `-${a.attack} PV` : `-${a.attack} END`}</small></button></div></div>`;
 }
 
 function hand(m) {
@@ -200,7 +252,10 @@ function result(m) {
   return `<div class="result ${win ? 'win' : 'lose'}"><div><h1>${win ? 'VICTOIRE !' : 'K.-O. !'}</h1><p>${esc(m.history[0])}</p><div class="row">${'<button class="btn hot big" data-act="go" data-page="lobby">Rejouer</button><button class="btn ghost big" data-act="go" data-page="home">Accueil</button><button class="btn ghost big" data-act="dismissResult">Voir le plateau</button>'}</div></div></div>`;
 }
 
+let targets = new Set();
+
 export function duel(m) {
+  targets = pickable(m);
   return `<div class="duel ${S.targeting ? 'is-targeting' : ''}">
     <section class="top">${life(m, 0)}${titantron(m)}${life(m, 1)}</section>
     <section class="stage"><div class="board">${side(m, 1)}<div class="midline"><span class="vs">VS</span><button class="ticker" data-act="log">${esc(m.history[0] ?? '')}<small>JOURNAL ▸</small></button></div>${side(m, 0)}</div>${reaction(m)}</section>

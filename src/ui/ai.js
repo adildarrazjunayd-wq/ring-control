@@ -1,5 +1,6 @@
 // IA locale : joue son tour seule, puis rend la main au joueur.
 import * as effects from '../engine/card-effects.js';
+import * as combat from '../engine/combat.js';
 import { S, card, game, persist, hooks } from './core.js';
 import { animateAttack, banner } from './fx.js';
 
@@ -12,9 +13,7 @@ export function playerCanReact(m) {
   if (!a || a.playerIndex !== 1) return false;
   const momentum = m.outOfTurnMomentumUsed[0] < 1 && !(p.status.noMomentumThroughTurn >= m.turnNumber)
     && p.hand.some(id => card(id)?.category === 'Momentum' && card(id).rapid && effects.momentumRequirement(m, 0, card(id)).ok);
-  const target = p.active.find(f => f.instanceId === a.targetId);
-  const sami = target && /roman reigns/i.test(card(target.cardId)?.displayName ?? '') && p.active.some(f => f.cardId === 'wyatt-11' && !f.specialUsed);
-  return momentum || Boolean(sami);
+  return momentum || game.reactionOptions(m, 0).length > 0;
 }
 
 function summon(m) {
@@ -52,14 +51,28 @@ function playMomentum(m) {
   return null;
 }
 
+const end = (m, pi, f) => combat.effective(m, pi, f).endurance;
+
 function chooseTarget(m, attacker) {
   const p = m.players[1], d = m.players[0];
   const targets = d.active.filter(t => !m.usedTargets.includes(t.instanceId));
   const direct = Math.max(0, p.active.length - d.active.length) > m.directAttacksUsed;
-  const ko = targets.filter(t => t.endurance <= attacker.attack).sort((a, b) => b.attack - a.attack)[0];
+  const power = combat.effective(m, 1, attacker).attack;
+  const ko = targets.filter(t => end(m, 0, t) <= power).sort((a, b) => combat.effective(m, 0, b).attack - combat.effective(m, 0, a).attack)[0];
   if (ko) return ko.instanceId;
   if (direct) return 'direct';
-  return targets.sort((a, b) => a.endurance - b.endurance)[0]?.instanceId ?? null;
+  return targets.sort((a, b) => end(m, 0, a) - end(m, 0, b))[0]?.instanceId ?? null;
+}
+
+// L'IA utilise son attaque spéciale dès que la condition imprimée est remplie.
+function attackOptions(m, fighter, target) {
+  const sp = combat.specialAvailable(m, 1, fighter);
+  if (!sp || sp.cost) return {};
+  const d = m.players[0];
+  if (sp.targets === 'two') return d.active.length >= 2 ? { special: fighter.cardId, targets: d.active.slice(0, 2).map(f => f.instanceId) } : {};
+  if (sp.targets.startsWith('all')) return d.active.length >= 2 && combat.specialBonusAgainst(m, 1, fighter, d.active[0]) != null ? { special: fighter.cardId } : {};
+  const t = target === 'direct' ? null : d.active.find(f => f.instanceId === target);
+  return combat.specialBonusAgainst(m, 1, fighter, t) != null ? { special: fighter.cardId } : {};
 }
 
 export async function runAI() {
@@ -89,9 +102,12 @@ export async function runAI() {
     for (const fighter of [...p.active]) {
       if (m.turn !== 1 || m.winner !== null || m.attackLock || p.status.noAttackThroughTurn >= m.turnNumber) break;
       if (m.pendingAttack) return; // une attaque attend la réponse du joueur
-      if (m.usedAttackers.includes(fighter.instanceId) || !p.active.includes(fighter)) continue;
+      if (!p.active.includes(fighter) || !combat.canAttack(m, 1, fighter).ok) continue;
       const target = chooseTarget(m, fighter);
-      if (!target || !game.declareAttack(m, 1, fighter.instanceId, target).ok) continue;
+      if (!target) continue;
+      const options = attackOptions(m, fighter, target);
+      if (!game.declareAttack(m, 1, fighter.instanceId, target, options).ok && !game.declareAttack(m, 1, fighter.instanceId, target).ok) continue;
+      if (options.special) banner(`L’IA : <b>${combat.ATTACK_SPECIALS[options.special].name}</b>`);
       await step(350);
       if (playerCanReact(m)) return; // reprise après « Laisser passer » ou la réponse
       await animateAttack(m.pendingAttack);
@@ -115,10 +131,12 @@ export async function runAI() {
 // Pendant le tour du joueur, l'IA répond à une attaque avec « Contre » si le coup fait mal.
 export function aiReact(m) {
   const a = m.pendingAttack, p = m.players[1];
-  if (!a || a.playerIndex !== 0 || m.outOfTurnMomentumUsed[1] >= 1 || p.status.noMomentumThroughTurn >= m.turnNumber) return false;
-  if (!p.hand.includes('momentum-20')) return false;
-  const target = p.active.find(f => f.instanceId === a.targetId);
-  const painful = a.targetId === 'direct' ? a.attack >= 50 : target && target.endurance <= a.attack;
+  if (!a || a.playerIndex !== 0) return false;
+  const ids = a.targets ?? [a.targetId];
+  const painful = ids[0] === 'direct' ? a.attack >= 50 : ids.some(id => { const t = p.active.find(f => f.instanceId === id); return t && end(m, 1, t) <= a.attack; }) || ids.length > 1;
   if (!painful) return false;
+  const answer = game.reactionOptions(m, 1)[0];
+  if (answer) return game.useReaction(m, 1, answer.key, answer.fighterId ?? null).ok;
+  if (m.outOfTurnMomentumUsed[1] >= 1 || p.status.noMomentumThroughTurn >= m.turnNumber || !p.hand.includes('momentum-20')) return false;
   return game.playMomentum(m, 1, card('momentum-20')).ok;
 }

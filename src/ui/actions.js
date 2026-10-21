@@ -1,7 +1,10 @@
 // Réactions aux clics. Chaque bouton porte data-act="nom" et ses paramètres en data-*.
 import { DECK_MAX, COPIES_MAX } from '../engine/rules.js';
 import * as effects from '../engine/card-effects.js';
+import * as combat from '../engine/combat.js';
+import * as activ from '../engine/activations.js';
 import { S, card, esc, game, persist, hooks, toast, modal, closeModal, option, btn, catalog, SIGNATURE_DECKS } from './core.js';
+import { pickable, needed } from './targeting.js';
 import { cardDetail, applyFilters } from './screens.js';
 import { animateAttack, banner } from './fx.js';
 import { runAI, aiReact } from './ai.js';
@@ -54,6 +57,17 @@ function afterMomentum(c, result) {
   if (c.id === 'momentum-20' && result.response) { banner('<b>CONTRE !</b> L’attaque est annulée'); done({ ok: true }, 'effect'); if (match.turn === 1) runAI(); return; }
   if (effects.resolveSimpleMomentum(match, 0, c)) { banner(`<b>${esc(c.displayName)}</b>`); done({ ok: true }, 'effect'); return; }
   if (effects.SEARCH_RULES[c.id]) { searchModal(c.id, c.displayName); return; }
+  if (activ.TARGET_MOMENTA[c.id]) {
+    S.targeting = { mode: 'effect', kind: 'momentum', key: c.id, iid: null, specs: activ.TARGET_MOMENTA[c.id].targets, picked: [], name: c.displayName };
+    render();
+    return;
+  }
+  if (activ.SUMMON_MOMENTA[c.id]) {
+    const sm = activ.SUMMON_MOMENTA[c.id], opts = activ.summonCandidates(match, 0, sm.summon);
+    const discard = sm.discard ? `<p>1. Choisis la carte à défausser :</p><div class="opts">${[...new Set(p.hand)].map((id, i) => `<label class="pick"><input type="radio" name="discard" data-discard value="${id}" ${i ? '' : 'checked'}><img src="/${card(id).image}" alt=""><span>${esc(card(id).displayName)}</span></label>`).join('')}</div><p>2. Choisis le catcheur à invoquer :</p>` : '<p>Choisis le catcheur à invoquer depuis ton deck :</p>';
+    modal(`<h2>${esc(c.displayName)}</h2>${discard}<div class="opts">${opts.map(o => `<div class="opt row"><img src="/${card(o.cardId).image}" alt=""><b>${esc(card(o.cardId).displayName)}</b>${o.positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="summonMomentum" data-mid="${c.id}" data-id="${o.cardId}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('')}</div>`);
+    return;
+  }
   if (c.id === 'momentum-24') {
     const ids = effects.shieldSummonOptions(match, 0);
     modal(`<h2>Triple Power Bombe</h2><p>Choisis jusqu’à deux membres du Shield dans ton deck et leur position.</p><div class="opts">${ids.map(id => `<label class="pick"><input type="checkbox" data-shield value="${id}"><img src="/${card(id).image}" alt=""><span>${esc(card(id).displayName)} · ${card(id).rarity}</span><select data-shield-pos="${id}"><option value="active">Actif</option><option value="passive">Passif</option></select></label>`).join('')}</div>${btn('Invoquer', 'data-act="shieldConfirm"', 'btn hot')}`);
@@ -77,7 +91,7 @@ async function resolvePlayerAttack() {
   const match = m();
   S.busy = true;
   render();
-  if (aiReact(match)) { banner('L’IA joue <b>CONTRE !</b>'); S.busy = false; done({ ok: true }, 'effect'); return; }
+  if (aiReact(match)) { banner('L’IA <b>annule l’attaque !</b>'); S.busy = false; done({ ok: true }, 'effect'); return; }
   await animateAttack(match.pendingAttack);
   if (match.pendingAttack) game.resolveAttack(match);
   S.busy = false;
@@ -114,8 +128,7 @@ export const actions = {
 
   // ----- duel : sélection -----
   select: d => {
-    if (S.targeting && !(d.kind === 'fighter' && d.pi === '0')) return;
-    S.targeting = null;
+    if (S.targeting) return; // en mode visée, seules les cartes qui brillent réagissent
     const same = S.selected && S.selected.kind === d.kind && S.selected.id === d.id;
     S.selected = same ? null : { kind: d.kind, id: d.id, pi: Number(d.pi ?? 0) };
     sfx('tap');
@@ -128,7 +141,11 @@ export const actions = {
       modal(`<h2>Ton deck · ${p.deck.length} cartes</h2><div class="list">${tally.map(x => `<div class="opt row"><img src="/${x.c.image}" alt=""><b>${esc(x.c.displayName)}</b><small>${x.c.category} · ×${x.n}</small></div>`).join('')}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`);
       return;
     }
-    modal(`<h2>Cimetière · ${esc(p.name)}</h2><div class="grid small">${p.grave.map(id => `<img src="/${card(id).image}" alt="${esc(card(id).displayName)}" data-act="viewCard" data-id="${id}">`).join('') || '<p class="muted">Vide.</p>'}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`, { wide: true });
+    const graveActs = Number(d.pi) === 0 ? ['wyatt-02:grave', 'wyatt-03:grave'].filter(key => p.grave.includes(key.split(':')[0])).map(key => {
+      const refused = activ.activationCheck(m(), 0, key, null);
+      return option(esc(activ.ACTIVATED[key].name), refused ?? esc(card(key.split(':')[0]).effects[key.startsWith('wyatt-02') ? 1 : 0].text), `data-act="graveEffect" data-key="${key}" ${refused ? 'disabled' : ''}`);
+    }).join('') : '';
+    modal(`<h2>Cimetière · ${esc(p.name)}</h2>${graveActs ? `<div class="opts">${graveActs}</div>` : ''}<div class="grid small">${p.grave.map(id => `<img src="/${card(id).image}" alt="${esc(card(id).displayName)}" data-act="viewCard" data-id="${id}">`).join('') || '<p class="muted">Vide.</p>'}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`, { wide: true });
   },
   log: () => modal(`<h2>Journal du match</h2><div class="log">${m().history.slice(0, 60).map(x => `<p>${esc(x)}</p>`).join('')}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`),
   quit: () => { if (confirm('Quitter le duel ? Il reste sauvegardé et tu pourras le reprendre.')) go('home'); },
@@ -191,9 +208,56 @@ export const actions = {
     done(r, 'effect');
   },
   managerEffect: () => {
+    if (me().manager?.cardId === 'managers-04') {
+      const groups = effects.teddyLongOptions(m(), 0), positions = game.legalPositions(me());
+      modal(`<h2>Teddy Long</h2><p>Coche deux catcheurs de la <b>même faction</b> dans ta main et choisis leur position.</p><div class="opts">${groups.flatMap(g => g.cardIds.map(id => `<label class="pick"><input type="checkbox" data-teddy value="${id}"><img src="/${card(id).image}" alt=""><span>${esc(card(id).displayName)} · ${esc(g.faction)}</span><select data-teddy-pos="${id}">${positions.map(p => `<option value="${p}">${p === 'active' ? 'Actif' : 'Passif'}</option>`).join('')}</select></label>`)).join('')}</div>${btn('Invoquer', 'data-act="teddyConfirm"', 'btn hot')}`);
+      return;
+    }
     const r = effects.managerEffect(m(), 0);
-    if (r.ok) banner(r.automatic ? `<b>${esc(card(me().manager.cardId).displayName)}</b> entre en action` : 'Effet du manager<small>Applique le texte imprimé</small>');
+    if (r.ok) banner(`<b>${esc(card(me().manager.cardId).displayName)}</b> entre en action`);
     done(r, 'effect');
+  },
+  teddyConfirm: () => {
+    const ids = [...document.querySelectorAll('[data-teddy]:checked')].map(x => x.value);
+    const r = effects.managerEffect(m(), 0, { cardIds: ids, positions: ids.map(id => document.querySelector(`[data-teddy-pos="${id}"]`).value) });
+    if (r.ok) banner('<b>TEDDY LONG</b> : tag team match !');
+    done(r, 'summon');
+  },
+
+  // Effets à activer (catcheur ou cimetière) : cibles sur le ring, ou catcheur à invoquer.
+  activate: d => {
+    const e = activ.ACTIVATED[d.key], f = d.iid ? fighters(me()).find(x => x.instanceId === d.iid) : null;
+    const refused = activ.activationCheck(m(), 0, d.key, f);
+    if (refused) { toast(refused); return; }
+    closeModal();
+    if (e.targets) { S.targeting = { mode: 'effect', kind: 'activate', key: d.key, iid: d.iid || null, specs: e.targets, picked: [], name: e.name }; S.selected = null; render(); return; }
+    if (e.summon) {
+      const opts = activ.summonCandidates(m(), 0, e.summon, { leaving: e.leaves ? f : null });
+      modal(`<h2>${esc(e.name)}</h2><p>Choisis le catcheur à invoquer et sa position.</p><div class="opts">${opts.map(o => `<div class="opt row"><img src="/${card(o.cardId).image}" alt=""><b>${esc(card(o.cardId).displayName)}</b>${o.positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="activateSummon" data-key="${d.key}" data-iid="${d.iid ?? ''}" data-id="${o.cardId}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('')}</div>${btn('Annuler', 'data-act="close"', 'btn ghost')}`);
+      return;
+    }
+    const r = activ.activate(m(), 0, d.key, d.iid || null);
+    if (r.ok) banner(`<b>${esc(e.name)}</b>`);
+    done(r, 'effect');
+  },
+  activateSummon: d => {
+    const r = activ.activate(m(), 0, d.key, d.iid || null, { cardId: d.id, position: d.pos });
+    if (r.ok) banner(`<b>${esc(activ.ACTIVATED[d.key].name)}</b>`);
+    done(r, 'summon');
+  },
+  graveEffect: d => actions.activate({ key: d.key }),
+  choicePick: d => {
+    const r = activ.resolveChoice(m(), d.choice, d.id || null);
+    done(r, d.id ? 'effect' : 'tap');
+  },
+  summonMomentum: d => {
+    const discard = document.querySelector('[data-discard]:checked')?.value;
+    done(activ.resolveSummonMomentum(m(), 0, d.mid, { discard, summonId: d.id, position: d.pos }), 'summon');
+  },
+  react: d => {
+    const r = game.useReaction(m(), 0, d.key, d.iid || null);
+    if (r.ok) banner('<b>ATTAQUE ANNULÉE !</b>');
+    if (done(r, 'effect')) runAI();
   },
   adjust: d => done(game.adjustFighter(m(), Number(d.pi), d.iid, d.stat, Number(d.delta), 'correction manuelle')),
   hp: d => { const p = m().players[Number(d.pi)]; modal(`<h2>PV · ${esc(p.name)}</h2><p>Correction manuelle, pour appliquer un effet imprimé.</p><div class="row">${[-50, -10, 10, 50].map(n => btn(`${n > 0 ? '+' : ''}${n} PV`, `data-act="hpAdjust" data-pi="${d.pi}" data-delta="${n}"`, 'btn')).join('')}</div>`); },
@@ -201,15 +265,40 @@ export const actions = {
 
   // ----- duel : combat -----
   toAttacks: () => { m().phase = 'attacks'; S.selected = null; sfx('phase'); persist(); render(); },
-  attack: d => { S.targeting = d.iid; S.selected = null; sfx('tap'); render(); },
+  attack: d => {
+    const t = { mode: 'attack', iid: d.iid, special: d.special || null, ladder: Boolean(d.ladder), picked: [] };
+    S.selected = null;
+    sfx('tap');
+    // Go to Sleep : choisir le Momentum sacrifié avant la cible.
+    if (combat.ATTACK_SPECIALS[t.special]?.cost === 'momentum' && !d.discard) {
+      const ids = [...new Set(me().hand.filter(id => card(id)?.category === 'Momentum'))];
+      modal(`<h2>Go to Sleep</h2><p>Sacrifie une carte Momentum de ta main.</p><div class="opts">${ids.map(id => `<button class="opt row" data-act="attack" data-iid="${d.iid}" data-special="${t.special}" data-discard="${id}"><img src="/${card(id).image}" alt=""><b>${esc(card(id).displayName)}</b></button>`).join('')}</div>${btn('Annuler', 'data-act="close"', 'btn ghost')}`);
+      return;
+    }
+    t.discard = d.discard || null;
+    closeModal();
+    S.targeting = t;
+    render();
+  },
   cancelTarget: () => { S.targeting = null; render(); },
   target: d => {
-    if (!S.targeting || S.busy) return;
-    const r = game.declareAttack(m(), 0, S.targeting, d.target);
+    const t = S.targeting;
+    if (!t || S.busy) return;
+    if (d.target === 'direct') { launchAttack('direct'); return; }
+    const pi = Number(d.pi ?? 1);
+    if (!pickable(m()).has(d.target)) return;
+    t.picked.push({ pi, instanceId: d.target });
+    sfx('tap');
+    if (t.picked.length < needed(m(), t)) { render(); return; }
+    if (t.mode === 'attack') { launchAttack(t.picked[0].instanceId); return; }
     S.targeting = null;
-    if (!r.ok) { toast(r.reason); render(); return; }
-    resolvePlayerAttack();
+    const r = t.kind === 'activate'
+      ? activ.activate(m(), 0, t.key, t.iid, { targets: t.picked })
+      : activ.resolveTargetMomentum(m(), 0, t.key, t.picked);
+    if (r.ok) banner(`<b>${esc(t.name)}</b>`);
+    done(r, 'effect');
   },
+  launch: () => launchAttack(S.targeting?.picked[0]?.instanceId ?? 'multi'),
   endTurn: () => {
     const r = game.endTurn(m());
     if (!r.ok) { toast(r.reason); return; }
@@ -230,14 +319,17 @@ export const actions = {
     done({ ok: true }, 'hit');
     runAI();
   },
-  sami: d => {
-    const match = m(), a = match.pendingAttack;
-    const target = a && me().active.find(f => f.instanceId === a.targetId);
-    const r = game.counterAttackWithWrestlerEffect(match, 0, d.iid, target?.cardId);
-    if (r.ok) banner('<b>SAMI ZAYN</b> protège Roman Reigns !');
-    if (done(r, 'effect')) runAI();
-  },
 };
+
+function launchAttack(target) {
+  const t = S.targeting;
+  if (!t) return;
+  S.targeting = null;
+  const ids = t.picked.map(x => x.instanceId);
+  const r = game.declareAttack(m(), 0, t.iid, target, { special: t.special, ladder: t.ladder, discard: t.discard, targets: ids, secondTarget: t.special === 'catcheur-08' ? ids[1] : null });
+  if (!r.ok) { toast(r.reason); render(); return; }
+  resolvePlayerAttack();
+}
 
 // Garde la position de défilement de la liste de cartes après un réaffichage.
 function keepScroll(fn) {

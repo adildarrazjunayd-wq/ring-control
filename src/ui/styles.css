@@ -247,7 +247,7 @@ body.in-duel #view { min-height: 0; }
 .live-stats { display: flex; gap: 12px; font: 22px var(--title); }
 .live-stats small { font: 600 15px var(--cond); color: var(--muted); }
 .live-stats .hurt { color: var(--red); }
-.tron-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; padding: 4px 6px 6px 2px; }
+.tron-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding: 8px 6px 6px 2px; position: sticky; bottom: 0; background: linear-gradient(rgba(29, 8, 32, 0), #1f0a1d 30%); }
 .tron-actions .btn { min-height: 34px; padding: 4px 12px; font-size: 13px; border-width: 2px; }
 .manual { width: 100%; font-size: 12px; color: var(--muted); }
 .manual summary { cursor: pointer; }
@@ -404,3 +404,18 @@ body.in-duel #view { min-height: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ---------- Bonus et états ---------- */
+.pill .up { color: var(--green); }
+.pill .down { color: var(--red); }
+.fcard.picked { border-color: var(--y); box-shadow: 0 0 0 4px var(--m), 0 0 30px var(--y); }
+.badges { position: absolute; top: -10px; left: -8px; display: flex; gap: 2px; }
+.badges i { font-style: normal; font-size: 13px; line-height: 1; padding: 2px 4px; background: #000; border: 2px solid var(--c); border-radius: 10px; }
+.live-stats small.up { color: var(--green); font: 600 15px var(--cond); }
+.live-stats small.down { color: var(--red); font: 600 15px var(--cond); }
+.live-stats .state { font: 600 15px var(--cond); color: var(--c); border: 1px solid var(--c); padding: 0 6px; align-self: center; }
+.tron-effects .mode { font-style: normal; font: 600 13px var(--cond); text-transform: uppercase; letter-spacing: .5px; padding: 0 6px; margin-left: 4px; background: var(--panel2); border: 1px solid var(--line); color: var(--muted); }
+.tron-effects .mode.auto { color: var(--green); border-color: var(--green); }
+.tron-effects .mode.attack, .tron-effects .mode.activated, .tron-effects .mode.search { color: var(--y); border-color: var(--y); }
+.tron-effects .mode.reaction { color: var(--c); border-color: var(--c); }
+.is-targeting .fcard:not(.target):not(.picked) { filter: brightness(.55); }

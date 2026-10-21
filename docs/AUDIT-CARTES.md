@@ -1,59 +1,116 @@
-# Audit des cartes — 21 octobre 2026
+# Audit des cartes — mis à jour le 21 octobre 2026
 
 Les 96 images de `public/cards/` ont été relues une par une. Le texte imprimé de chaque carte est
-désormais dans `data/catalog.json` (champ `effects`), avec sa faction (`faction`) et son surnom
-(`nickname`). L'ancien texte OCR illisible (`textSnippet`) a été supprimé.
+dans `data/catalog.json` (champ `effects`), avec sa faction (`faction`) et son surnom (`nickname`).
+Les règles d'application et les réponses du propriétaire sont dans `docs/DECISIONS-REGLES.md`.
 
-## Ce qui a été vérifié
+## Vérifications
 
 - **Stats, raretés, catégories, symbole ⚡ rapide** : identiques aux images pour les 96 cartes.
-- **Cartes exclues** : The Undertaker (×2), Rayback, Main de l'Ombre et le dos de carte restent non jouables.
-- **Le dos de carte** (`catcheur-40`) sert maintenant d'image pour les pioches.
+- **Exclues** : The Undertaker (×2), Rayback, Main de l'Ombre et le dos de carte (utilisé comme image de pioche).
+- **Corrigé** : `wyatt-09` (texte du passif) et le nom de `momentum-24` (TRIPLE POWER BOMBE).
+  Les fautes imprimées « ROMAN REINGS » et « SHAWN MICHAEL » sont gardées ; le moteur les reconnaît quand même.
 
-## Écarts corrigés dans le catalogue
+## Où vit chaque effet dans le code
 
-| Carte | Avant | Texte imprimé |
-| --- | --- | --- |
-| `wyatt-09` Jey Uso (effet passif) | « mettre cette carte à la place » | « vous pouvez mettre K.O. cette carte à la place » |
-| `momentum-24` | nom illisible (« TTTRRRIII… ») | TRIPLE POWER BOMBE |
-
-Les noms imprimés avec une faute (`catcheur-08` « ROMAN REINGS », `catcheur-32` « SHAWN MICHAEL ») sont laissés tels quels.
-
-## Effets résolus automatiquement par le jeu
-
-Code : `src/engine/game-engine.js` et `src/engine/card-effects.js`. Tests : `tests/`.
-
-| Effet | Cartes |
+| Fichier | Contenu |
 | --- | --- |
-| Invocation directe (main, sinon deck, sans sacrifice) | `momentum-19` à `23`, `27` à `30` |
-| Chercher une carte dans le deck → main | `momentum-05`, `momentum-26` (+15 ATT Sheamus), `wyatt-05`, `wyatt-10` (spécial), `wyatt-11` (passif) |
-| Piocher 2 cartes sous condition | `momentum-08`, `momentum-15`, `momentum-17` |
-| Triple Power Bombe (2 membres du Shield depuis le deck) | `momentum-24` |
-| Retour Inattendu (catcheur du cimetière, END complète) | `momentum-16` |
-| Contre (annule l'attaque, plus d'attaque ce tour) | `momentum-20` |
-| Sami Zayn protège Roman Reigns | `wyatt-11` (spécial) |
-| Stop Momentum (adversaire bloqué ce tour) | `momentum-12` |
-| Domination Totale (pas de sacrifice pour une SSR adverse ce tour) | `momentum-01` |
-| Mr. McMahon (une SSR sans sacrifice, une fois par partie) | `managers-02` |
-| Stephanie McMahon (+1 Momentum, une fois par partie) | `managers-05` |
+| `src/engine/combat.js` | Bonus continus, calcul des dégâts, attaques spéciales, déclencheurs (attaque, K.-O., début de tour). |
+| `src/engine/activations.js` | Effets à activer (catcheurs, cimetière), Momenta qui visent une carte ou invoquent, choix au cimetière. |
+| `src/engine/card-effects.js` | Recherches dans le deck, pioches, conditions des Momenta, managers à activer. |
+| `src/engine/game-engine.js` | Invocations directes par Momentum, Contre, réponses (Sami, Drew, Randy, Big Gold, Strowman). |
 
-**Conditions vérifiées avant de jouer** (la carte ne peut pas être gâchée) : `momentum-04`, `06`, `07`,
-`09`, `11`, `13`, plus toutes les cartes ci-dessus.
+## Catcheurs
 
-## Effets encore à appliquer à la main
-
-Le joueur active l'effet, lit le texte sur l'écran géant et utilise les corrections ATT / END / PV.
-
-| Groupe | Cartes | Pourquoi |
+| Carte | Effet passif | Effet spécial |
 | --- | --- | --- |
-| Bonus continus (« tant que… », « chaque tour ») | objets `01`–`08`, `wyatt-07`, `managers-01`, `managers-03`, passifs de catcheurs | Il faut d'abord un système de modificateurs temporaires/permanents dans le moteur. |
-| Déclencheurs (« après avoir subi une attaque », « quand il est mis K.O. ») | la plupart des effets passifs et spéciaux de catcheurs | Demande un système d'événements (attaque reçue, K.O., Momentum joué…). |
-| Momenta à bonus de tour | `momentum-02`, `03`, `04`, `06`, `07`, `09`, `11`, `13`, `14`, `18` | Même système de modificateurs. |
-| Effets multi-étapes | `wyatt-06` (défausse + invocation), `wyatt-12` (Jey Uso + 2 Momenta au tour suivant), `wyatt-13`, `managers-04` (Teddy Long) | À faire après les modificateurs. |
-| Texte ambigu | `momentum-10` (« chaque catcheur mis K.O. » : dans le match ou ce tour ?) ; soins « +10 END » (peut-on dépasser l'END imprimée ?) | Question à poser au propriétaire avant d'automatiser. |
+| `catcheur-01` Roman Reigns | ✅ auto : Bloodline +5 ATT | ✅ à activer : cible ne peut pas attaquer au prochain tour |
+| `catcheur-02` The Rock | ✅ auto : pioche quand il attaque | ✅ attaque spéciale +10 (< 70 END) |
+| `catcheur-03` Brock Lesnar | ✅ auto : ignore les réductions de dégâts | ✅ attaque spéciale +20 s'il a déjà été attaqué |
+| `catcheur-04` Seth Rollins | ✅ auto : +5 dégâts et +5 END après un Momentum | ✅ à activer : passifs adverses annulés 1 tour |
+| `catcheur-05` Dean Ambrose | ✅ auto : +15 s'il a subi des dégâts | ✅ attaque spéciale +15 (2 autres Shield actifs), pas de Momentum adverse en réponse |
+| `catcheur-06` Seth Rollins | ✅ auto : +5 et 2e attaque si un autre Shield a attaqué | ✅ attaque spéciale sur tous les catcheurs adverses (+10) |
+| `catcheur-07` Dean Ambrose | ✅ auto : +10 END après une attaque subie | ✅ à activer : END adverse (> 60) divisée par 2 |
+| `catcheur-08` Roman Reigns | ✅ auto : +5 s'il attaque le premier | ✅ attaque spéciale +25 + END d'un autre actif divisée par 2 |
+| `catcheur-09` Kevin Owens | ✅ auto : +10 END quand il attaque | ✅ attaque spéciale +20 s'il est le seul actif |
+| `catcheur-10` Drew McIntyre | ✅ auto : +5 si END > 30 | ✅ réponse : annule l'attaque, 5 dégâts à l'attaquant |
+| `catcheur-11` Bobby Lashley | ✅ auto : +5 contre < 75 END | — |
+| `catcheur-12` Gunther | ✅ auto : -10 dégâts reçus | ✅ attaque spéciale +15 s'il a déjà été attaqué |
+| `catcheur-13` Randy Orton | ✅ à activer : effets adverses annulés ce tour | ✅ réponse : annule l'attaque, 10 dégâts à l'attaquant |
+| `catcheur-14` AJ Styles | ✅ auto : +5 contre < 80 END | ✅ attaque spéciale +15 après un Momentum |
+| `catcheur-15` Finn Balor | ✅ auto : +10 contre > 85 END | ✅ attaque spéciale : dégâts doublés (< 80 END) |
+| `catcheur-16` Damien Priest | ✅ auto : +5 END après une attaque réussie | ✅ à activer : dégâts d'un actif adverse /2 au prochain tour |
+| `catcheur-17` Shinsuke Nakamura | — | ✅ attaque spéciale +15, ignore les défenses |
+| `catcheur-18` Sheamus | ✅ auto : +5 END quand il est attaqué | — |
+| `catcheur-19` Braun Strowman | ✅ auto : -5 dégâts reçus | ✅ attaque spéciale +20 (> 80 END) |
+| `catcheur-20` Jey Uso | ✅ auto : seul actif → +10 ATT, -5 dégâts reçus | ✅ attaque spéciale +20 (et -10 END de plus si > 80) |
+| `catcheur-21` Jey Uso | ✅ auto : +5 ATT si Jimmy actif | ✅ attaque spéciale +15 s'il a subi des dégâts |
+| `catcheur-22` Jimmy Uso | ✅ auto : +5 END si Jey actif | ✅ attaque spéciale sur deux actifs (+10 chacun) |
+| `catcheur-23` Solo Sikoa | — | ✅ attaque spéciale +20 (< 75 END) |
+| `catcheur-24` Edge | ✅ auto : +5 après un Momentum | ✅ attaque spéciale +15 (> 80 END) |
+| `catcheur-25` Rey Mysterio | ✅ auto : +10 ATT | ✅ attaque spéciale +20 (< 80 END) |
+| `catcheur-26` Big E | ✅ auto : +5 END aux actifs à chaque début de tour | ✅ attaque spéciale +25 |
+| `catcheur-27` Kofi Kingston | — | ✅ attaque spéciale +15 après un Momentum |
+| `catcheur-28` Xavier Woods | ✅ auto : pioche 1 carte de plus par tour s'il est actif | — |
+| `catcheur-31` Triple H | ✅ à activer : invoque un membre DX du deck | ✅ à activer : +5 ATT s'il porte un objet |
+| `catcheur-32` Shawn Michaels | ✅ à activer : endort un adversaire | ✅ auto : quand il est K.O., 25 dégâts à celui qui l'a mis K.O. |
+| `catcheur-33` Hornswoggle | — | ✅ à activer : invoque un Hornswoggle du deck (1 fois par partie) |
+| `catcheur-34` Cody Rhodes | ✅ auto : alliés +5/+5, pioche par Momentum joué | ✅ attaque spéciale +25 et effets indiqués |
+| `catcheur-35` John Cena | ✅ auto : alliés +10 END quand attaqués, pioche si allié K.O. | ✅ attaque spéciale +15, adversaire privé de Momentum |
+| `catcheur-36` CM Punk | ✅ auto : actifs +5 END au début du tour | ✅ attaque spéciale +25 (sacrifie un Momentum) et effets indiqués |
+| `catcheur-38` Bronson Reed | ✅ à activer : endort un adversaire (1 fois, s'il a subi des dégâts) | — |
+| `catcheur-39` Bray Wyatt | ✅ auto : adversaires -10 dégâts | ✅ attaque spéciale +25, cible privée d'attaque |
+| `wyatt-01` Braun Strowman | ✅ auto : au cimetière → envoyer une carte Wyatt Family du deck au cimetière (au choix) | ✅ réponse depuis le cimetière : bannir pour annuler une attaque sur Bray Wyatt |
+| `wyatt-02` Erick Rowan | ✅ auto : au cimetière → carte Wyatt Family R/SR du deck en main (au choix) | ✅ depuis le cimetière : bannir, Bray Wyatt +20 ATT ce tour |
+| `wyatt-03` Luke Harper | ✅ depuis le cimetière : endort un adversaire si Bray Wyatt est actif (1 fois par tour) | ✅ à activer : se sacrifie et invoque Bray Wyatt de la main |
+| `wyatt-04` Bray Wyatt | ✅ à activer : invoque un Wyatt Family du cimetière | ✅ attaque spéciale : prend le contrôle du catcheur mis K.O. (END /2) |
+| `wyatt-08` Roman Reigns | ❓ **manuel** (voir questions) | ✅ attaque spéciale sur tous les actifs si END ≤ 55 |
+| `wyatt-09` Jey Uso | ❓ **manuel** (voir questions) | ✅ à activer : invoque Jimmy Uso du deck, Jey n'attaque pas ce tour |
+| `wyatt-10` Jimmy Uso | ✅ à activer : 10 dégâts à un actif adverse | ✅ cherche Paul Heyman dans le deck |
+| `wyatt-11` Sami Zayn | ✅ cherche un Momentum Bloodline dans le deck | ✅ réponse : protège Roman Reigns |
 
-## Prochaine étape conseillée
+## Managers
 
-Ajouter au moteur un **système de modificateurs** (bonus ATT/END avec durée : ce tour, tant qu'équipé,
-tant qu'actif) et un **système d'événements**. À eux deux, ils permettraient d'automatiser
-la grande majorité des effets restants.
+| Carte | Effet |
+| --- | --- |
+| `managers-01` Paul Heyman | ✅ auto : Roman Reigns / Brock Lesnar actifs +10 ATT +10 END |
+| `managers-02` Mr. McMahon | ✅ à activer : une SSR sans sacrifice (1 fois par partie) |
+| `managers-03` Triple H | ✅ auto : +10 ATT à tous tes catcheurs si un membre de faction est actif |
+| `managers-04` Teddy Long | ✅ à activer : deux catcheurs d'une même faction depuis la main |
+| `managers-05` Stephanie McMahon | ✅ à activer : +1 Momentum (1 fois par partie) |
+
+## Objets
+
+| Carte | Effet |
+| --- | --- |
+| `objets-01` Échelle | ✅ attaque à l'Échelle : 10 dégâts à chaque actif adverse, puis -10 END |
+| `objets-02` Bâton de Kendo | ✅ +10 dégâts par attaque, adversaire privé de Momentum au prochain tour |
+| `objets-03` Chaise en acier | ✅ +15 contre un catcheur, puis -5 END pour le porteur |
+| `objets-04` Table | ✅ +20 si le porteur a au moins 50 ATT, puis détruite |
+| `objets-05` Ceinture Universelle | ✅ +10 ATT ; sur Roman Reigns, +5 END cumulés à chaque tour |
+| `objets-06` Big Gold | ✅ une invocation de plus ce tour ; Edge / Triple H / Randy Orton peuvent éviter une attaque (1 fois par partie) |
+| `objets-07` Ceinture poids lourd | ✅ deux Momenta par tour ; Roman (Shield) / Seth (Shield) / Brock : +5 ATT cumulés à chaque tour |
+| `objets-08` Ceinture « The Champ » | ✅ +10 END ; John Cena ou CM Punk attaquent deux fois le tour où elle est équipée |
+| `wyatt-07` Lanterne de l'obscurité | ✅ sur Bray Wyatt : +10 ATT / -10 END ; au cimetière → reprendre un Momentum du cimetière |
+
+## Momenta
+
+Tous automatisés (✅), sauf ceux marqués ❓ :
+`momentum-01` à `06`, `08` à `24`, `26` à `30`, `wyatt-05`, `wyatt-06`, `wyatt-12`.
+
+- ❓ `momentum-07` **Défense inébranlable** — manuel (voir questions).
+- ❓ `wyatt-13` **The Bloodline rassemblement** — manuel (voir questions).
+
+## Questions encore ouvertes pour le propriétaire
+
+1. **« Tous les membres de la Bloodline sont sur le ring »** (`wyatt-08` passif, `wyatt-13`) : il y a 9 cartes Bloodline mais seulement 5 places sur le ring. Quels membres faut-il exactement ?
+2. **Jey Uso (`wyatt-09`)** : « si Roman Reigns est mis K.O., vous pouvez mettre K.O. cette carte à la place » — Roman reste-t-il sur le ring, et avec combien d'END ?
+3. **Défense inébranlable (`momentum-07`)** : la carte n'est pas rapide et dit « ce tour-ci ». Pendant ton propre tour, l'IA n'attaque pas : la réduction de -40 doit-elle durer jusqu'à la fin du tour suivant de l'adversaire ?
+
+## Interprétations prises (à confirmer si besoin)
+
+- Les objets sans mention « détruite » restent équipés et s'appliquent à chaque attaque (Kendo, Chaise, Échelle).
+- **Boy Toy** (Shawn Michaels) : les 25 dégâts vont au catcheur qui l'a mis K.O.
+- **You Can't See Me** (Cena) : comme tout effet spécial, une seule fois tant qu'il reste sur le ring.
+- **Hot Tag Moment** : le catcheur visé passe en passif ; l'attaque annoncée contre lui est alors perdue.
+- « Membre de la Wyatt Family » : faction Wyatt Family, cartes qui citent la Wyatt Family, et Bray Wyatt.

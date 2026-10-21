@@ -1,5 +1,6 @@
 // Point d'entrée de l'interface.
-import { S, $, hooks } from './core.js';
+import { S, $, hooks, modal, esc, card } from './core.js';
+import * as activ from '../engine/activations.js';
 import * as screens from './screens.js';
 import { duel, refreshTitantron } from './duel.js';
 import { actions } from './actions.js';
@@ -20,10 +21,19 @@ function render() {
     : S.page === 'collection' ? screens.collection()
     : screens.home();
   if (inDuel) afterRender(S.match);
+  if (inDuel) showPendingChoice();
   for (const el of document.querySelectorAll('[data-nav]')) el.classList.toggle('on', el.dataset.page === S.page || (S.page === 'duel' && el.dataset.page === 'lobby'));
   document.title = `${TITLES[S.page] ?? ''} · Ring Control`;
 }
 hooks.render = render;
+
+// Effet déclenché par une carte arrivée au cimetière : le joueur choisit (ou renonce).
+function showPendingChoice() {
+  const choice = S.match.pendingChoices?.find(c => c.pi === 0);
+  if (!choice || $('#modal').open) return;
+  const info = activ.choiceInfo(choice), ids = activ.choiceOptions(S.match, choice);
+  modal(`<h2>${esc(info.title)}</h2><p>Tu peux choisir ${esc(info.what)}.</p><div class="opts">${ids.map(id => `<button class="opt row" data-act="choicePick" data-choice="${choice.id}" data-id="${id}"><img src="/${card(id).image}" alt=""><b>${esc(card(id).displayName)}</b><small>${card(id).category} · ${card(id).rarity}</small></button>`).join('')}</div><button class="btn ghost" data-act="choicePick" data-choice="${choice.id}">Ne rien prendre</button>`);
+}
 
 document.addEventListener('click', event => {
   const el = event.target.closest('[data-act]');
