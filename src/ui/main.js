@@ -3,7 +3,8 @@ import { S, $, hooks, modal, esc, card } from './core.js';
 import * as activ from '../engine/activations.js';
 import * as screens from './screens.js';
 import { duel, refreshTitantron } from './duel.js';
-import { actions } from './actions.js';
+import { actions, go } from './actions.js';
+import { broadcast } from './net.js';
 import { runAI } from './ai.js';
 import { beforeRender, afterRender } from './fx.js';
 import { soundOn, startCrowd, stopCrowd } from './sound.js';
@@ -27,13 +28,15 @@ function render() {
   document.title = `${TITLES[S.page] ?? ''} · Ring Control`;
 }
 hooks.render = render;
+hooks.go = go;
+hooks.afterPersist = broadcast; // en ligne, l'hôte envoie la partie à jour à son adversaire
 
 // Effet déclenché par une carte arrivée au cimetière : le joueur choisit (ou renonce).
 function showPendingChoice() {
   const choice = S.match.pendingChoices?.find(c => c.pi === 0);
   if (!choice || $('#modal').open) return;
   const info = activ.choiceInfo(choice), ids = activ.choiceOptions(S.match, choice);
-  modal(`<h2>${esc(info.title)}</h2><p>Tu peux choisir ${esc(info.what)}.</p><div class="opts">${ids.map(id => `<button class="opt row" data-act="choicePick" data-choice="${choice.id}" data-id="${id}"><img src="/${card(id).image}" alt=""><b>${esc(card(id).displayName)}</b><small>${card(id).category} · ${card(id).rarity}</small></button>`).join('')}</div><button class="btn ghost" data-act="choicePick" data-choice="${choice.id}">Ne rien prendre</button>`);
+  modal(`<h2>${esc(info.title)}</h2><p>Tu peux choisir ${esc(info.what)}.</p><div class="opts">${ids.map(id => `<button class="opt row" data-act="choicePick" data-choice="${choice.id}" data-id="${id}"><img src="${card(id).image}" alt=""><b>${esc(card(id).displayName)}</b><small>${card(id).category} · ${card(id).rarity}</small></button>`).join('')}</div><button class="btn ghost" data-act="choicePick" data-choice="${choice.id}">Ne rien prendre</button>`);
 }
 
 document.addEventListener('click', event => {
@@ -44,7 +47,7 @@ document.addEventListener('click', event => {
     if (S.page === 'duel' && event.target.closest('.stage') && (S.selected || S.targeting)) { S.selected = null; S.targeting = null; render(); }
     return;
   }
-  if (el.disabled) return;
+  if (el.disabled || (S.waiting && S.page === 'duel')) return; // action en route vers l'hôte
   const handler = actions[el.dataset.act];
   if (handler) handler(el.dataset, el);
 });

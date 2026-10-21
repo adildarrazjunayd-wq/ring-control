@@ -654,3 +654,18 @@ body.in-duel #view { min-height: 0; }
 .hud .life .chips span { white-space: nowrap; }
 .duel .hud .life .life-main > *, .duel .hud .life .life-top > * { grid-area: auto; }
 .duel .hud .life .life-main { grid-template-columns: minmax(0, 1fr); }
+
+/* ---------- Jouer en ligne ---------- */
+.online-box { margin: 26px 0 10px; padding: 16px 18px; border-radius: 12px; background: linear-gradient(180deg, rgba(22, 12, 40, .9), rgba(10, 6, 20, .9)); border: 1px solid rgba(34, 230, 255, .35); }
+.online-box.live { border-color: var(--green); box-shadow: 0 0 20px rgba(92, 255, 157, .2); }
+.online-box h3 { margin: 0 0 10px; color: var(--c); }
+.online-box h3 small { font: 500 13px var(--body); color: var(--muted); letter-spacing: 0; margin-left: 8px; }
+.online-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; }
+.online-grid > div { padding: 12px; border-radius: 10px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .07); display: grid; gap: 8px; align-content: start; }
+.online-grid b { font: 16px var(--title); letter-spacing: 1px; }
+.online-grid p { margin: 0; font-size: 13px; }
+.field { display: grid; gap: 6px; max-width: 320px; font-weight: 700; }
+.input.code { min-width: 0; width: 120px; flex: none; font: 22px var(--title); letter-spacing: 4px; text-transform: uppercase; text-align: center; }
+.room-code { font: 30px var(--title); letter-spacing: 6px; color: var(--y); padding: 2px 12px; background: rgba(0, 0, 0, .4); border-radius: 8px; }
+.online-status { font-weight: 700; }
+@media (max-width: 800px) { .online-grid { grid-template-columns: 1fr; } }

@@ -41,23 +41,23 @@ export function needed(m, t = S.targeting) {
 export function targetingScreen(m) {
   const t = S.targeting;
   if (t.mode === 'effect') {
-    const spec = t.specs[t.picked.length], who = spec?.side === 'me' ? 'un de tes catcheurs' : 'un catcheur de l’IA';
+    const spec = t.specs[t.picked.length], who = spec?.side === 'me' ? 'un de tes catcheurs' : `un catcheur de ${esc(m.players[1].name)}`;
     const img = t.iid ? card([...m.players[0].active, ...m.players[0].passive].find(f => f.instanceId === t.iid)?.cardId)?.image : card(t.key.split(':')[0])?.image;
-    return `<div class="tron targeting">${img ? `<img src="/${img}" alt="">` : ''}<div class="tron-body"><span class="k">${esc(t.name)}</span><h2>CHOISIS ${t.specs.length > 1 ? `LA CIBLE ${t.picked.length + 1}/${t.specs.length}` : 'LA CIBLE'}</h2><p>Clique ${who} qui brille sur le ring.</p><div class="tron-actions"><button class="btn ghost" data-act="cancelTarget">Annuler</button></div></div></div>`;
+    return `<div class="tron targeting">${img ? `<img src="${img}" alt="">` : ''}<div class="tron-body"><span class="k">${esc(t.name)}</span><h2>CHOISIS ${t.specs.length > 1 ? `LA CIBLE ${t.picked.length + 1}/${t.specs.length}` : 'LA CIBLE'}</h2><p>Clique ${who} qui brille sur le ring.</p><div class="tron-actions"><button class="btn ghost" data-act="cancelTarget">Annuler</button></div></div></div>`;
   }
   const f = attacker(m, t);
   if (!f) return '';
   const type = typeOf(t), sp = combat.ATTACK_SPECIALS[t.special];
   const name = t.ladder ? 'ÉCHELLE' : sp ? sp.name.toUpperCase() : 'ATTAQUE';
-  const text = type.startsWith('all') ? `Frappe ${type === 'all-ring' ? 'tous les catcheurs' : 'tous les catcheurs actifs'} de l’IA.`
-    : type === 'two' ? `Clique deux catcheurs actifs de l’IA (${t.picked.length}/${needed(m, t)}).`
+  const text = type.startsWith('all') ? `Frappe ${type === 'all-ring' ? 'tous les catcheurs' : 'tous les catcheurs actifs'} de ${esc(m.players[1].name)}.`
+    : type === 'two' ? `Clique deux catcheurs actifs de ${esc(m.players[1].name)} (${t.picked.length}/${needed(m, t)}).`
     : t.special === 'catcheur-08' && t.picked.length ? 'Choisis l’autre catcheur actif dont l’END sera réduite de moitié.'
-    : `Clique un catcheur de l’IA qui brille.${directAllowed(m, t) ? ' Ou frappe directement ses PV.' : ''}`;
+    : `Clique un catcheur de ${esc(m.players[1].name)} qui brille.${directAllowed(m, t) ? ' Ou frappe directement ses PV.' : ''}`;
   const buttons = [
     directAllowed(m, t) ? '<button class="btn hot" data-act="target" data-target="direct">Attaque directe ▶</button>' : '',
     type.startsWith('all') ? '<button class="btn hot" data-act="launch">Lancer l’attaque ▶</button>' : '',
     t.special === 'catcheur-08' && t.picked.length === 1 ? '<button class="btn" data-act="launch">Sans deuxième cible</button>' : '',
     '<button class="btn ghost" data-act="cancelTarget">Annuler</button>',
   ].join('');
-  return `<div class="tron targeting"><img src="/${card(f.cardId).image}" alt=""><div class="tron-body"><span class="k">COMBAT · ${combat.effective(m, 0, f).attack} ATT</span><h2>${esc(name)}</h2><p>${text}</p><div class="tron-actions">${buttons}</div></div></div>`;
+  return `<div class="tron targeting"><img src="${card(f.cardId).image}" alt=""><div class="tron-body"><span class="k">COMBAT · ${combat.effective(m, 0, f).attack} ATT</span><h2>${esc(name)}</h2><p>${text}</p><div class="tron-actions">${buttons}</div></div></div>`;
 }

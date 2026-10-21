@@ -9,17 +9,19 @@ const pause = (ms = 650) => new Promise(r => setTimeout(r, ms));
 const step = async (ms) => { persist(); hooks.render(); await pause(ms); };
 
 // Le joueur peut-il répondre à l'attaque annoncée ? Si oui, l'IA attend sa décision.
-export function playerCanReact(m) {
-  const a = m.pendingAttack, p = m.players[0];
-  if (!a || a.playerIndex !== 1) return false;
-  const momentum = m.outOfTurnMomentumUsed[0] < 1 && !(p.status.noMomentumThroughTurn >= m.turnNumber)
-    && p.hand.some(id => card(id)?.category === 'Momentum' && card(id).rapid && effects.momentumRequirement(m, 0, card(id)).ok);
-  return momentum || game.reactionOptions(m, 0).length > 0;
+// Le joueur `pi` peut-il répondre à l'attaque annoncée contre lui (Momentum rapide ou effet) ?
+export function canReact(m, pi) {
+  const a = m.pendingAttack, p = m.players[pi];
+  if (!a || a.playerIndex === pi) return false;
+  const momentum = m.outOfTurnMomentumUsed[pi] < 1 && !(p.status.noMomentumThroughTurn >= m.turnNumber)
+    && p.hand.some(id => card(id)?.category === 'Momentum' && card(id).rapid && effects.momentumRequirement(m, pi, card(id)).ok);
+  return momentum || game.reactionOptions(m, pi).length > 0;
 }
+export const playerCanReact = m => canReact(m, 0);
 
 export async function runAI() {
   const m = S.match;
-  if (!m || m.turn !== 1 || m.winner !== null || S.busy) return;
+  if (!m || m.turn !== 1 || m.winner !== null || S.busy || S.online) return; // en ligne, pas d'IA
   S.busy = true;
   try {
     resetSkip();
@@ -70,6 +72,7 @@ export async function runAI() {
 
 // Pendant le tour du joueur, l'IA répond quand le coup lui ferait vraiment mal.
 export function aiReact(m) {
+  if (S.online) return false;
   const p = m.players[1];
   if (!brain.shouldReact(m, 1)) return false;
   const answer = game.reactionOptions(m, 1)[0];

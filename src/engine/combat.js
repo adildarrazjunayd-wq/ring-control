@@ -130,7 +130,7 @@ export function untilText(state, until, viewer = 0) {
   if (until == null) return 'tant que la carte reste en jeu';
   if (until === state.turnNumber) return 'ce tour-ci';
   const owner = (until - state.turnNumber) % 2 === 0 ? state.turn : 1 - state.turn;
-  return owner === viewer ? 'jusqu’à la fin de ton prochain tour' : 'jusqu’à la fin du prochain tour de l’IA';
+  return owner === viewer ? 'jusqu’à la fin de ton prochain tour' : `jusqu’à la fin du prochain tour de ${state.players[1 - viewer]?.name ?? 'l’adversaire'}`;
 }
 
 // ---------- Attaques spéciales (effet spécial utilisé au moment d'attaquer) ----------

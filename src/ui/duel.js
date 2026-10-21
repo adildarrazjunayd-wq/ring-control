@@ -39,7 +39,7 @@ export function handActions(m, id) {
     if (own || reaction) {
       const blocked = p.status.noMomentumThroughTurn >= m.turnNumber ? { ok: false, reason: 'Un effet t’empêche de jouer un Momentum ce tour.' } : momentumCheck(m, c);
       out.push(act(c.rapid ? 'Jouer en réponse ⚡' : 'Jouer le Momentum', `data-act="momentum" data-id="${id}" ${blocked.ok ? '' : 'disabled'}`, blocked.ok ? (c.rapid ? 'Réponse à l’attaque annoncée' : 'Un Momentum par tour') : blocked.reason, 'hot'));
-    } else if (c.rapid && acting) out.push(act('Momentum rapide ⚡', 'disabled', 'Se joue quand l’IA annonce une attaque'));
+    } else if (c.rapid && acting) out.push(act('Momentum rapide ⚡', 'disabled', `Se joue quand ${esc(m.players[1].name)} annonce une attaque`));
   }
   return out;
 }
@@ -137,9 +137,9 @@ function selectedCard(m) {
 
 function statusScreen(m) {
   if (m.winner !== null) return { kicker: 'FIN DU MATCH', title: m.winner === 0 ? 'VICTOIRE !' : 'DÉFAITE', text: esc(m.history[0]) };
-  if (m.pendingAttack?.playerIndex === 1) return { kicker: '⚡ FENÊTRE DE RÉPONSE', title: 'L’IA ATTAQUE !', text: 'Réponds avec un Momentum rapide ou laisse passer l’attaque.' };
+  if (m.pendingAttack?.playerIndex === 1) return { kicker: '⚡ FENÊTRE DE RÉPONSE', title: `${esc(m.players[1].name.toUpperCase())} ATTAQUE !`, text: 'Réponds avec un Momentum rapide ou laisse passer l’attaque.' };
   if (m.pendingAttack?.playerIndex === 0) return { kicker: `TOUR ${m.turnNumber} · COMBAT`, title: 'ATTAQUE EN COURS !', text: esc(m.history[0]) };
-  if (m.turn === 1) return { kicker: `TOUR ${m.turnNumber}`, title: 'L’IA JOUE…', text: esc(m.history[0]) };
+  if (m.turn === 1) return { kicker: `TOUR ${m.turnNumber}`, title: `${esc(m.players[1].name.toUpperCase())} JOUE…`, text: esc(m.history[0]) };
   if (m.phase === 'attacks') return { kicker: `TOUR ${m.turnNumber} · COMBAT`, title: 'À L’ATTAQUE !', text: 'Clique sur un de tes catcheurs actifs, puis sur sa cible.' };
   return { kicker: `TOUR ${m.turnNumber} · ACTIONS`, title: 'À TOI DE JOUER', text: 'Les cartes jouables brillent dans ta main. Survole une carte pour la lire, clique pour agir.' };
 }
@@ -153,7 +153,7 @@ function titantron(m) {
   if (!c) {
     const s = statusScreen(m);
     const phase = m.turn === 1 ? 2 : m.phase === 'actions' ? 0 : 1;
-    const steps = [['1', 'ACTIONS', 'Invoque, joue tes cartes, active tes effets, change une position.'], ['2', 'COMBAT', 'Choisis un catcheur actif puis sa cible sur le ring.'], ['3', 'TOUR DE L’IA', 'Valide chacune de ses actions avec « OK ».']];
+    const steps = [['1', 'ACTIONS', 'Invoque, joue tes cartes, active tes effets, change une position.'], ['2', 'COMBAT', 'Choisis un catcheur actif puis sa cible sur le ring.'], ['3', `TOUR DE ${esc(m.players[1].name.toUpperCase())}`, 'Valide chacune de ses actions avec « OK ».']];
     return `<div class="tron idle"><div class="tron-body"><span class="k">${s.kicker}</span><h2>${s.title}</h2><p>${s.text}</p>
       <ol class="guide">${steps.map(([n, t, d], i) => `<li class="${i === phase ? 'on' : ''}"><span>${n}</span><div><b>${t}</b><small>${d}</small></div></li>`).join('')}</ol>
       <p class="hint">Survole une carte pour lire ses effets en grand. Clique-la pour voir ses actions.</p></div></div>`;
@@ -162,7 +162,7 @@ function titantron(m) {
   const stats = f ? fighterStats(m, fpi, f) : '';
   const actions = (sel?.actions ?? []).map(a => `<button class="btn ${a.cls}" ${a.attrs}><b>${a.label}</b>${a.sub ? `<small>${a.sub}</small>` : ''}</button>`).join('');
   const effectText = c.effects.map(e => { const mode = c.category === 'Catcheur' ? modeOf(c.id, e.kind) : null; return `<p><b>${KIND_LABEL[e.kind]} :</b> ${esc(e.text)}${mode ? ` <em class="mode ${mode}">${MODE_LABEL[mode]}</em>` : ''}</p>`; }).join('');
-  return `<div class="tron ${sel ? 'pinned' : ''}"><img src="/${c.image}" alt="${esc(c.displayName)}" data-act="zoom" data-id="${c.id}"><div class="tron-body"><div class="facts">${cardFacts(c)}</div><h2>${esc(c.displayName)}</h2>${stats}<div class="tron-effects">${effectText || '<p class="muted">Aucun effet imprimé.</p>'}</div>${sel ? `<div class="tron-actions">${actions || '<p class="hint">Aucune action possible avec cette carte pour l’instant.</p>'}${sel.fighter ? corrections(sel.pi, sel.fighter) : ''}</div>` : '<p class="hint">Clique la carte pour voir ses actions.</p>'}</div></div>`;
+  return `<div class="tron ${sel ? 'pinned' : ''}"><img src="${c.image}" alt="${esc(c.displayName)}" data-act="zoom" data-id="${c.id}"><div class="tron-body"><div class="facts">${cardFacts(c)}</div><h2>${esc(c.displayName)}</h2>${stats}<div class="tron-effects">${effectText || '<p class="muted">Aucun effet imprimé.</p>'}</div>${sel ? `<div class="tron-actions">${actions || '<p class="hint">Aucune action possible avec cette carte pour l’instant.</p>'}${sel.fighter ? corrections(sel.pi, sel.fighter) : ''}</div>` : '<p class="hint">Clique la carte pour voir ses actions.</p>'}</div></div>`;
 }
 
 // Le survol d'un catcheur sur le ring montre aussi ses stats du moment.
@@ -197,14 +197,14 @@ function effectsPanel(m) {
     const items = list.map(x => {
       const [cls, label] = chip(x.until), img = x.cardId && card(x.cardId)?.image;
       return `<article class="fx-item ${x.tone ?? ''}" ${x.cardId ? `data-preview="${x.cardId}"` : ''} title="${esc(combat.untilText(m, x.until, 0))}">
-        <div class="fx-thumb">${img ? `<img src="/${img}" alt="">` : ''}<span>${x.icon}</span></div>
+        <div class="fx-thumb">${img ? `<img src="${img}" alt="">` : ''}<span>${x.icon}</span></div>
         <div class="fx-txt"><b>${esc(x.title)}</b>${x.text ? `<p>${esc(x.text)}</p>` : ''}</div>
         <em class="fx-chip ${cls}">${label}</em></article>`;
     }).join('');
     return `<section class="fx-side ${pi ? 'ai' : 'me'}"><h4><span>${title}</span><b>${list.length}</b></h4>${items || '<p class="fx-none">Aucun effet en cours</p>'}</section>`;
   };
   if (!S.effectsOpen) return `<aside class="fxp closed"><button class="fxp-toggle" data-act="toggleEffects" title="Afficher les effets en cours">◀<span>EFFETS EN COURS</span></button></aside>`;
-  return `<aside class="fxp"><header><b>EFFETS EN COURS</b><button class="fxp-toggle" data-act="toggleEffects" title="Réduire">▶</button></header><div class="fxp-body">${section(1, 'L’IA')}${section(0, 'TOI')}</div></aside>`;
+  return `<aside class="fxp"><header><b>EFFETS EN COURS</b><button class="fxp-toggle" data-act="toggleEffects" title="Réduire">▶</button></header><div class="fxp-body">${section(1, esc(m.players[1].name.toUpperCase()))}${section(0, 'TOI')}</div></aside>`;
 }
 
 function statusBadges(m, f) {
@@ -223,9 +223,9 @@ function life(m, pi) {
   const p = m.players[pi], pct = Math.max(0, Math.min(100, p.hp / 5));
   const turn = m.turn === pi && m.winner === null;
   return `<div class="life ${pi ? 'ai' : 'me'} ${turn ? 'turn' : ''} ${pct <= 25 ? 'low' : ''}">
-    <div class="avatar">${pi ? 'IA' : 'TOI'}</div>
+    <div class="avatar">${pi ? esc(p.name === 'L’IA' ? 'IA' : p.name.slice(0, 2).toUpperCase()) : 'TOI'}</div>
     <div class="life-main">
-      <div class="life-top"><b class="name">${pi ? 'L’IA' : 'VOUS'}</b>${turn ? '<span class="turn-tag">À SON TOUR</span>' : ''}<span class="pv">${p.hp}<small>PV</small></span></div>
+      <div class="life-top"><b class="name">${pi ? esc(p.name.toUpperCase()) : 'VOUS'}</b>${turn ? '<span class="turn-tag">À SON TOUR</span>' : ''}<span class="pv">${p.hp}<small>PV</small></span></div>
       <button class="gauge" data-act="hp" data-pi="${pi}" data-hp="${pi}" title="Points de vie (clic : correction manuelle)"><i style="width:${pct}%"></i></button>
       <div class="chips"><span title="Cartes en main">✋ <b>${p.hand.length}</b> main</span><span title="Cartes dans le deck">🂠 <b>${p.deck.length}</b> deck</span><span title="Momenta encore jouables ce tour">⚡ <b>${m.turn === pi ? Math.max(0, 1 - p.limits.momentum) : '—'}</b> momentum</span></div>
     </div>
@@ -242,7 +242,7 @@ function fighterCard(m, pi, f) {
   const aimed = m.pendingAttack && (m.pendingAttack.targets ?? [m.pendingAttack.targetId]).includes(f.instanceId);
   const cls = [sel && 'sel', targetable && 'target', picked && 'picked', spent && 'spent', f.endurance < f.baseEndurance && 'hurt', aimed && 'aimed', m.pendingAttack?.attackerId === f.instanceId && 'attacking'].filter(Boolean).join(' ');
   const badges = statusBadges(m, f).map(([icon, t]) => `<i title="${t}">${icon}</i>`).join('');
-  return `<button class="fcard ${cls}" data-act="${targetable ? 'target' : 'select'}" data-kind="fighter" data-pi="${pi}" data-id="${f.instanceId}" data-target="${f.instanceId}" data-fighter="${pi}:${f.instanceId}" data-preview="${c.id}" aria-label="${esc(c.displayName)} ${e.attack} ATT ${e.endurance} END"><img src="/${c.image}" alt=""><span class="pill"><b class="at ${e.bonusAtt > 0 ? 'up' : e.bonusAtt < 0 ? 'down' : ''}">${e.attack}<i> ATT</i></b><b class="en ${e.bonusEnd > 0 ? 'up' : e.bonusEnd < 0 ? 'down' : ''}">${e.endurance}<i> END</i></b></span>${objects.length ? `<span class="equip" title="${objects.map(o => esc(card(o.cardId).displayName)).join(', ')}">⚙ ${objects.length}</span>` : ''}${badges ? `<span class="badges">${badges}</span>` : ''}</button>`;
+  return `<button class="fcard ${cls}" data-act="${targetable ? 'target' : 'select'}" data-kind="fighter" data-pi="${pi}" data-id="${f.instanceId}" data-target="${f.instanceId}" data-fighter="${pi}:${f.instanceId}" data-preview="${c.id}" aria-label="${esc(c.displayName)} ${e.attack} ATT ${e.endurance} END"><img src="${c.image}" alt=""><span class="pill"><b class="at ${e.bonusAtt > 0 ? 'up' : e.bonusAtt < 0 ? 'down' : ''}">${e.attack}<i> ATT</i></b><b class="en ${e.bonusEnd > 0 ? 'up' : e.bonusEnd < 0 ? 'down' : ''}">${e.endurance}<i> END</i></b></span>${objects.length ? `<span class="equip" title="${objects.map(o => esc(card(o.cardId).displayName)).join(', ')}">⚙ ${objects.length}</span>` : ''}${badges ? `<span class="badges">${badges}</span>` : ''}</button>`;
 }
 
 function zone(m, pi, kind) {
@@ -253,15 +253,15 @@ function zone(m, pi, kind) {
 
 function support(m, pi) {
   const p = m.players[pi];
-  const mg = p.manager ? `<button class="mini ${S.selected?.kind === 'manager' && S.selected.pi === pi ? 'sel' : ''} ${p.manager.used ? 'spent' : ''}" data-act="select" data-kind="manager" data-pi="${pi}" data-id="${p.manager.cardId}" data-preview="${p.manager.cardId}"><img src="/${card(p.manager.cardId).image}" alt=""></button>` : '<div class="mini empty">—</div>';
-  const objects = p.objects.map(o => `<button class="mini obj" data-act="select" data-kind="card" data-pi="${pi}" data-id="${o.cardId}" data-preview="${o.cardId}"><img src="/${card(o.cardId).image}" alt=""></button>`).join('');
-  const momenta = [...p.ongoingMomentum, ...(p.resolvingMomentum ? [p.resolvingMomentum] : [])].map(o => `<button class="mini mom" data-act="select" data-kind="card" data-pi="${pi}" data-id="${o.cardId}" data-preview="${o.cardId}"><img src="/${card(o.cardId).image}" alt=""></button>`).join('');
+  const mg = p.manager ? `<button class="mini ${S.selected?.kind === 'manager' && S.selected.pi === pi ? 'sel' : ''} ${p.manager.used ? 'spent' : ''}" data-act="select" data-kind="manager" data-pi="${pi}" data-id="${p.manager.cardId}" data-preview="${p.manager.cardId}"><img src="${card(p.manager.cardId).image}" alt=""></button>` : '<div class="mini empty">—</div>';
+  const objects = p.objects.map(o => `<button class="mini obj" data-act="select" data-kind="card" data-pi="${pi}" data-id="${o.cardId}" data-preview="${o.cardId}"><img src="${card(o.cardId).image}" alt=""></button>`).join('');
+  const momenta = [...p.ongoingMomentum, ...(p.resolvingMomentum ? [p.resolvingMomentum] : [])].map(o => `<button class="mini mom" data-act="select" data-kind="card" data-pi="${pi}" data-id="${o.cardId}" data-preview="${o.cardId}"><img src="${card(o.cardId).image}" alt=""></button>`).join('');
   return `<div class="support"><div class="zt">MANAGER</div>${mg}${objects ? `<div class="zt">OBJETS</div><div class="minis">${objects}</div>` : ''}${momenta ? `<div class="zt">MOMENTUM</div><div class="minis">${momenta}</div>` : ''}</div>`;
 }
 
 function piles(m, pi) {
   const p = m.players[pi], top = p.grave.at(-1);
-  return `<div class="piles"><button class="pile deck" data-act="pile" data-pi="${pi}" data-zone="deck" ${pi ? 'disabled' : ''}><img src="/${CARD_BACK}" alt=""><b>${p.deck.length}</b><small>DECK</small></button><button class="pile grave" data-act="pile" data-pi="${pi}" data-zone="grave">${top ? `<img src="/${card(top).image}" alt="">` : '<span class="void"></span>'}<b>${p.grave.length}</b><small>CIMETIÈRE</small></button></div>`;
+  return `<div class="piles"><button class="pile deck" data-act="pile" data-pi="${pi}" data-zone="deck" ${pi ? 'disabled' : ''}><img src="${CARD_BACK}" alt=""><b>${p.deck.length}</b><small>DECK</small></button><button class="pile grave" data-act="pile" data-pi="${pi}" data-zone="grave">${top ? `<img src="${card(top).image}" alt="">` : '<span class="void"></span>'}<b>${p.grave.length}</b><small>CIMETIÈRE</small></button></div>`;
 }
 
 const side = (m, pi) => `<div class="side ${pi ? 'ai' : 'me'}">${piles(m, pi)}${zone(m, pi, 'active')}${zone(m, pi, 'passive')}${support(m, pi)}</div>`;
@@ -284,14 +284,14 @@ function hand(m) {
   const cards = p.hand.map((id, i) => {
     const c = card(id), off = i - (n - 1) / 2, sel = S.selected?.kind === 'hand' && S.selected.id === id;
     const playable = handActions(m, id).some(a => !a.attrs.includes('disabled'));
-    return `<button class="hcard ${sel ? 'sel' : ''} ${playable ? 'can' : ''}" style="--r:${off * Math.min(5, 40 / n)}deg;--y:${Math.abs(off) ** 2 * Math.min(4, 30 / n)}px;--i:${i}" data-act="select" data-kind="hand" data-id="${id}" data-preview="${id}" title="${esc(c.displayName)}"><img src="/${c.image}" alt="${esc(c.displayName)}">${c.rapid ? '<i class="bolt">⚡</i>' : ''}</button>`;
+    return `<button class="hcard ${sel ? 'sel' : ''} ${playable ? 'can' : ''}" style="--r:${off * Math.min(5, 40 / n)}deg;--y:${Math.abs(off) ** 2 * Math.min(4, 30 / n)}px;--i:${i}" data-act="select" data-kind="hand" data-id="${id}" data-preview="${id}" title="${esc(c.displayName)}"><img src="${c.image}" alt="${esc(c.displayName)}">${c.rapid ? '<i class="bolt">⚡</i>' : ''}</button>`;
   }).join('');
   return `<div class="hand">${cards || '<p class="muted">Main vide</p>'}</div>`;
 }
 
 function controls(m) {
   if (m.winner !== null) return '<div class="controls"><button class="btn hot big" data-act="go" data-page="lobby">REJOUER ▶</button></div>';
-  if (m.turn === 1) return '<div class="controls"><button class="btn big" disabled>L’IA JOUE…</button></div>';
+  if (m.turn === 1) return `<div class="controls"><button class="btn big" disabled>${esc(m.players[1].name.toUpperCase())} JOUE…</button></div>`;
   if (m.pendingAttack) return '<div class="controls"></div>';
   if (m.turnNumber === 1) return '<div class="controls"><button class="btn hot big" data-act="endTurn"><b>FIN DU TOUR ▶</b><small>Pas d’attaque au 1er tour</small></button></div>';
   return `<div class="controls">${m.phase === 'actions' ? '<button class="btn hot big" data-act="toAttacks">COMBAT ▶</button>' : '<button class="btn hot big" data-act="endTurn">FIN DU TOUR ▶</button>'}</div>`;

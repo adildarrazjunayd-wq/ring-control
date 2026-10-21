@@ -10,6 +10,11 @@ Double-clique sur **`LANCER-LE-JEU.bat`** : le jeu s'ouvre sur `http://localhost
 
 Les decks et la partie en cours sont gardés dans le navigateur (stockage local).
 
+## Jouer en ligne avec un ami
+
+Dans **Jouer** : « Créer une partie privée » donne un code à envoyer, l'ami le tape dans « Rejoindre ».
+Mise en ligne gratuite et détails : [`docs/MODE-EN-LIGNE.md`](docs/MODE-EN-LIGNE.md).
+
 ## Organisation du dossier
 
 | Dossier / fichier | Contenu |

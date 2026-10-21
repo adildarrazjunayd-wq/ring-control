@@ -59,10 +59,11 @@ export function takeFromDeck(state, playerIndex, cardId, sourceName) {
 }
 
 function drawAvailable(state, playerIndex, amount, sourceName) {
-  const player = state.players[playerIndex], drawn = Math.min(amount, player.deck.length);
-  for (let i = 0; i < drawn; i += 1) player.hand.push(player.deck.shift());
-  addHistory(state, `${sourceName} : ${player.name} pioche ${drawn} carte${drawn > 1 ? 's' : ''}.`);
-  return drawn;
+  const player = state.players[playerIndex], cards = player.deck.splice(0, Math.min(amount, player.deck.length));
+  player.hand.push(...cards);
+  addHistory(state, `${sourceName} : ${player.name} pioche ${cards.length} carte${cards.length > 1 ? 's' : ''}.`);
+  if (cards.length) emit(state, { kind: 'draw', pi: playerIndex, cardIds: cards, title: 'Pioche', sub: sourceName });
+  return cards.length;
 }
 
 // Conditions imprimées « Si … » des Momenta.
@@ -98,6 +99,9 @@ export function momentumRequirement(state, playerIndex, card) {
   if (card.id === 'momentum-01' && !player.active.some(f => lookupCard(f.cardId)?.faction === 'The Bloodline')) return { ok: false, reason: 'Un membre de The Bloodline doit être actif.' };
   return { ok: true };
 }
+
+// Momenta résolus d'un coup, sans choix (utile pour savoir quoi demander au joueur).
+export const isSimpleMomentum = id => Boolean(DRAW_RULES[id]) || ['momentum-01', 'momentum-04', 'momentum-06', 'momentum-07', 'momentum-10', 'momentum-11', 'momentum-12', 'momentum-13'].includes(id);
 
 // Résolution immédiate des Momenta sans choix du joueur. Renvoie null si la
 // carte demande un choix (recherche, invocation, cimetière…) ou reste manuelle.

@@ -1,7 +1,7 @@
 // Animations du duel : entrée sur le ring, dégâts, K.-O., attaque.
 // On compare l'état avant/après chaque affichage, ce qui anime aussi bien les
 // actions du joueur que celles de l'IA sans les coder une par une.
-import { $, card, esc, CARD_BACK } from './core.js';
+import { $, S, card, esc, CARD_BACK } from './core.js';
 import { sfx } from './sound.js';
 
 let previous = null; // { matchId, fighters: Map(instanceId -> {endurance, rect}), hp: [a, b] }
@@ -155,11 +155,11 @@ function nextShow() {
   const faces = ev.kind === 'draw' && ev.pi === 1 ? ev.cardIds.map(() => null) : (ev.cardIds ?? [ev.cardId]);
   const el = document.createElement('div');
   el.className = `cardshow ${ev.pi === 1 ? 'ai' : 'me'} ${ev.kind} ${confirm ? 'confirm' : ''}`;
-  const imgs = faces.map(id => `<img src="/${id ? card(id)?.image : CARD_BACK}" alt="">`).join('');
+  const imgs = faces.map(id => `<img src="${id ? card(id)?.image : CARD_BACK}" alt="">`).join('');
   const sub = ev.kind === 'draw' && ev.pi === 1 ? `${ev.sub} · ${faces.length} carte${faces.length > 1 ? 's' : ''}` : ev.sub;
   const text = confirm ? printedText(ev) : '';
   const left = shows.filter(x => x.pi === 1).length;
-  el.innerHTML = `<div class="cs-ribbon"><small>${ev.pi === 1 ? 'L’IA' : 'TOI'}</small>${esc(ev.title ?? '')}</div>
+  el.innerHTML = `<div class="cs-ribbon"><small>${ev.pi === 1 ? esc(S.match?.players[1]?.name ?? 'L’IA') : 'TOI'}</small>${esc(ev.title ?? '')}</div>
     <div class="cs-cards n${Math.min(faces.length, 3)}">${imgs}</div>
     ${sub ? `<div class="cs-sub">${esc(sub)}</div>` : ''}
     ${text ? `<p class="cs-text">${esc(text)}</p>` : ''}

@@ -6,7 +6,7 @@ export const $ = (selector, root = document) => root.querySelector(selector);
 export const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-export const catalog = await fetch('/data/catalog.json').then(r => r.json());
+export const catalog = await fetch('./data/catalog.json').then(r => r.json());
 const byId = new Map(catalog.map(c => [c.id, c]));
 export const card = id => byId.get(id);
 export const CARD_BACK = card('catcheur-40').image;
@@ -37,7 +37,10 @@ export const S = {
 export const hooks = { render: () => {} };
 
 export function persist() {
-  try { localStorage.setItem(STORE, JSON.stringify({ decks: S.decks, match: S.match })); } catch { /* stockage indisponible */ }
+  // Pendant une partie en ligne, la partie solo sauvegardée reste intacte (S.soloMatch).
+  const match = S.online && S.soloMatch !== undefined ? S.soloMatch : S.match;
+  try { localStorage.setItem(STORE, JSON.stringify({ decks: S.decks, match })); } catch { /* stockage indisponible */ }
+  hooks.afterPersist?.();
 }
 
 export function toast(text) {

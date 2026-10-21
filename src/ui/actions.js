@@ -9,6 +9,8 @@ import { AI_DECKS } from '../../data/ai-decks.js';
 import { cardDetail, applyFilters } from './screens.js';
 import { animateAttack, banner } from './fx.js';
 import { runAI, aiReact } from './ai.js';
+import { exec } from './net.js';
+import * as net from './net.js';
 import { sfx, toggleSound } from './sound.js';
 
 const render = () => hooks.render();
@@ -36,6 +38,17 @@ export function go(page) {
   window.scrollTo(0, 0);
 }
 
+function chosenDeck() {
+  const [kind, id] = (S.chosenDeck ?? '').split(':');
+  return kind === 'signature' ? SIGNATURE_DECKS.find(x => x.id === id) : S.decks.find(x => x.id === id);
+}
+
+function onlineName() {
+  const name = (document.querySelector('[data-online-name]')?.value || localStorage.getItem('ring-control-name') || 'Joueur').trim().slice(0, 16);
+  try { localStorage.setItem('ring-control-name', name); } catch { /* ignore */ }
+  return name;
+}
+
 // Pile ou face : le joueur choisit, la pièce tourne, le gagnant commence.
 function coinToss(deck) {
   const aiDeck = AI_DECKS[Math.floor(Math.random() * AI_DECKS.length)];
@@ -57,7 +70,7 @@ function newMatch(deck, aiDeck, first) {
 }
 
 // Momentum joué par le joueur : on enchaîne sur le bon choix selon la carte.
-function afterMomentum(c, result) {
+async function afterMomentum(c, result) {
   const match = m(), p = me();
   if (game.DIRECT_SUMMON_RULES[c.id]) {
     const opts = game.directSummonOptions(match, 0, c);
@@ -65,12 +78,12 @@ function afterMomentum(c, result) {
     return;
   }
   if (c.id === 'momentum-20' && result.response) { done({ ok: true }, 'effect'); if (match.turn === 1) runAI(); return; }
-  if (effects.resolveSimpleMomentum(match, 0, c)) { done({ ok: true }, 'effect'); return; }
+  if (effects.isSimpleMomentum(c.id)) { done(await exec('simpleMomentum', c.id), 'effect'); return; }
   if (effects.SEARCH_RULES[c.id]) { searchModal(c.id, c.displayName); return; }
   if (c.id === 'wyatt-13') {
     const opts = activ.rassemblementOptions(match, 0), romanOn = fighters(p).some(f => combat.is(f.cardId, 'roman reigns'));
-    if (!opts.length) { const r = activ.resolveRassemblement(match, 0); done(r, 'effect'); return; }
-    modal(`<h2>The Bloodline Rassemblement</h2><p>Tu peux invoquer Roman Reigns depuis ton deck (une seule fois dans la partie).</p><div class="opts">${opts.map(o => `<div class="opt row"><img src="/${card(o.cardId).image}" alt=""><b>${esc(card(o.cardId).displayName)}</b>${o.positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="rassemblement" data-id="${o.cardId}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('')}</div>${romanOn ? btn('Ne pas invoquer', 'data-act="rassemblement"', 'btn ghost') : ''}`);
+    if (!opts.length) { done(await exec('rassemblement', {}), 'effect'); return; }
+    modal(`<h2>The Bloodline Rassemblement</h2><p>Tu peux invoquer Roman Reigns depuis ton deck (une seule fois dans la partie).</p><div class="opts">${opts.map(o => `<div class="opt row"><img src="${card(o.cardId).image}" alt=""><b>${esc(card(o.cardId).displayName)}</b>${o.positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="rassemblement" data-id="${o.cardId}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('')}</div>${romanOn ? btn('Ne pas invoquer', 'data-act="rassemblement"', 'btn ghost') : ''}`);
     return;
   }
   if (activ.TARGET_MOMENTA[c.id]) {
@@ -80,30 +93,31 @@ function afterMomentum(c, result) {
   }
   if (activ.SUMMON_MOMENTA[c.id]) {
     const sm = activ.SUMMON_MOMENTA[c.id], opts = activ.summonCandidates(match, 0, sm.summon);
-    const discard = sm.discard ? `<p>1. Choisis la carte à défausser :</p><div class="opts">${[...new Set(p.hand)].map((id, i) => `<label class="pick"><input type="radio" name="discard" data-discard value="${id}" ${i ? '' : 'checked'}><img src="/${card(id).image}" alt=""><span>${esc(card(id).displayName)}</span></label>`).join('')}</div><p>2. Choisis le catcheur à invoquer :</p>` : '<p>Choisis le catcheur à invoquer depuis ton deck :</p>';
-    modal(`<h2>${esc(c.displayName)}</h2>${discard}<div class="opts">${opts.map(o => `<div class="opt row"><img src="/${card(o.cardId).image}" alt=""><b>${esc(card(o.cardId).displayName)}</b>${o.positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="summonMomentum" data-mid="${c.id}" data-id="${o.cardId}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('')}</div>`);
+    const discard = sm.discard ? `<p>1. Choisis la carte à défausser :</p><div class="opts">${[...new Set(p.hand)].map((id, i) => `<label class="pick"><input type="radio" name="discard" data-discard value="${id}" ${i ? '' : 'checked'}><img src="${card(id).image}" alt=""><span>${esc(card(id).displayName)}</span></label>`).join('')}</div><p>2. Choisis le catcheur à invoquer :</p>` : '<p>Choisis le catcheur à invoquer depuis ton deck :</p>';
+    modal(`<h2>${esc(c.displayName)}</h2>${discard}<div class="opts">${opts.map(o => `<div class="opt row"><img src="${card(o.cardId).image}" alt=""><b>${esc(card(o.cardId).displayName)}</b>${o.positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="summonMomentum" data-mid="${c.id}" data-id="${o.cardId}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('')}</div>`);
     return;
   }
   if (c.id === 'momentum-24') {
     const ids = effects.shieldSummonOptions(match, 0);
-    modal(`<h2>Triple Power Bombe</h2><p>Choisis jusqu’à deux membres du Shield dans ton deck et leur position.</p><div class="opts">${ids.map(id => `<label class="pick"><input type="checkbox" data-shield value="${id}"><img src="/${card(id).image}" alt=""><span>${esc(card(id).displayName)} · ${card(id).rarity}</span><select data-shield-pos="${id}"><option value="active">Actif</option><option value="passive">Passif</option></select></label>`).join('')}</div>${btn('Invoquer', 'data-act="shieldConfirm"', 'btn hot')}`);
+    modal(`<h2>Triple Power Bombe</h2><p>Choisis jusqu’à deux membres du Shield dans ton deck et leur position.</p><div class="opts">${ids.map(id => `<label class="pick"><input type="checkbox" data-shield value="${id}"><img src="${card(id).image}" alt=""><span>${esc(card(id).displayName)} · ${card(id).rarity}</span><select data-shield-pos="${id}"><option value="active">Actif</option><option value="passive">Passif</option></select></label>`).join('')}</div>${btn('Invoquer', 'data-act="shieldConfirm"', 'btn hot')}`);
     return;
   }
   if (c.id === 'momentum-16') {
     const ids = [...new Set(p.grave.filter(id => card(id)?.category === 'Catcheur'))];
     const positions = game.legalPositions(p);
-    modal(`<h2>Retour Inattendu</h2><p>Le catcheur revient avec son END imprimée complète. Choisis-le et sa position.</p><div class="opts">${ids.map(id => `<div class="opt row"><img src="/${card(id).image}" alt=""><b>${esc(card(id).displayName)}</b>${positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="revive" data-id="${id}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('') || '<p>Aucune place libre sur le ring.</p>'}</div>${btn('Terminer sans catcheur', 'data-act="skipMomentum"', 'btn ghost')}`);
+    modal(`<h2>Retour Inattendu</h2><p>Le catcheur revient avec son END imprimée complète. Choisis-le et sa position.</p><div class="opts">${ids.map(id => `<div class="opt row"><img src="${card(id).image}" alt=""><b>${esc(card(id).displayName)}</b>${positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="revive" data-id="${id}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('') || '<p>Aucune place libre sur le ring.</p>'}</div>${btn('Terminer sans catcheur', 'data-act="skipMomentum"', 'btn ghost')}`);
     return;
   }
-  modal(`<div class="detail"><img src="/${c.image}" alt=""><div><h2>${esc(c.displayName)}</h2><p class="muted">Cet effet se résout à la main : applique le texte ci-dessous (corrections ATT / END / PV disponibles en cliquant les cartes ou les barres de vie).</p>${c.effects.map(e => `<p>${esc(e.text)}</p>`).join('')}<div class="opts">${option('Effet appliqué', 'La carte part au cimetière', 'data-act="resolveManual"')}${option('Garder la carte active', 'Seulement si le texte le prévoit', 'data-act="resolveManual" data-keep="1"')}</div></div></div>`);
+  modal(`<div class="detail"><img src="${c.image}" alt=""><div><h2>${esc(c.displayName)}</h2><p class="muted">Cet effet se résout à la main : applique le texte ci-dessous (corrections ATT / END / PV disponibles en cliquant les cartes ou les barres de vie).</p>${c.effects.map(e => `<p>${esc(e.text)}</p>`).join('')}<div class="opts">${option('Effet appliqué', 'La carte part au cimetière', 'data-act="resolveManual"')}${option('Garder la carte active', 'Seulement si le texte le prévoit', 'data-act="resolveManual" data-keep="1"')}</div></div></div>`);
 }
 
 function searchModal(ruleKey, sourceName) {
   const rule = effects.SEARCH_RULES[ruleKey], opts = effects.searchOptions(m(), 0, ruleKey);
-  modal(`<h2>${esc(sourceName)}</h2><p>Choisis ${esc(rule.what)} dans ton deck : la carte va dans ta main.</p><div class="opts">${opts.map(o => { const c = card(o.cardId); return `<button class="opt row" data-act="searchPick" data-rule="${ruleKey}" data-id="${o.cardId}" data-source="${esc(sourceName)}"><img src="/${c.image}" alt=""><b>${esc(c.displayName)}</b><small>${c.category} · ${c.rarity} · ×${o.copies} dans le deck</small></button>`; }).join('') || '<p>Aucune carte correspondante dans ton deck.</p>'}</div>${rule.optional || !opts.length ? btn('Continuer sans carte', `data-act="searchPick" data-rule="${ruleKey}" data-source="${esc(sourceName)}"`, 'btn ghost') : ''}`);
+  modal(`<h2>${esc(sourceName)}</h2><p>Choisis ${esc(rule.what)} dans ton deck : la carte va dans ta main.</p><div class="opts">${opts.map(o => { const c = card(o.cardId); return `<button class="opt row" data-act="searchPick" data-rule="${ruleKey}" data-id="${o.cardId}" data-source="${esc(sourceName)}"><img src="${c.image}" alt=""><b>${esc(c.displayName)}</b><small>${c.category} · ${c.rarity} · ×${o.copies} dans le deck</small></button>`; }).join('') || '<p>Aucune carte correspondante dans ton deck.</p>'}</div>${rule.optional || !opts.length ? btn('Continuer sans carte', `data-act="searchPick" data-rule="${ruleKey}" data-source="${esc(sourceName)}"`, 'btn ghost') : ''}`);
 }
 
 async function resolvePlayerAttack() {
+  if (S.online) { render(); return; } // en ligne, l'hôte résout ou attend la réponse adverse
   const match = m();
   S.busy = true;
   render();
@@ -121,7 +135,7 @@ export const actions = {
   close: () => closeModal(),
   resume: () => { S.hideResult = false; go('duel'); },
   sound: (d, el) => { const on = toggleSound(); el.textContent = on ? '🔊' : '🔇'; el.classList.toggle('off', !on); sfx('tap'); },
-  zoom: d => modal(`<img class="zoom" src="/${card(d.id).image}" alt="">${btn('Fermer', 'data-act="close"', 'btn ghost')}`),
+  zoom: d => modal(`<img class="zoom" src="${card(d.id).image}" alt="">${btn('Fermer', 'data-act="close"', 'btn ghost')}`),
   viewCard: d => modal(cardDetail(card(d.id)), { wide: true }),
   filterType: (d, el) => { document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === el)); applyFilters(); },
 
@@ -129,9 +143,9 @@ export const actions = {
   pickDeck: d => { S.chosenDeck = d.deck; render(); },
   chooseDeck: d => { S.chosenDeck = d.deck; go('lobby'); },
   start: () => {
-    const [kind, id] = S.chosenDeck.split(':');
-    const deck = kind === 'signature' ? SIGNATURE_DECKS.find(x => x.id === id) : S.decks.find(x => x.id === id);
+    const deck = chosenDeck();
     if (!deck) { toast('Choisis un deck complet.'); return; }
+    if (S.online) { toast('Quitte d’abord le mode en ligne.'); return; }
     if (S.match && S.match.winner === null && !confirm('Un duel est en cours. Le remplacer par un nouveau ?')) return;
     coinToss(deck);
   },
@@ -148,6 +162,28 @@ export const actions = {
       box.insertAdjacentHTML('beforeend', `<p class="coin-result">${result.toUpperCase()} ! ${won ? 'Tu commences.' : 'L’IA commence.'}</p>${btn('ENTRER DANS L’ARÈNE ▶', `data-act="coinGo" data-first="${won ? 0 : 1}"`, 'btn hot big')}`);
       sfx(won ? 'cheer' : 'boo');
     }, 1700);
+  },
+  // ----- mode en ligne -----
+  hostOnline: async d => {
+    const deck = chosenDeck(), name = onlineName();
+    if (!deck) { toast('Choisis d’abord un deck complet.'); return; }
+    const session = net.savedSession();
+    try {
+      await net.host(d.resume && session?.match ? { code: session.code, deck: deck.cards, name, resume: session.match } : { deck: deck.cards, name });
+    } catch (e) { toast(e.message); }
+    render();
+  },
+  joinOnline: async d => {
+    const deck = chosenDeck(), name = onlineName(), session = net.savedSession();
+    const code = d.retry ? S.online?.code ?? session?.code : document.querySelector('[data-online-code]')?.value;
+    if (!code || code.trim().length < 4) { toast('Tape le code de la salle.'); return; }
+    if (!deck && !session?.deck) { toast('Choisis d’abord un deck complet.'); return; }
+    try { await net.join({ code, deck: deck?.cards ?? session.deck, name }); } catch (e) { toast(e.message); }
+  },
+  leaveOnline: () => {
+    if (!confirm('Quitter le mode en ligne ? (l’hôte peut reprendre la salle plus tard avec le même code)')) return;
+    net.leave();
+    go('lobby');
   },
   coinGo: d => { const { deck, aiDeck } = S.pendingStart ?? {}; if (!deck) return; closeModal(); newMatch(deck, aiDeck, Number(d.first)); },
   newDeck: () => { const d = { id: crypto.randomUUID(), name: `Deck ${S.decks.length + 1}`, cards: [] }; S.decks.push(d); S.deckId = d.id; persist(); render(); },
@@ -169,31 +205,31 @@ export const actions = {
     const p = m().players[Number(d.pi)];
     if (d.zone === 'deck') {
       const tally = [...new Set(p.deck)].map(id => ({ c: card(id), n: p.deck.filter(x => x === id).length })).sort((a, b) => a.c.displayName.localeCompare(b.c.displayName, 'fr'));
-      modal(`<h2>Ton deck · ${p.deck.length} cartes</h2><div class="list">${tally.map(x => `<div class="opt row"><img src="/${x.c.image}" alt=""><b>${esc(x.c.displayName)}</b><small>${x.c.category} · ×${x.n}</small></div>`).join('')}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`);
+      modal(`<h2>Ton deck · ${p.deck.length} cartes</h2><div class="list">${tally.map(x => `<div class="opt row"><img src="${x.c.image}" alt=""><b>${esc(x.c.displayName)}</b><small>${x.c.category} · ×${x.n}</small></div>`).join('')}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`);
       return;
     }
     const graveActs = Number(d.pi) === 0 ? ['wyatt-02:grave', 'wyatt-03:grave'].filter(key => p.grave.includes(key.split(':')[0])).map(key => {
       const refused = activ.activationCheck(m(), 0, key, null);
       return option(esc(activ.ACTIVATED[key].name), refused ?? esc(card(key.split(':')[0]).effects[key.startsWith('wyatt-02') ? 1 : 0].text), `data-act="graveEffect" data-key="${key}" ${refused ? 'disabled' : ''}`);
     }).join('') : '';
-    modal(`<h2>Cimetière · ${esc(p.name)}</h2>${graveActs ? `<div class="opts">${graveActs}</div>` : ''}<div class="grid small">${p.grave.map(id => `<img src="/${card(id).image}" alt="${esc(card(id).displayName)}" data-act="viewCard" data-id="${id}">`).join('') || '<p class="muted">Vide.</p>'}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`, { wide: true });
+    modal(`<h2>Cimetière · ${esc(p.name)}</h2>${graveActs ? `<div class="opts">${graveActs}</div>` : ''}<div class="grid small">${p.grave.map(id => `<img src="${card(id).image}" alt="${esc(card(id).displayName)}" data-act="viewCard" data-id="${id}">`).join('') || '<p class="muted">Vide.</p>'}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`, { wide: true });
   },
   log: () => modal(`<h2>Journal du match</h2><div class="log">${m().history.slice(0, 60).map(x => `<p>${esc(x)}</p>`).join('')}</div>${btn('Fermer', 'data-act="close"', 'btn ghost')}`),
   quit: () => { if (confirm('Quitter le duel ? Il reste sauvegardé et tu pourras le reprendre.')) go('home'); },
   dismissResult: () => { S.hideResult = true; render(); },
 
   // ----- duel : main -----
-  summon: d => done(game.normalSummon(m(), 0, card(d.id), [], d.pos), 'summon'),
+  summon: async d => done(await exec('normalSummon', d.id, [], d.pos), 'summon'),
   summonSSR: d => {
     const p = me(), c = card(d.id);
     const pool = fighters(p).map(f => ({ f, c: card(f.cardId) })).filter(x => ['R', 'SR', 'SSR'].includes(x.c.rarity));
-    modal(`<h2>Invoquer ${esc(c.displayName)}</h2><p>Sacrifie <b>1 SR</b>, <b>1 SSR</b> ou <b>2 R</b> de ton ring.</p><div class="opts">${pool.map(x => `<label class="pick"><input type="checkbox" data-sac value="${x.f.instanceId}"><img src="/${x.c.image}" alt=""><span>${esc(x.c.displayName)} · ${x.c.rarity}</span></label>`).join('')}</div><p>Position :</p><div class="row">${btn('Actif', `data-act="commitSSR" data-id="${d.id}" data-pos="active"`, 'btn hot')}${btn('Passif', `data-act="commitSSR" data-id="${d.id}" data-pos="passive"`, 'btn')}</div>`);
+    modal(`<h2>Invoquer ${esc(c.displayName)}</h2><p>Sacrifie <b>1 SR</b>, <b>1 SSR</b> ou <b>2 R</b> de ton ring.</p><div class="opts">${pool.map(x => `<label class="pick"><input type="checkbox" data-sac value="${x.f.instanceId}"><img src="${x.c.image}" alt=""><span>${esc(x.c.displayName)} · ${x.c.rarity}</span></label>`).join('')}</div><p>Position :</p><div class="row">${btn('Actif', `data-act="commitSSR" data-id="${d.id}" data-pos="active"`, 'btn hot')}${btn('Passif', `data-act="commitSSR" data-id="${d.id}" data-pos="passive"`, 'btn')}</div>`);
   },
-  commitSSR: d => done(game.normalSummon(m(), 0, card(d.id), [...document.querySelectorAll('[data-sac]:checked')].map(x => x.value), d.pos), 'summon'),
-  playManager: d => done(game.playManager(m(), 0, card(d.id)), 'summon'),
-  equip: d => done(game.equipObject(m(), 0, card(d.id), d.iid), 'effect'),
-  momentum: d => {
-    const c = card(d.id), result = game.playMomentum(m(), 0, c);
+  commitSSR: async d => done(await exec('normalSummon', d.id, [...document.querySelectorAll('[data-sac]:checked')].map(x => x.value), d.pos), 'summon'),
+  playManager: async d => done(await exec('playManager', d.id), 'summon'),
+  equip: async d => done(await exec('equip', d.id, d.iid), 'effect'),
+  momentum: async d => {
+    const c = card(d.id), result = await exec('playMomentum', d.id);
     if (!result.ok) { toast(result.reason); return; }
     sfx('effect');
     S.selected = null;
@@ -206,55 +242,53 @@ export const actions = {
     if (!opt) { toast('Ce catcheur n’est plus disponible.'); return; }
     modal(`<h2>${esc(card(d.id).displayName)}</h2><p>Choisis sa position.</p><div class="opts">${positionOptions(`data-act="directPlace" data-mid="${d.mid}" data-id="${d.id}"`, opt.positions)}</div>`);
   },
-  directPlace: d => done(game.resolveDirectSummon(m(), 0, card(d.mid), d.id, d.pos), 'summon'),
-  skipMomentum: () => done(game.resolveMomentum(m(), 0)),
-  resolveManual: d => done(game.resolveMomentum(m(), 0, { keepActive: Boolean(d.keep) }), 'effect'),
-  searchPick: d => done(effects.resolveSearch(m(), 0, d.rule, d.id, d.source), 'effect'),
-  shieldConfirm: () => {
+  directPlace: async d => done(await exec('directSummon', d.mid, d.id, d.pos), 'summon'),
+  skipMomentum: async () => done(await exec('resolveMomentum', {})),
+  resolveManual: async d => done(await exec('resolveMomentum', { keepActive: Boolean(d.keep) }), 'effect'),
+  searchPick: async d => done(await exec('resolveSearch', d.rule, d.id ?? null, d.source), 'effect'),
+  shieldConfirm: async () => {
     const placements = [...document.querySelectorAll('[data-shield]:checked')].map(x => ({ cardId: x.value, position: document.querySelector(`[data-shield-pos="${x.value}"]`).value }));
-    done(effects.resolveShieldSummon(m(), 0, placements), 'summon');
+    done(await exec('shieldSummon', placements), 'summon');
   },
-  revive: d => { const r = game.reviveFromGrave(m(), 0, card(d.id), d.pos); if (r.ok) game.resolveMomentum(m(), 0); done(r, 'summon'); },
+  revive: async d => done(await exec('revive', d.id, d.pos), 'summon'),
 
   // ----- duel : catcheurs et managers -----
-  move: d => done(game.moveFighter(m(), 0, d.iid, d.dest)),
-  swap: d => done(game.swapFighters(m(), 0, d.a, d.b)),
+  move: async d => done(await exec('move', d.iid, d.dest)),
+  swap: async d => done(await exec('swap', d.a, d.b)),
   toggleEffects: () => { S.effectsOpen = !S.effectsOpen; try { localStorage.setItem('ring-control-effects', S.effectsOpen ? 'open' : 'closed'); } catch { /* ignore */ } render(); },
-  passive: d => {
+  passive: async d => {
     const f = fighters(me()).find(x => x.instanceId === d.iid), key = `${f.cardId}:passive`;
     if (effects.SEARCH_RULES[key] && !effects.searchOptions(m(), 0, key).length) { toast(`Aucune carte « ${effects.SEARCH_RULES[key].what} » dans ton deck.`); return; }
-    const r = game.activateWrestlerEffect(m(), 0, d.iid, 'passive');
+    const r = await exec('wrestlerEffect', d.iid, 'passive');
     if (!r.ok) { toast(r.reason); return; }
     persist();
     if (effects.SEARCH_RULES[key]) { searchModal(key, card(f.cardId).displayName); return; }
     done(r, 'effect');
   },
-  special: d => {
+  special: async d => {
     const f = fighters(me()).find(x => x.instanceId === d.iid), key = `${f.cardId}:special`;
     if (effects.SEARCH_RULES[key] && !effects.searchOptions(m(), 0, key).length) { toast(`Aucune carte « ${effects.SEARCH_RULES[key].what} » dans ton deck.`); return; }
-    const r = game.activateWrestlerEffect(m(), 0, d.iid, 'special');
+    const r = await exec('wrestlerEffect', d.iid, 'special');
     if (!r.ok) { toast(r.reason); return; }
     persist();
     if (effects.SEARCH_RULES[key]) { searchModal(key, card(f.cardId).displayName); return; }
     done(r, 'effect');
   },
-  managerEffect: () => {
+  managerEffect: async () => {
     if (me().manager?.cardId === 'managers-04') {
       const groups = effects.teddyLongOptions(m(), 0), positions = game.legalPositions(me());
-      modal(`<h2>Teddy Long</h2><p>Coche deux catcheurs de la <b>même faction</b> dans ta main et choisis leur position.</p><div class="opts">${groups.flatMap(g => g.cardIds.map(id => `<label class="pick"><input type="checkbox" data-teddy value="${id}"><img src="/${card(id).image}" alt=""><span>${esc(card(id).displayName)} · ${esc(g.faction)}</span><select data-teddy-pos="${id}">${positions.map(p => `<option value="${p}">${p === 'active' ? 'Actif' : 'Passif'}</option>`).join('')}</select></label>`)).join('')}</div>${btn('Invoquer', 'data-act="teddyConfirm"', 'btn hot')}`);
+      modal(`<h2>Teddy Long</h2><p>Coche deux catcheurs de la <b>même faction</b> dans ta main et choisis leur position.</p><div class="opts">${groups.flatMap(g => g.cardIds.map(id => `<label class="pick"><input type="checkbox" data-teddy value="${id}"><img src="${card(id).image}" alt=""><span>${esc(card(id).displayName)} · ${esc(g.faction)}</span><select data-teddy-pos="${id}">${positions.map(p => `<option value="${p}">${p === 'active' ? 'Actif' : 'Passif'}</option>`).join('')}</select></label>`)).join('')}</div>${btn('Invoquer', 'data-act="teddyConfirm"', 'btn hot')}`);
       return;
     }
-    const r = effects.managerEffect(m(), 0);
-    done(r, 'effect');
+    done(await exec('managerEffect', {}), 'effect');
   },
-  teddyConfirm: () => {
+  teddyConfirm: async () => {
     const ids = [...document.querySelectorAll('[data-teddy]:checked')].map(x => x.value);
-    const r = effects.managerEffect(m(), 0, { cardIds: ids, positions: ids.map(id => document.querySelector(`[data-teddy-pos="${id}"]`).value) });
-    done(r, 'summon');
+    done(await exec('managerEffect', { cardIds: ids, positions: ids.map(id => document.querySelector(`[data-teddy-pos="${id}"]`).value) }), 'summon');
   },
 
   // Effets à activer (catcheur ou cimetière) : cibles sur le ring, ou catcheur à invoquer.
-  activate: d => {
+  activate: async d => {
     const e = activ.ACTIVATED[d.key], f = d.iid ? fighters(me()).find(x => x.instanceId === d.iid) : null;
     const refused = activ.activationCheck(m(), 0, d.key, f);
     if (refused) { toast(refused); return; }
@@ -262,39 +296,28 @@ export const actions = {
     if (e.targets) { S.targeting = { mode: 'effect', kind: 'activate', key: d.key, iid: d.iid || null, specs: e.targets, picked: [], name: e.name }; S.selected = null; render(); return; }
     if (e.summon) {
       const opts = activ.summonCandidates(m(), 0, e.summon, { leaving: e.leaves ? f : null });
-      modal(`<h2>${esc(e.name)}</h2><p>Choisis le catcheur à invoquer et sa position.</p><div class="opts">${opts.map(o => `<div class="opt row"><img src="/${card(o.cardId).image}" alt=""><b>${esc(card(o.cardId).displayName)}</b>${o.positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="activateSummon" data-key="${d.key}" data-iid="${d.iid ?? ''}" data-id="${o.cardId}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('')}</div>${btn('Annuler', 'data-act="close"', 'btn ghost')}`);
+      modal(`<h2>${esc(e.name)}</h2><p>Choisis le catcheur à invoquer et sa position.</p><div class="opts">${opts.map(o => `<div class="opt row"><img src="${card(o.cardId).image}" alt=""><b>${esc(card(o.cardId).displayName)}</b>${o.positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="activateSummon" data-key="${d.key}" data-iid="${d.iid ?? ''}" data-id="${o.cardId}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('')}</div>${btn('Annuler', 'data-act="close"', 'btn ghost')}`);
       return;
     }
-    const r = activ.activate(m(), 0, d.key, d.iid || null);
-    done(r, 'effect');
+    done(await exec('activate', d.key, d.iid || null, {}), 'effect');
   },
-  activateSummon: d => {
-    const r = activ.activate(m(), 0, d.key, d.iid || null, { cardId: d.id, position: d.pos });
-    done(r, 'summon');
-  },
+  activateSummon: async d => done(await exec('activate', d.key, d.iid || null, { cardId: d.id, position: d.pos }), 'summon'),
   graveEffect: d => actions.activate({ key: d.key }),
-  choicePick: d => {
-    const r = activ.resolveChoice(m(), d.choice, d.id || null);
-    done(r, d.id ? 'effect' : 'tap');
+  choicePick: async d => done(await exec('resolveChoice', d.choice, d.id || null), d.id ? 'effect' : 'tap'),
+  rassemblement: async d => done(await exec('rassemblement', d.id ? { cardId: d.id, position: d.pos } : {}), 'summon'),
+  summonMomentum: async d => {
+    const discard = document.querySelector('[data-discard]:checked')?.value ?? null;
+    done(await exec('summonMomentum', d.mid, { discard, summonId: d.id, position: d.pos }), 'summon');
   },
-  rassemblement: d => {
-    const r = activ.resolveRassemblement(m(), 0, d.id ? { cardId: d.id, position: d.pos } : {});
-    done(r, 'summon');
+  react: async d => {
+    if (done(await exec('useReaction', d.key, d.iid || null), 'effect')) runAI();
   },
-  summonMomentum: d => {
-    const discard = document.querySelector('[data-discard]:checked')?.value;
-    done(activ.resolveSummonMomentum(m(), 0, d.mid, { discard, summonId: d.id, position: d.pos }), 'summon');
-  },
-  react: d => {
-    const r = game.useReaction(m(), 0, d.key, d.iid || null);
-    if (done(r, 'effect')) runAI();
-  },
-  adjust: d => done(game.adjustFighter(m(), Number(d.pi), d.iid, d.stat, Number(d.delta), 'correction manuelle')),
+  adjust: async d => done(await exec('adjust', Number(d.pi), d.iid, d.stat, Number(d.delta))),
   hp: d => { const p = m().players[Number(d.pi)]; modal(`<h2>PV · ${esc(p.name)}</h2><p>Correction manuelle, pour appliquer un effet imprimé.</p><div class="row">${[-50, -10, 10, 50].map(n => btn(`${n > 0 ? '+' : ''}${n} PV`, `data-act="hpAdjust" data-pi="${d.pi}" data-delta="${n}"`, 'btn')).join('')}</div>`); },
-  hpAdjust: d => done(game.adjustPlayerHP(m(), Number(d.pi), Number(d.delta), 'correction manuelle')),
+  hpAdjust: async d => done(await exec('hpAdjust', Number(d.pi), Number(d.delta))),
 
   // ----- duel : combat -----
-  toAttacks: () => { m().phase = 'attacks'; S.selected = null; sfx('phase'); persist(); render(); },
+  toAttacks: async () => { const r = await exec('toAttacks'); if (r?.ok === false) { toast(r.reason); return; } S.selected = null; sfx('phase'); persist(); render(); },
   attack: d => {
     const t = { mode: 'attack', iid: d.iid, special: d.special || null, ladder: Boolean(d.ladder), picked: [] };
     S.selected = null;
@@ -302,7 +325,7 @@ export const actions = {
     // Go to Sleep : choisir le Momentum sacrifié avant la cible.
     if (combat.ATTACK_SPECIALS[t.special]?.cost === 'momentum' && !d.discard) {
       const ids = [...new Set(me().hand.filter(id => card(id)?.category === 'Momentum'))];
-      modal(`<h2>Go to Sleep</h2><p>Sacrifie une carte Momentum de ta main.</p><div class="opts">${ids.map(id => `<button class="opt row" data-act="attack" data-iid="${d.iid}" data-special="${t.special}" data-discard="${id}"><img src="/${card(id).image}" alt=""><b>${esc(card(id).displayName)}</b></button>`).join('')}</div>${btn('Annuler', 'data-act="close"', 'btn ghost')}`);
+      modal(`<h2>Go to Sleep</h2><p>Sacrifie une carte Momentum de ta main.</p><div class="opts">${ids.map(id => `<button class="opt row" data-act="attack" data-iid="${d.iid}" data-special="${t.special}" data-discard="${id}"><img src="${card(id).image}" alt=""><b>${esc(card(id).displayName)}</b></button>`).join('')}</div>${btn('Annuler', 'data-act="close"', 'btn ghost')}`);
       return;
     }
     t.discard = d.discard || null;
@@ -311,7 +334,7 @@ export const actions = {
     render();
   },
   cancelTarget: () => { S.targeting = null; render(); },
-  target: d => {
+  target: async d => {
     const t = S.targeting;
     if (!t || S.busy) return;
     if (d.target === 'direct') { launchAttack('direct'); return; }
@@ -323,17 +346,17 @@ export const actions = {
     if (t.mode === 'attack') { launchAttack(t.picked[0].instanceId); return; }
     S.targeting = null;
     const r = t.kind === 'activate'
-      ? activ.activate(m(), 0, t.key, t.iid, { targets: t.picked })
-      : activ.resolveTargetMomentum(m(), 0, t.key, t.picked);
+      ? await exec('activate', t.key, t.iid, { targets: t.picked })
+      : await exec('targetMomentum', t.key, t.picked);
     done(r, 'effect');
   },
   launch: () => launchAttack(S.targeting?.picked[0]?.instanceId ?? 'multi'),
-  endTurn: () => {
-    const r = game.endTurn(m());
+  endTurn: async () => {
+    const r = await exec('endTurn');
     if (!r.ok) { toast(r.reason); return; }
     S.selected = null;
     sfx('phase');
-    banner('<b>TOUR DE L’IA</b>');
+    banner(`<b>TOUR DE ${esc(m().players[1].name.toUpperCase())}</b>`);
     persist();
     render();
     runAI();
@@ -342,7 +365,7 @@ export const actions = {
     if (S.busy) return;
     S.busy = true;
     await animateAttack(m().pendingAttack);
-    if (m().pendingAttack) game.resolveAttack(m());
+    if (m().pendingAttack) await exec('resolveAttack');
     S.busy = false;
     if (m().winner !== null) sfx(m().winner === 0 ? 'win' : 'lose');
     done({ ok: true }, 'hit');
@@ -350,13 +373,13 @@ export const actions = {
   },
 };
 
-function launchAttack(target) {
+async function launchAttack(target) {
   const t = S.targeting;
   if (!t) return;
   S.targeting = null;
-  if (m().phase === 'actions') { m().phase = 'attacks'; sfx('phase'); } // attaque spéciale lancée depuis la phase Actions
+  if (m().phase === 'actions') sfx('phase'); // attaque spéciale lancée depuis la phase Actions
   const ids = t.picked.map(x => x.instanceId);
-  const r = game.declareAttack(m(), 0, t.iid, target, { special: t.special, ladder: t.ladder, discard: t.discard, targets: ids, secondTarget: t.special === 'catcheur-08' ? ids[1] : null });
+  const r = await exec('declareAttack', t.iid, target, { special: t.special, ladder: t.ladder, discard: t.discard, targets: ids, secondTarget: t.special === 'catcheur-08' ? ids[1] : null });
   if (!r.ok) { toast(r.reason); render(); return; }
   resolvePlayerAttack();
 }
