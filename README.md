@@ -15,7 +15,7 @@ Les decks et la partie en cours sont gardés dans le navigateur (stockage local)
 | Dossier / fichier | Contenu |
 | --- | --- |
 | `index.html` | La page du jeu. |
-| `src/engine/` | **Les règles** : `rules.js` (decks, invocations, dégâts), `game-engine.js` (déroulé d'une partie), `card-effects.js` (effets de cartes automatisés). Aucun affichage ici : ce code pourra tourner sur un serveur pour le mode en ligne. |
+| `src/engine/` | **Les règles** : `rules.js` (decks, invocations), `game-engine.js` (déroulé d'une partie), `combat.js` (bonus, dégâts, déclencheurs), `activations.js` et `card-effects.js` (effets de cartes), `ai-brain.js` (stratégie de l'IA). Aucun affichage ici : ce code pourra tourner sur un serveur pour le mode en ligne. |
 | `src/ui/` | **L'affichage** : `main.js` (démarrage), `core.js` (données partagées), `screens.js` (accueil, decks, collection), `duel.js` (écran de duel), `actions.js` (clics), `ai.js` (l'IA), `fx.js` (animations), `sound.js` (bruitages), `styles.css` (style « Arcade Titantron »). |
 | `data/catalog.json` | Les 96 cartes : stats, rareté, faction, texte imprimé. |
 | `data/signature-decks.js` | Les 3 decks signature. |
