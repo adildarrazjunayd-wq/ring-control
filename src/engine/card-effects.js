@@ -9,6 +9,8 @@ import {
   legalPositions,
   DIRECT_SUMMON_RULES,
 } from './game-engine.js';
+import { heal, addModifier, effective } from './combat.js';
+import { momentumTargetsAvailable, TARGET_MOMENTA, SUMMON_MOMENTA, targetCandidates, summonCandidates, resolveTargetMomentum, resolveSummonMomentum } from './activations.js';
 
 const fighters = player => [...player.active, ...player.passive];
 const cardsOnField = player => [
@@ -61,13 +63,13 @@ function drawAvailable(state, playerIndex, amount, sourceName) {
   return drawn;
 }
 
-// Conditions imprimées « Si … » des Momenta dont l'effet reste manuel.
-const activeNamed = (p, name) => p.active.some(f => isNamed(f.cardId, name));
+// Conditions imprimées « Si … » des Momenta.
+const activeNamed = (p, name) => p.active.some(f => isNamed(f.cardId, name) || (name === 'roman reigns' && isNamed(f.cardId, 'roman reings')));
 export const MOMENTUM_CONDITIONS = Object.freeze({
   'momentum-04': { when: p => !cardsOnField(p).some(id => lookupCard(id)?.rarity === 'SSR'), reason: 'Tu ne dois contrôler aucune SSR.' },
   'momentum-06': { when: p => p.active.some(f => lookupCard(f.cardId)?.rarity === 'SSR'), reason: 'Un catcheur SSR doit être actif.' },
   'momentum-07': { when: p => fighters(p).some(f => isNamed(f.cardId, 'kevin owens')), reason: 'Il faut contrôler Kevin Owens.' },
-  'momentum-09': { when: p => fighters(p).some(f => f.endurance >= 70), reason: 'Il faut un catcheur avec au moins 70 END.' },
+  'momentum-10': { when: (p, s, pi) => (s.koThisTurn?.[pi] ?? 0) > 0, reason: 'Aucun de tes catcheurs n’a été mis K.O. ce tour-ci.' },
   'momentum-11': { when: p => p.active.length >= 2, reason: 'Il faut 2 catcheurs actifs.' },
   'momentum-13': { when: p => activeNamed(p, 'roman reigns'), reason: 'Roman Reigns doit être actif.' },
 });
@@ -79,7 +81,9 @@ const shieldMembers = ids => ids.filter(id => lookupCard(id)?.category === 'Catc
 export function momentumRequirement(state, playerIndex, card) {
   const player = state.players[playerIndex];
   const draw = DRAW_RULES[card.id] ?? MOMENTUM_CONDITIONS[card.id];
-  if (draw && !draw.when(player)) return { ok: false, reason: draw.reason };
+  if (draw && !draw.when(player, state, playerIndex)) return { ok: false, reason: draw.reason };
+  const targeting = momentumTargetsAvailable(state, playerIndex, card.id);
+  if (targeting) return { ok: false, reason: targeting };
   const search = SEARCH_RULES[card.id];
   if (search && !search.optional && !searchOptions(state, playerIndex, card.id).length) return { ok: false, reason: `Aucune carte ${search.what} ne reste dans ton deck.` };
   if (card.id === 'momentum-24') {
@@ -104,6 +108,19 @@ export function resolveSimpleMomentum(state, playerIndex, card) {
   } else if (card.id === 'momentum-01') {
     opponent.status.noSsrSacrificeThroughTurn = state.turnNumber;
     addHistory(state, `Domination Totale : ${opponent.name} ne peut plus sacrifier pour invoquer une SSR ce tour-ci.`);
+  } else if (card.id === 'momentum-04') {
+    player.limits.momentum -= 2;
+    addHistory(state, 'Momentum imprévu : 2 cartes Momentum supplémentaires peuvent être jouées ce tour-ci.');
+  } else if (card.id === 'momentum-06') {
+    for (const f of fighters(player)) heal(state, playerIndex, f, 10, 'Ambulance');
+  } else if (card.id === 'momentum-10') {
+    drawAvailable(state, playerIndex, state.koThisTurn?.[playerIndex] ?? 0, card.displayName);
+  } else if (card.id === 'momentum-11') {
+    for (const f of fighters(player)) addModifier(f, 'attack', 5, state.turnNumber, 'momentum-11');
+    addHistory(state, 'Puissance de groupe : tous tes catcheurs gagnent +5 ATT ce tour-ci.');
+  } else if (card.id === 'momentum-13') {
+    opponent.status.effectsCancelledThroughTurn = state.turnNumber;
+    addHistory(state, `Acknowledge Me : tous les effets de ${opponent.name} sont annulés ce tour-ci.`);
   } else return null;
   resolveMomentum(state, playerIndex);
   return { ok: true };
@@ -142,7 +159,7 @@ export function resolveShieldSummon(state, playerIndex, placements) {
 }
 
 // Effets de managers automatisés (une fois par partie).
-export function managerEffect(state, playerIndex) {
+export function managerEffect(state, playerIndex, options = {}) {
   const player = state.players[playerIndex], manager = player.manager;
   if (!manager || manager.used) return { ok: false, reason: 'Effet du manager indisponible.' };
   const once = player.status.onceUsed ?? (player.status.onceUsed = []);
@@ -157,20 +174,55 @@ export function managerEffect(state, playerIndex) {
     player.limits.momentum -= 1;
     once.push('managers-05');
     addHistory(state, 'Stephanie McMahon : une carte Momentum supplémentaire peut être jouée ce tour-ci.');
+  } else if (manager.cardId === 'managers-04') {
+    const r = teddyLong(state, playerIndex, options);
+    if (!r.ok) return r;
   } else {
-    addHistory(state, `${lookupCard(manager.cardId)?.displayName} : effet de manager activé, applique le texte imprimé.`);
+    return { ok: false, reason: 'Cet effet de manager est permanent : il s’applique tout seul.' };
   }
   manager.used = true;
-  return { ok: true, automatic: ['managers-02', 'managers-05'].includes(manager.cardId) };
+  return { ok: true, automatic: true };
 }
 
-// Résolution complète pour l'IA : prend toujours la première option légale.
+// Teddy Long : deux catcheurs de la même faction, depuis la main, sans sacrifice.
+export function teddyLongOptions(state, playerIndex) {
+  const hand = state.players[playerIndex].hand.map(lookupCard).filter(c => c?.category === 'Catcheur' && c.faction && c.playable !== false);
+  return [...new Set(hand.map(c => c.faction))].filter(f => hand.filter(c => c.faction === f).length >= 2).map(faction => ({ faction, cardIds: [...new Set(hand.filter(c => c.faction === faction).map(c => c.id))] }));
+}
+
+function teddyLong(state, playerIndex, { cardIds = [], positions = [] } = {}) {
+  const player = state.players[playerIndex];
+  if (state.turn !== playerIndex || state.phase !== 'actions') return { ok: false, reason: 'À utiliser pendant ta phase d’action.' };
+  const cards = cardIds.map(lookupCard);
+  if (cards.length !== 2 || !cards[0]?.faction || cards[0].faction !== cards[1]?.faction) return { ok: false, reason: 'Choisis deux catcheurs de la même faction.' };
+  const hand = [...player.hand];
+  for (const id of cardIds) { const at = hand.indexOf(id); if (at < 0) return { ok: false, reason: 'Ces deux catcheurs doivent être dans ta main.' }; hand.splice(at, 1); }
+  for (const [i, id] of cardIds.entries()) {
+    const r = specialSummon(state, playerIndex, lookupCard(id), 'hand', positions[i]);
+    if (!r.ok) return r;
+  }
+  addHistory(state, `Teddy Long : ${cards.map(c => c.displayName).join(' et ')} entrent sur le ring.`);
+  return { ok: true };
+}
+
+// Résolution complète pour l'IA : prend toujours une option légale raisonnable.
 export function autoResolveMomentum(state, playerIndex, card) {
   if (resolveSimpleMomentum(state, playerIndex, card)) return;
   if (SEARCH_RULES[card.id]) {
     resolveSearch(state, playerIndex, card.id, searchOptions(state, playerIndex, card.id)[0]?.cardId, card.displayName);
     return;
   }
+  if (TARGET_MOMENTA[card.id]) {
+    const strongest = list => [...list].sort((a, b) => effective(state, a.pi, find(state, b)).attack - effective(state, a.pi, find(state, a)).attack)[0];
+    const targets = TARGET_MOMENTA[card.id].targets.map(spec => strongest(targetCandidates(state, playerIndex, spec)));
+    if (targets.every(Boolean) && resolveTargetMomentum(state, playerIndex, card.id, targets).ok) return;
+  }
+  if (SUMMON_MOMENTA[card.id]) {
+    const option = summonCandidates(state, playerIndex, SUMMON_MOMENTA[card.id].summon)[0];
+    const discard = state.players[playerIndex].hand.find(id => lookupCard(id)?.category !== 'Catcheur') ?? state.players[playerIndex].hand[0];
+    if (option && resolveSummonMomentum(state, playerIndex, card.id, { discard, summonId: option.cardId, position: option.positions[0] }).ok) return;
+  }
   if (DIRECT_SUMMON_RULES[card.id]) return; // géré par l'appelant (choix de position)
-  resolveMomentum(state, playerIndex);
+  if (state.players[playerIndex].resolvingMomentum) resolveMomentum(state, playerIndex);
 }
+const find = (state, t) => fighters(state.players[t.pi]).find(f => f.instanceId === t.instanceId);

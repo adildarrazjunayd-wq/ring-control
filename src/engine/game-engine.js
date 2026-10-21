@@ -3,8 +3,9 @@ import {
   canDirectAttack,
   normalSummonRequirement,
   validateNormalSummon,
-  resolveDamage,
 } from './rules.js';
+import * as combat from './combat.js';
+import { queueGraveTriggers } from './activations.js';
 
 export const ZONES = Object.freeze({ ACTIVE: 'active', PASSIVE: 'passive' });
 
@@ -53,6 +54,10 @@ export function createMatch(humanDeck, aiDeck, { random = Math.random } = {}) {
     directAttacksUsed: 0,
     usedAttackers: [],
     usedTargets: [],
+    momentumsThisTurn: [0, 0],
+    koThisTurn: [0, 0],
+    extraAttacks: {},
+    pendingChoices: [],
     history: [],
     createdAt: Date.now(),
     matchId: crypto.randomUUID(),
@@ -85,6 +90,8 @@ export function beginTurn(state, playerIndex, { opening = false } = {}) {
   if (!opening) {
     expireAtTurnStart(player, state.turnNumber);
     if (!draw(state, playerIndex)) return { ok: false, reason: `${player.name} perd : son deck est vide.` };
+    combat.startOfTurn(state, playerIndex);
+    combat.checkKOs(state);
   }
   return { ok: true };
 }
@@ -147,7 +154,8 @@ function removeFromHand(player, cardId) {
 export function normalSummon(state, playerIndex, card, sacrificeIds = [], position = ZONES.ACTIVE) {
   const player = state.players[playerIndex];
   if (state.winner !== null || state.turn !== playerIndex || state.phase !== 'actions') return { ok: false, reason: 'Invocation normale possible pendant votre phase d’action.' };
-  if (player.limits.normal) return { ok: false, reason: 'Votre invocation normale a déjà été utilisée ce tour.' };
+  const bonusSummon = player.limits.normal && (player.limits.extraNormal ?? 0) > 0; // Big Gold
+  if (player.limits.normal && !bonusSummon) return { ok: false, reason: 'Votre invocation normale a déjà été utilisée ce tour.' };
   if (!card || card.category !== 'Catcheur' || !player.hand.includes(card.id)) return { ok: false, reason: 'Cette carte Catcheur n’est pas dans votre main.' };
   if (card.attack == null || card.endurance == null) return { ok: false, reason: 'Les statistiques originales de cette carte doivent être vérifiées.' };
   const capacity = position === ZONES.ACTIVE ? player.active.length < 3 : player.passive.length < 2 && player.active.length > 0;
@@ -166,6 +174,7 @@ export function normalSummon(state, playerIndex, card, sacrificeIds = [], positi
   removeFromHand(player, card.id);
   const fighter = slotFor(card, position);
   player[position].push(fighter);
+  if (bonusSummon) player.limits.extraNormal -= 1;
   player.limits.normal = true;
   if (free) player.status.freeSsrSummon = false;
   addHistory(state, `${player.name} invoque normalement ${card.displayName}${sacrifices.length ? ` en sacrifiant ${sacrifices.length} catcheur${sacrifices.length === 1 ? '' : 's'}` : free ? ' sans sacrifice grâce à Mr. McMahon' : ''}.`);
@@ -206,6 +215,7 @@ export function moveFighter(state, playerIndex, instanceId, destination) {
   player[destination].push(fighter);
   player.limits.move = true;
   addHistory(state, `${player.name} déplace ${rarityLookup(fighter.cardId)?.displayName ?? 'un catcheur'} vers la zone ${destination === 'active' ? 'active' : 'passive'}.`);
+  combat.checkKOs(state);
   return { ok: true };
 }
 
@@ -232,6 +242,14 @@ export function equipObject(state, playerIndex, card, fighterId) {
   player.objects.push({ instanceId: crypto.randomUUID(), cardId: card.id, fighterId, expiresAfterTurn: null });
   player.limits.object = true;
   addHistory(state, `${player.name} équipe ${rarityLookup(fighter.cardId)?.displayName ?? 'un catcheur'} avec ${card.displayName}.`);
+  // Effets immédiats des objets (« ce tour-ci »).
+  if (card.id === 'objets-06') { player.limits.extraNormal = (player.limits.extraNormal ?? 0) + 1; addHistory(state, 'Big Gold : une invocation supplémentaire est possible ce tour-ci.'); }
+  if (card.id === 'objets-07') { player.limits.momentum -= 1; addHistory(state, 'Ceinture poids lourd : deux Momenta peuvent être joués par tour.'); }
+  if (card.id === 'objets-08' && (combat.is(fighter.cardId, 'john cena') || combat.is(fighter.cardId, 'cm punk'))) {
+    state.extraAttacks[fighterId] = (state.extraAttacks[fighterId] ?? 0) + 1;
+    addHistory(state, `Ceinture « The Champ » : ${rarityLookup(fighter.cardId).displayName} peut attaquer deux fois ce tour-ci.`);
+  }
+  combat.checkKOs(state);
   return { ok: true };
 }
 
@@ -254,26 +272,6 @@ export function activateWrestlerEffect(state, playerIndex, fighterId, kind) {
   return { ok: true, fighter };
 }
 
-export function counterAttackWithWrestlerEffect(state, playerIndex, fighterId, targetCardId) {
-  const attack = state.pendingAttack;
-  const player = state.players[playerIndex];
-  if (!attack || state.phase !== 'reaction' || attack.playerIndex === playerIndex || attack.targetId === 'direct') {
-    return { ok: false, reason: 'Aucune attaque admissible à annuler.' };
-  }
-  if (state.players[attack.playerIndex].active.find(x => x.instanceId === attack.targetId)?.cardId !== targetCardId) {
-    return { ok: false, reason: 'La cible de cette attaque ne correspond pas à l’effet.' };
-  }
-  const fighter = [...player.active, ...player.passive].find(x => x.instanceId === fighterId);
-  if (!fighter || fighter.cardId !== 'wyatt-11' || fighter.specialUsed) {
-    return { ok: false, reason: 'L’effet spécial de Sami Zayn est indisponible.' };
-  }
-  fighter.specialUsed = true;
-  state.pendingAttack = null;
-  state.phase = 'attacks';
-  addHistory(state, 'Sami Zayn annule l’attaque visant Roman Reigns avec son effet spécial.');
-  return { ok: true, fighter };
-}
-
 export function playMomentum(state, playerIndex, card, { allowTimingException = false } = {}) {
   const player = state.players[playerIndex];
   if (state.winner !== null || !card || card.category !== 'Momentum' || !player.hand.includes(card.id)) return { ok: false, reason: 'Momentum absent de la main.' };
@@ -290,6 +288,8 @@ export function playMomentum(state, playerIndex, card, { allowTimingException = 
   if (ownAction) player.limits.momentum += 1;
   if (response) state.outOfTurnMomentumUsed[playerIndex] += 1;
   addHistory(state, `${player.name} joue ${card.rapid ? 'un Momentum rapide' : 'un Momentum'} : ${card.displayName}.`);
+  (state.momentumsThisTurn ??= [0, 0])[playerIndex] += 1;
+  if (player.active.some(f => f.cardId === 'catcheur-34' && combat.passiveOn(state, playerIndex, f))) combat.draw(state, playerIndex, 1, 'Cody Rhodes : Héritier de la gloire');
   if (card.id === 'momentum-20' && state.pendingAttack) counterPendingAttack(state, playerIndex, card);
   return { ok: true, response };
 }
@@ -319,28 +319,60 @@ function counterPendingAttack(state, counterPlayer, card) {
   addHistory(state, `${card.displayName} répond à l’attaque annoncée : l’attaque est annulée et ${attacker.name} ne peut plus attaquer ce tour. L’attaque déclarée est consommée.`);
 }
 
-export function declareAttack(state, playerIndex, attackerId, targetId = 'direct') {
+// options : { special: cardId de l'attaque spéciale, targets: [ids] pour les attaques multiples,
+// secondTarget: id (Triple Powerbomb), ladder: true (Échelle), discard: id du Momentum sacrifié (Go to Sleep) }.
+export function declareAttack(state, playerIndex, attackerId, targetId = 'direct', options = {}) {
   const player = state.players[playerIndex], defender = state.players[1 - playerIndex];
   if (state.winner !== null || state.turn !== playerIndex || state.phase !== 'attacks' || state.pendingAttack) return { ok: false, reason: 'Aucune attaque ne peut être déclarée maintenant.' };
   if (player.status.noAttackThroughTurn >= state.turnNumber || state.attackLock) return { ok: false, reason: 'Un effet empêche toute nouvelle attaque ce tour.' };
   const attacker = player.active.find(x => x.instanceId === attackerId);
   if (!attacker) return { ok: false, reason: 'Seuls les catcheurs actifs peuvent attaquer.' };
-  if (state.usedAttackers.includes(attackerId)) return { ok: false, reason: 'Ce catcheur a déjà attaqué ce tour.' };
-  if (targetId === 'direct') {
-    const directLimit = Math.max(0, player.active.length - defender.active.length);
-    if (!canDirectAttack(player.active.length, defender.active.length) || state.directAttacksUsed >= directLimit) return { ok: false, reason: 'Le nombre d’attaques directes autorisé ce tour est atteint.' };
+  const allowed = combat.canAttack(state, playerIndex, attacker);
+  if (!allowed.ok) return allowed;
+  const { special = null, ladder = false } = options;
+  const sp = special ? combat.specialAvailable(state, playerIndex, attacker) : null;
+  if (special && (special !== attacker.cardId || !sp)) return { ok: false, reason: 'Cette attaque spéciale est indisponible.' };
+  if (ladder && !player.objects.some(o => o.fighterId === attackerId && o.cardId === 'objets-01')) return { ok: false, reason: 'Ce catcheur ne porte pas l’Échelle.' };
+  let targets;
+  const multi = ladder ? 'all-active' : sp && ['two', 'all-active', 'all-ring'].includes(sp.targets) ? sp.targets : null;
+  if (multi === 'all-active') targets = defender.active.map(x => x.instanceId);
+  else if (multi === 'all-ring') targets = getCards(defender).map(x => x.instanceId);
+  else if (multi === 'two') {
+    targets = [...new Set(options.targets ?? [])];
+    if (targets.length !== Math.min(2, defender.active.length) || targets.some(id => !defender.active.some(x => x.instanceId === id))) return { ok: false, reason: 'Choisis deux catcheurs actifs adverses.' };
   } else {
-    if (!defender.active.some(x => x.instanceId === targetId)) return { ok: false, reason: 'Une attaque doit viser un catcheur actif adverse.' };
-    if (state.usedTargets.includes(targetId)) return { ok: false, reason: 'Ce catcheur adverse a déjà été ciblé ce tour.' };
+    if (targetId === 'direct') {
+      const directLimit = Math.max(0, player.active.length - defender.active.length);
+      if (!canDirectAttack(player.active.length, defender.active.length) || state.directAttacksUsed >= directLimit) return { ok: false, reason: 'Le nombre d’attaques directes autorisé ce tour est atteint.' };
+    } else {
+      if (!defender.active.some(x => x.instanceId === targetId)) return { ok: false, reason: 'Une attaque doit viser un catcheur actif adverse.' };
+      if (state.usedTargets.includes(targetId)) return { ok: false, reason: 'Ce catcheur adverse a déjà été ciblé ce tour.' };
+    }
+    targets = [targetId];
   }
+  if (!targets.length) return { ok: false, reason: 'Aucune cible.' };
+  if (sp && !multi) {
+    const target = targetId === 'direct' ? null : defender.active.find(x => x.instanceId === targetId);
+    if (combat.specialBonusAgainst(state, playerIndex, attacker, target) == null) return { ok: false, reason: 'La condition de l’attaque spéciale n’est pas remplie contre cette cible.' };
+  } else if (sp && combat.specialBonusAgainst(state, playerIndex, attacker, defender.active[0] ?? null) == null && sp.targets === 'all-active') {
+    return { ok: false, reason: 'La condition de l’attaque spéciale n’est pas remplie.' };
+  }
+  if (sp?.cost === 'momentum') {
+    const discard = options.discard ?? player.hand.find(id => rarityLookup(id)?.category === 'Momentum');
+    if (!discard || rarityLookup(discard)?.category !== 'Momentum' || !removeFromHand(player, discard)) return { ok: false, reason: 'Il faut sacrifier une carte Momentum de ta main.' };
+    player.grave.push(discard);
+    addHistory(state, `${player.name} sacrifie ${rarityLookup(discard).displayName} pour Go to Sleep.`);
+  }
+  const first = state.usedAttackers.length === 0;
   state.usedAttackers.push(attackerId);
-  if (targetId === 'direct') state.directAttacksUsed += 1;
-  else state.usedTargets.push(targetId);
-  const bonus = rarityLookup(attacker.cardId)?.id === 'catcheur-18' && state.botteCeltesBoostPlayer === playerIndex && state.botteCeltesBoostTurn === state.turnNumber ? 15 : 0;
-  state.pendingAttack = { id: crypto.randomUUID(), playerIndex, attackerId, targetId, attack: attacker.attack + bonus };
-  if (bonus) addHistory(state, `${rarityLookup(attacker.cardId)?.displayName ?? 'Sheamus'} gagne +15 ATT pour cette attaque grâce à Botte Celte.`);
+  if (targets[0] === 'direct') state.directAttacksUsed += 1;
+  else for (const id of targets) if (!state.usedTargets.includes(id)) state.usedTargets.push(id);
+  if (sp) attacker.specialUsed = true;
+  state.pendingAttack = { id: crypto.randomUUID(), playerIndex, attackerId, targetId: targets.length > 1 ? 'multi' : targets[0], targets, special: sp ? special : null, ladder, first, secondTarget: options.secondTarget ?? null };
+  state.pendingAttack.attack = combat.previewDamage(state, state.pendingAttack);
   state.phase = 'reaction';
-  addHistory(state, `${player.name} annonce l’attaque de ${rarityLookup(attacker.cardId)?.displayName ?? 'son catcheur'}${targetId === 'direct' ? ' sur les PV adverses' : ` contre ${rarityLookup(defender.active.find(x => x.instanceId === targetId).cardId)?.displayName ?? 'un catcheur'}`}.`);
+  const names = targets.map(id => (id === 'direct' ? 'les PV adverses' : rarityLookup(getCards(defender).find(x => x.instanceId === id)?.cardId)?.displayName ?? 'un catcheur'));
+  addHistory(state, `${player.name} annonce ${sp ? `l’attaque spéciale ${sp.name} de` : ladder ? 'une attaque à l’Échelle de' : 'l’attaque de'} ${rarityLookup(attacker.cardId)?.displayName ?? 'son catcheur'} ${targets[0] === 'direct' ? 'sur' : 'contre'} ${names.join(', ')}.`);
   return { ok: true, pendingAttack: state.pendingAttack };
 }
 
@@ -349,25 +381,52 @@ export function resolveAttack(state) {
   if (!attack) return { ok: false, reason: 'Aucune attaque à résoudre.' };
   state.pendingAttack = null;
   state.phase = 'attacks';
-  const attacker = state.players[attack.playerIndex];
-  const defenderIndex = 1 - attack.playerIndex;
-  const defender = state.players[defenderIndex];
-  const fighter = attacker.active.find(x => x.instanceId === attack.attackerId);
-  if (!fighter) return { ok: false, reason: 'L’attaquant a quitté le ring avant la résolution.' };
-  if (attack.targetId === 'direct') {
-    defender.hp -= attack.attack;
-    addHistory(state, `${rarityLookup(fighter.cardId)?.displayName ?? 'Le catcheur'} inflige ${attack.attack} dégâts directs. ${defender.name} passe à ${defender.hp} PV.`);
-    if (defender.hp <= 0) finishMatch(state, attack.playerIndex, `${defender.name} tombe à ${defender.hp} PV.`);
-  } else {
-    const at = defender.active.findIndex(x => x.instanceId === attack.targetId);
-    if (at < 0) return { ok: false, reason: 'La cible a quitté le ring avant la résolution.' };
-    const target = defender.active[at];
-    const result = resolveDamage(target.endurance, attack.attack);
-    target.endurance = result.remaining;
-    addHistory(state, `${rarityLookup(fighter.cardId)?.displayName ?? 'Le catcheur'} inflige ${attack.attack} dégâts à ${rarityLookup(target.cardId)?.displayName ?? 'la cible'} : END ${target.endurance}.`);
-    if (result.knockedOut) sendFighterToGrave(state, defenderIndex, target, 'K.-O.');
-  }
+  attack.targets ??= [attack.targetId]; // attaques sauvegardées avant la mise à jour
+  combat.resolveCombat(state, attack);
   return { ok: true };
+}
+
+// Réponses possibles à l'attaque annoncée (hors Momenta rapides).
+export function reactionOptions(state, playerIndex) {
+  const a = state.pendingAttack, p = state.players[playerIndex];
+  if (!a || state.phase !== 'reaction' || a.playerIndex === playerIndex || combat.effectsOff(state, playerIndex)) return [];
+  const targets = (a.targets ?? [a.targetId]).map(id => getCards(p).find(x => x.instanceId === id)).filter(Boolean);
+  const out = [];
+  const roman = targets.some(t => combat.is(t.cardId, 'roman reigns')), bray = targets.some(t => combat.is(t.cardId, 'bray wyatt'));
+  for (const f of p.active) {
+    if (f.specialUsed) continue;
+    if (f.cardId === 'wyatt-11' && roman) out.push({ key: 'wyatt-11', fighterId: f.instanceId, label: 'Sami Zayn protège Roman', detail: 'Effet spécial : annule l’attaque' });
+    if (f.cardId === 'catcheur-10') out.push({ key: 'catcheur-10', fighterId: f.instanceId, label: 'Claymore Kick (Drew McIntyre)', detail: 'Annule l’attaque, 5 dégâts à l’attaquant' });
+    if (f.cardId === 'catcheur-13') out.push({ key: 'catcheur-13', fighterId: f.instanceId, label: 'RKO (Randy Orton)', detail: 'Annule l’attaque, 10 dégâts à l’attaquant' });
+  }
+  const once = p.status.onceUsed ?? [];
+  for (const t of targets) {
+    const gold = p.objects.some(o => o.fighterId === t.instanceId && o.cardId === 'objets-06');
+    if (gold && !once.includes('objets-06') && ['edge', 'triple h', 'randy orton'].some(n => combat.is(t.cardId, n))) out.push({ key: 'objets-06', fighterId: t.instanceId, label: 'Big Gold : éviter l’attaque', detail: 'Une fois par partie' });
+  }
+  if (bray && p.grave.includes('wyatt-01')) out.push({ key: 'wyatt-01', label: 'Braun Strowman (cimetière)', detail: 'Bannir Strowman pour annuler l’attaque sur Bray Wyatt' });
+  return out;
+}
+
+export function useReaction(state, playerIndex, key, fighterId = null) {
+  const option = reactionOptions(state, playerIndex).find(o => o.key === key && (!fighterId || o.fighterId === fighterId));
+  if (!option) return { ok: false, reason: 'Cette réponse n’est pas disponible.' };
+  const p = state.players[playerIndex], a = state.pendingAttack, attacker = state.players[a.playerIndex].active.find(x => x.instanceId === a.attackerId);
+  const fighter = option.fighterId && getCards(p).find(x => x.instanceId === option.fighterId);
+  if (['wyatt-11', 'catcheur-10', 'catcheur-13'].includes(key)) fighter.specialUsed = true;
+  if (key === 'objets-06') (p.status.onceUsed ??= []).push('objets-06');
+  if (key === 'wyatt-01') { p.grave.splice(p.grave.indexOf('wyatt-01'), 1); (p.banished ??= []).push('wyatt-01'); }
+  state.pendingAttack = null;
+  state.phase = 'attacks';
+  addHistory(state, `${option.label} : l’attaque est annulée.`);
+  const counter = { 'catcheur-10': 5, 'catcheur-13': 10 }[key];
+  if (counter && attacker) { attacker.endurance -= counter; addHistory(state, `${rarityLookup(attacker.cardId)?.displayName} subit ${counter} dégâts.`); combat.checkKOs(state); }
+  return { ok: true };
+}
+
+// Ancien nom conservé pour Sami Zayn.
+export function counterAttackWithWrestlerEffect(state, playerIndex, fighterId) {
+  return useReaction(state, playerIndex, 'wyatt-11', fighterId);
 }
 
 export function finishMatch(state, winner, reason) {
@@ -389,6 +448,7 @@ export function sendFighterToGrave(state, playerIndex, fighter, reason = 'K.-O.'
   }
   player.objects = player.objects.filter(x => x.fighterId !== fighter.instanceId);
   addHistory(state, `${rarityLookup(fighter.cardId)?.displayName ?? 'Le catcheur'} est ${reason} et envoyé au cimetière.`);
+  queueGraveTriggers(state, playerIndex, [fighter.cardId, ...equipment.map(o => o.cardId)]);
 }
 
 export function moveToGrave(state, playerIndex, instanceId, reason = 'déplacé') {
@@ -405,7 +465,7 @@ export function adjustFighter(state, playerIndex, fighterId, stat, delta, reason
   const before = fighter[stat];
   fighter[stat] += delta;
   addHistory(state, `${rarityLookup(fighter.cardId)?.displayName ?? 'Le catcheur'} : ${stat === 'attack' ? 'ATT' : 'END'} ${before} → ${fighter[stat]} (${reason}).`);
-  if (stat === 'endurance' && fighter.endurance <= 0) sendFighterToGrave(state, playerIndex, fighter, 'K.-O.');
+  combat.checkKOs(state);
   return { ok: true };
 }
 
