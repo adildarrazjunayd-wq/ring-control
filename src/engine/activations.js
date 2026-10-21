@@ -1,7 +1,7 @@
 // Effets que le joueur déclenche lui-même (effets passifs « à action », effets spéciaux hors attaque,
 // effets depuis le cimetière, Momenta qui visent une carte) et choix déclenchés par l'arrivée au cimetière.
 import { addHistory, lookupCard, specialSummon, legalPositions, resolveMomentum, activateWrestlerEffect, sendFighterToGrave } from './game-engine.js';
-import { effective, effectsOff, is, fightersOf, addModifier, checkKOs, heal, draw, bloodlineComplete } from './combat.js';
+import { effective, effectsOff, is, fightersOf, addModifier, checkKOs, heal, draw, bloodlineComplete, snapshotStatus, stampWhy } from './combat.js';
 
 const label = id => lookupCard(id)?.displayName ?? 'la carte';
 const text = c => `${c.displayName} ${c.effects.map(e => e.text).join(' ')}`;
@@ -135,8 +135,10 @@ export function activate(state, pi, key, sourceId, options = {}) {
     const r = summonFrom(state, pi, option, options.position, e.name);
     if (!r.ok) return r;
   }
+  const snap = snapshotStatus(state);
   const result = e.run?.(state, pi, f, targets);
   e.after?.(state, pi, f);
+  stampWhy(state, snap, e.name);
   if (result) addHistory(state, `${e.name} : ${result}.`);
   checkKOs(state);
   return { ok: true };
@@ -171,7 +173,9 @@ export function resolveTargetMomentum(state, pi, cardId, targets) {
   if (state.players[pi].resolvingMomentum?.cardId !== cardId) return { ok: false, reason: 'Ce Momentum n’est pas en résolution.' };
   const found = tm.targets.map((spec, i) => (targets[i] && targetCandidates(state, pi, spec).some(c => c.instanceId === targets[i].instanceId) ? findIn(state, targets[i]) : null));
   if (found.some(t => !t)) return { ok: false, reason: 'Choisis une cible valide.' };
+  const snap = snapshotStatus(state);
   addHistory(state, `${label(cardId)} : ${tm.run(state, pi, found)}.`);
+  stampWhy(state, snap, label(cardId));
   resolveMomentum(state, pi);
   checkKOs(state);
   return { ok: true };

@@ -72,9 +72,14 @@ function fighterActions(m, pi, f) {
     }
   }
   if (pi === 0 && myTurn(m) && m.phase === 'actions') {
-    if (!p.limits.move) {
-      if (f.position === 'active' && p.active.length > 1 && p.passive.length < 2) out.push(act('Passer en passif', `data-act="move" data-iid="${f.instanceId}" data-dest="passive"`, 'Un déplacement par tour'));
-      if (f.position === 'passive' && p.active.length < 3) out.push(act('Passer en actif', `data-act="move" data-iid="${f.instanceId}" data-dest="active"`, 'Un déplacement par tour'));
+    // Changement de position : une fois par tour (déplacement simple ou échange actif ↔ passif).
+    if (p.limits.move) out.push(act(f.position === 'active' ? 'Passer en passif' : 'Passer en actif', 'disabled', 'Tu as déjà changé une position ce tour-ci'));
+    else if (f.position === 'active') {
+      if (p.passive.length < 2) out.push(act('Passer en passif', `data-act="move" data-iid="${f.instanceId}" data-dest="passive" ${p.active.length > 1 ? '' : 'disabled'}`, p.active.length > 1 ? 'Une fois par tour' : 'Il faut garder au moins un catcheur actif'));
+      for (const x of p.passive) out.push(act(`Échanger avec ${esc(card(x.cardId).displayName)}`, `data-act="swap" data-a="${f.instanceId}" data-b="${x.instanceId}"`, `${esc(card(f.cardId).displayName)} passe en passif, ${esc(card(x.cardId).displayName)} en actif`));
+    } else {
+      if (p.active.length < 3) out.push(act('Passer en actif', `data-act="move" data-iid="${f.instanceId}" data-dest="active"`, 'Une fois par tour'));
+      for (const x of p.active) out.push(act(`Échanger avec ${esc(card(x.cardId).displayName)}`, `data-act="swap" data-a="${x.instanceId}" data-b="${f.instanceId}"`, `${esc(card(f.cardId).displayName)} passe en actif, ${esc(card(x.cardId).displayName)} en passif`));
     }
     for (const [kind, key] of [['passif', 'passive'], ['spécial', 'special']]) {
       if (!hasEffect(c, kind)) continue;
@@ -162,10 +167,31 @@ function hoveredFighter(m, cardId) {
   return fightersOf(m.players[Number(el.dataset.pi)]).find(f => f.instanceId === el.dataset.id) ?? null;
 }
 
+// Au survol : stats du moment, et en toutes lettres d'où viennent les bonus et les états.
 function fighterStats(m, pi, f) {
   const e = combat.effective(m, pi, f), tag = n => (n ? ` <small class="${n > 0 ? 'up' : 'down'}">(${n > 0 ? '+' : ''}${n})</small>` : '');
-  const states = statusBadges(m, f).map(([, t]) => `<span class="state">${t}</span>`).join('');
-  return `<div class="live-stats"><span>${e.attack}${tag(e.bonusAtt)} <small>ATT</small></span><span class="${f.endurance < f.baseEndurance ? 'hurt' : ''}">${e.endurance}${tag(e.bonusEnd)}<small> END</small></span>${states}</div>`;
+  const lines = [];
+  for (const part of e.parts) lines.push(`<li class="${part.value > 0 ? 'up' : 'down'}"><b>${part.value > 0 ? '+' : ''}${part.value} ${part.stat === 'attack' ? 'ATT' : 'END'}</b> ${esc(part.source)}</li>`);
+  const when = until => esc(combat.untilText(m, until, 0));
+  if (combat.passiveOn(m, pi, f)) lines.push(`<li>✨ <b>Effet passif actif</b> · ${when(f.passiveActiveUntil)}</li>`);
+  else if (card(f.cardId).effects.some(x => x.kind === 'passif')) lines.push(`<li class="muted">Effet passif non activé</li>`);
+  if ((f.noAttackUntil ?? 0) >= m.turnNumber) lines.push(`<li class="down">💤 <b>Ne peut pas attaquer</b>${f.noAttackUntilWhy ? ` (${esc(f.noAttackUntilWhy)})` : ''} · ${when(f.noAttackUntil)}</li>`);
+  if ((f.passivesOffUntil ?? 0) >= m.turnNumber) lines.push(`<li class="down">🚫 <b>Effets passifs annulés</b>${f.passivesOffUntilWhy ? ` (${esc(f.passivesOffUntilWhy)})` : ''} · ${when(f.passivesOffUntil)}</li>`);
+  if ((f.halfDamageUntil ?? 0) >= m.turnNumber) lines.push(`<li class="down">½ <b>Inflige moitié moins de dégâts</b>${f.halfDamageUntilWhy ? ` (${esc(f.halfDamageUntilWhy)})` : ''} · ${when(f.halfDamageUntil)}</li>`);
+  if (f.specialUsed) lines.push('<li class="muted">Effet spécial déjà utilisé</li>');
+  if (m.turn === pi && f.position === 'active') { const n = combat.attacksAllowed(m, pi, f), used = combat.attacksUsed(m, f); lines.push(`<li>⚔ Attaques ce tour : <b>${used}/${n}</b></li>`); }
+  for (const o of m.players[pi].objects.filter(x => x.fighterId === f.instanceId)) lines.push(`<li>⚙ <b>${esc(card(o.cardId).displayName)}</b> équipé</li>`);
+  return `<div class="live-stats"><span>${e.attack}${tag(e.bonusAtt)} <small>ATT</small></span><span class="${f.endurance < f.baseEndurance ? 'hurt' : ''}">${e.endurance}${tag(e.bonusEnd)}<small> END</small></span></div>${lines.length ? `<ul class="now">${lines.join('')}</ul>` : ''}`;
+}
+
+// Panneau « Effets en cours » : ce qui agit maintenant, pour toi et pour l'IA.
+function effectsPanel(m) {
+  const section = (pi, title) => {
+    const list = combat.activeEffects(m, pi);
+    return `<section class="fx-side ${pi ? 'ai' : 'me'}"><h4>${title} <b>${list.length}</b></h4>${list.map(x => `<article><span class="ico">${x.icon}</span><div><b>${esc(x.title)}</b>${x.text ? `<p>${esc(x.text)}</p>` : ''}<small>${esc(combat.untilText(m, x.until, 0))}</small></div></article>`).join('') || '<p class="muted">Aucun effet en cours.</p>'}</section>`;
+  };
+  if (!S.effectsOpen) return `<aside class="fxp closed"><button class="fxp-toggle" data-act="toggleEffects" title="Afficher les effets en cours">◀<span>EFFETS EN COURS</span></button></aside>`;
+  return `<aside class="fxp"><header><b>EFFETS EN COURS</b><button class="fxp-toggle" data-act="toggleEffects" title="Réduire">▶</button></header><div class="fxp-body">${section(1, 'L’IA')}${section(0, 'TOI')}</div></aside>`;
 }
 
 function statusBadges(m, f) {
@@ -271,8 +297,9 @@ let targets = new Set();
 export function duel(m) {
   targets = pickable(m);
   const s = statusScreen(m);
-  return `<div class="duel ${S.targeting ? 'is-targeting' : ''}">
+  return `<div class="duel ${S.targeting ? 'is-targeting' : ''} ${S.effectsOpen ? 'fx-open' : 'fx-closed'}">
     <aside class="info">${titantron(m)}</aside>
+    ${effectsPanel(m)}
     <section class="hud">${life(m, 0)}<div class="status"><span class="k">${s.kicker}</span><b>${s.title}</b><button class="btn small ghost" data-act="quit">✕ Quitter</button></div>${life(m, 1)}</section>
     <section class="stage"><div class="board">${side(m, 1)}<div class="midline"><span class="vs">VS</span><button class="ticker" data-act="log">${esc(m.history[0] ?? '')}<small>JOURNAL ▸</small></button></div>${side(m, 0)}</div>${reaction(m)}</section>
     <footer class="handbar">${phases(m)}${hand(m)}${controls(m)}</footer>

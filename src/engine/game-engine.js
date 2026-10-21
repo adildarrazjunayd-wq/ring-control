@@ -221,6 +221,25 @@ export function moveFighter(state, playerIndex, instanceId, destination) {
   return { ok: true };
 }
 
+// Échange un catcheur actif et un catcheur passif : compte comme le déplacement du tour.
+// Utile quand les deux zones sont pleines (3 actifs, 2 passifs).
+export function swapFighters(state, playerIndex, activeId, passiveId) {
+  const player = state.players[playerIndex];
+  if (state.winner !== null || state.turn !== playerIndex || state.phase !== 'actions') return { ok: false, reason: 'Déplacement possible pendant votre phase d’action.' };
+  if (player.limits.move) return { ok: false, reason: 'Tu as déjà changé une position ce tour-ci.' };
+  const a = player.active.findIndex(x => x.instanceId === activeId), b = player.passive.findIndex(x => x.instanceId === passiveId);
+  if (a < 0 || b < 0) return { ok: false, reason: 'Choisis un catcheur actif et un catcheur passif.' };
+  const up = player.passive[b], down = player.active[a];
+  player.active[a] = up;
+  player.passive[b] = down;
+  up.position = 'active';
+  down.position = 'passive';
+  player.limits.move = true;
+  addHistory(state, `${player.name} échange ${rarityLookup(down.cardId)?.displayName} (passe en passif) et ${rarityLookup(up.cardId)?.displayName} (passe en actif).`);
+  combat.checkKOs(state);
+  return { ok: true };
+}
+
 export function playManager(state, playerIndex, card) {
   const player = state.players[playerIndex];
   if (state.winner !== null || state.turn !== playerIndex || state.phase !== 'actions') return { ok: false, reason: 'Un manager se joue pendant votre phase d’action.' };

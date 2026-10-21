@@ -218,6 +218,8 @@ export const actions = {
 
   // ----- duel : catcheurs et managers -----
   move: d => done(game.moveFighter(m(), 0, d.iid, d.dest)),
+  swap: d => done(game.swapFighters(m(), 0, d.a, d.b)),
+  toggleEffects: () => { S.effectsOpen = !S.effectsOpen; try { localStorage.setItem('ring-control-effects', S.effectsOpen ? 'open' : 'closed'); } catch { /* ignore */ } render(); },
   passive: d => {
     const f = fighters(me()).find(x => x.instanceId === d.iid), key = `${f.cardId}:passive`;
     if (effects.SEARCH_RULES[key] && !effects.searchOptions(m(), 0, key).length) { toast(`Aucune carte « ${effects.SEARCH_RULES[key].what} » dans ton deck.`); return; }

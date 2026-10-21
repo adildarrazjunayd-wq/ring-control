@@ -30,6 +30,7 @@ export const S = {
   hovered: null,    // identifiant de carte survolée
   targeting: null,  // instanceId de l'attaquant qui choisit sa cible
   busy: false,
+  effectsOpen: (() => { try { return localStorage.getItem('ring-control-effects') !== 'closed'; } catch { return true; } })(),
 };
 
 // Rempli par main.js : évite les imports circulaires entre écrans, actions et IA.

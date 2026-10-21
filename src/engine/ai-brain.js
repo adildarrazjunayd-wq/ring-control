@@ -257,6 +257,9 @@ function moveOptions(state, pi) {
   }
   for (const f of p.passive) {
     if (p.active.length < 3 && effective(state, pi, f).attack >= 50 && effective(state, pi, f).endurance > 30) out.push({ score: 10, label: `envoie ${card(f.cardId).displayName} au combat`, run: () => game.moveFighter(state, pi, f.instanceId, 'active') });
+    // Échange : un passif en forme remplace un actif très blessé.
+    const tired = [...p.active].sort((a, b) => effective(state, pi, a).endurance - effective(state, pi, b).endurance)[0];
+    if (tired && effective(state, pi, tired).endurance <= 25 && effective(state, pi, f).endurance > 40) out.push({ score: 14, label: `échange ${card(tired.cardId).displayName} et ${card(f.cardId).displayName}`, run: () => game.swapFighters(state, pi, tired.instanceId, f.instanceId) });
   }
   return out;
 }

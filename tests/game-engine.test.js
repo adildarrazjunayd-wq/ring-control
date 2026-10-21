@@ -82,3 +82,14 @@ test('pas d’attaque au tout premier tour, et le pile ou face décide qui comme
   s.phase = 'attacks';
   assert.equal(game.declareAttack(s, 1, 'a', 'direct').ok, false);
 });
+
+test('échange d’un actif et d’un passif, une seule fois par tour, même zones pleines', () => {
+  const s = fresh(), p = s.players[0];
+  const mk = (id, iid, pos) => { const c = cards.find(x => x.id === id); return { instanceId: iid, cardId: id, attack: c.attack, endurance: c.endurance, position: pos }; };
+  p.active = [mk('catcheur-01', 'a1', 'active'), mk('catcheur-02', 'a2', 'active'), mk('catcheur-03', 'a3', 'active')];
+  p.passive = [mk('catcheur-11', 'p1', 'passive'), mk('catcheur-18', 'p2', 'passive')];
+  assert.equal(game.swapFighters(s, 0, 'a2', 'p1').ok, true);
+  assert.deepEqual(p.active.map(f => f.instanceId), ['a1', 'p1', 'a3']);
+  assert.equal(p.passive[0].position, 'passive');
+  assert.equal(game.swapFighters(s, 0, 'a1', 'p2').ok, false);
+});

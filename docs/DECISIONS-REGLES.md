@@ -21,6 +21,7 @@
 ## Règles ajoutées à la demande du propriétaire (21 octobre 2026)
 
 - **Invocation SSR** : sacrifice de **1 SR, 1 SSR ou 2 R** (une SSR peut désormais être sacrifiée pour en invoquer une autre).
+- **Changement de position** : une fois par tour, en phase d'action : passer un catcheur d'actif à passif (en gardant au moins un actif), de passif à actif, ou **échanger** un actif et un passif (utile quand les deux zones sont pleines).
 - **Premier tour** : le joueur qui commence ne peut pas attaquer pendant le tout premier tour de la partie.
 - **Pile ou face** : avant chaque duel, le joueur choisit pile ou face ; le gagnant commence (et pioche sa carte de début de tour).
 - **Decks de l'IA** : l'IA joue un deck de faction tiré au hasard (decks signature, The Shield, D-Generation X) — `data/ai-decks.js`.

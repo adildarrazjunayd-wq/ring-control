@@ -27,12 +27,14 @@ const recipes = [
     id: 'main-event-legends',
     name: 'Légendes du Main Event',
     theme: 'All-Stars · Puissance et polyvalence',
-    description: 'The Rock, Brock Lesnar, Randy Orton, Edge, Rey Mysterio, Triple H, Shawn Michaels, Cody Rhodes, John Cena et CM Punk.',
+    description: 'The Rock, Cody Rhodes et John Cena, soutenus par Triple H, Shawn Michaels, Rey Mysterio, AJ Styles, Finn Balor et des R solides.',
+    // Rééquilibré le 21/10/2026 : 3 SSR au lieu de 7, plus de SR/R pour les sacrifices.
     cardIds: [
-      'catcheur-02', 'catcheur-03', 'catcheur-13', 'catcheur-24', 'catcheur-25',
-      'catcheur-31', 'catcheur-32', 'catcheur-34', 'catcheur-35', 'catcheur-36',
-      'managers-02', 'managers-03', 'managers-04', 'objets-05', 'objets-06',
-      'objets-07', 'objets-08', 'momentum-05', 'momentum-08', 'momentum-16',
+      'catcheur-02', 'catcheur-15', 'catcheur-34', 'catcheur-35',
+      'catcheur-25', 'catcheur-31', 'catcheur-32', 'catcheur-14',
+      'catcheur-11', 'catcheur-18', 'catcheur-27',
+      'managers-03', 'managers-04', 'objets-05', 'objets-08',
+      'momentum-29', 'momentum-03', 'momentum-08', 'momentum-05', 'momentum-20',
     ],
   },
 ];

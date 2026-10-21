@@ -47,33 +47,89 @@ export function addModifier(f, stat, value, until, source) {
 
 // ---------- Bonus continus ----------
 
+// Bonus continus d'un catcheur, avec leur origine (affichée au survol de la carte).
 export function statBonus(state, pi, f) {
-  const p = state.players[pi];
-  let att = 0, end = 0;
+  const p = state.players[pi], parts = [];
+  const add = (stat, value, source) => parts.push({ stat, value, source });
   for (const m of f.modifiers ?? []) {
     if (m.until != null && m.until < state.turnNumber) continue;
-    if (m.stat === 'attack') att += m.value; else end += m.value;
+    add(m.stat, m.value, `${lookupCard(m.source)?.displayName ?? 'Effet'} (ce tour-ci)`);
   }
-  if (factionOf(f.cardId) === 'The Bloodline' && onRing(state, pi, 'catcheur-01')) att += 5;           // Roman Reigns : Domination absolue
-  if (has(state, pi, f, 'catcheur-20') && p.active.length === 1 && p.active[0] === f) att += 10;       // Jey Uso : One-Man Show
-  if (has(state, pi, f, 'catcheur-21') && p.active.some(x => is(x.cardId, 'jimmy uso'))) att += 5;      // Jey Uso : Frère inséparable
-  if (has(state, pi, f, 'catcheur-22') && p.active.some(x => is(x.cardId, 'jey uso'))) end += 5;        // Jimmy Uso : Duo de choc
-  if (has(state, pi, f, 'catcheur-25')) att += 10;                                                     // Rey Mysterio
-  if (onRing(state, pi, 'catcheur-34', 'active')) { att += 5; end += 5; }
-  if (factionOf(f.cardId) === 'The Bloodline' && rassemblementActive(state, pi)) att += 10;           // The Bloodline Rassemblement                              // Cody Rhodes : Héritier de la gloire
-  if (managerIs(state, pi, 'managers-01') && f.position === 'active' && (is(f.cardId, 'roman reigns') || is(f.cardId, 'brock lesnar'))) { att += 10; end += 10; } // Paul Heyman
-  if (managerIs(state, pi, 'managers-03') && p.active.some(x => factionOf(x.cardId))) att += 10;       // Triple H (manager)
+  if (factionOf(f.cardId) === 'The Bloodline' && onRing(state, pi, 'catcheur-01')) add('attack', 5, 'Roman Reigns : Domination absolue');
+  if (has(state, pi, f, 'catcheur-20') && p.active.length === 1 && p.active[0] === f) add('attack', 10, 'One-Man Show (seul actif)');
+  if (has(state, pi, f, 'catcheur-21') && p.active.some(x => is(x.cardId, 'jimmy uso'))) add('attack', 5, 'Frère inséparable (Jimmy actif)');
+  if (has(state, pi, f, 'catcheur-22') && p.active.some(x => is(x.cardId, 'jey uso'))) add('endurance', 5, 'Duo de choc (Jey actif)');
+  if (has(state, pi, f, 'catcheur-25')) add('attack', 10, 'Luchador légendaire');
+  if (onRing(state, pi, 'catcheur-34', 'active')) { add('attack', 5, 'Cody Rhodes : Héritier de la gloire'); add('endurance', 5, 'Cody Rhodes : Héritier de la gloire'); }
+  if (factionOf(f.cardId) === 'The Bloodline' && rassemblementActive(state, pi)) add('attack', 10, 'The Bloodline Rassemblement');
+  if (managerIs(state, pi, 'managers-01') && f.position === 'active' && (is(f.cardId, 'roman reigns') || is(f.cardId, 'brock lesnar'))) { add('attack', 10, 'Paul Heyman'); add('endurance', 10, 'Paul Heyman'); }
+  if (managerIs(state, pi, 'managers-03') && p.active.some(x => factionOf(x.cardId))) add('attack', 10, 'Triple H (manager)');
   for (const o of objectsOf(state, pi, f)) {
-    if (o === 'objets-05') att += 10;                                                                  // Ceinture Universelle
-    if (o === 'objets-08') end += 10;                                                                  // Ceinture « The Champ »
-    if (o === 'wyatt-07' && is(f.cardId, 'bray wyatt')) { att += 10; end -= 10; }                      // Lanterne de l'obscurité
+    if (o === 'objets-05') add('attack', 10, 'Ceinture Universelle');
+    if (o === 'objets-08') add('endurance', 10, 'Ceinture « The Champ »');
+    if (o === 'wyatt-07' && is(f.cardId, 'bray wyatt')) { add('attack', 10, 'Lanterne de l’obscurité'); add('endurance', -10, 'Lanterne de l’obscurité'); }
   }
-  return { att, end };
+  const sum = stat => parts.filter(x => x.stat === stat).reduce((n, x) => n + x.value, 0);
+  return { att: sum('attack'), end: sum('endurance'), parts };
 }
 
 export function effective(state, pi, f) {
   const b = statBonus(state, pi, f);
-  return { attack: f.attack + b.att, endurance: f.endurance + b.end, bonusAtt: b.att, bonusEnd: b.end };
+  return { attack: f.attack + b.att, endurance: f.endurance + b.end, bonusAtt: b.att, bonusEnd: b.end, parts: b.parts };
+}
+
+// ---------- Origine des états (endormi, passifs annulés…) ----------
+const STATUS_FIELDS = ['noAttackUntil', 'passivesOffUntil', 'halfDamageUntil'];
+const everyone = state => [...fightersOf(state.players[0]), ...fightersOf(state.players[1])];
+export function snapshotStatus(state) { return new Map(everyone(state).map(f => [f, STATUS_FIELDS.map(k => f[k])])); }
+// Note le nom de l'effet responsable sur chaque état qui vient de changer.
+export function stampWhy(state, snap, why) {
+  for (const f of everyone(state)) {
+    const before = snap.get(f);
+    STATUS_FIELDS.forEach((k, i) => { if (f[k] !== undefined && (!before || before[i] !== f[k])) f[`${k}Why`] = why; });
+  }
+}
+
+// ---------- Liste des effets en cours (panneau « Effets en cours ») ----------
+// Chaque entrée : { icon, title, text, until } — until = dernier tour concerné (null = tant que la carte reste).
+export function activeEffects(state, pi) {
+  const p = state.players[pi], out = [], n = state.turnNumber;
+  const nameAt = id => lookupCard(id)?.displayName ?? 'Carte';
+  const effectText = (id, kind) => lookupCard(id)?.effects.find(e => e.kind === kind)?.text ?? '';
+  for (const f of fightersOf(p)) {
+    const who = nameAt(f.cardId);
+    if (passiveOn(state, pi, f)) { const t = effectText(f.cardId, 'passif'); out.push({ icon: '✨', title: `${who} — ${t.split(':')[0]}`, text: t.includes(':') ? t.split(':').slice(1).join(':').trim() : t, until: f.passiveActiveUntil }); }
+    if ((f.noAttackUntil ?? 0) >= n) out.push({ icon: '💤', title: `${who} ne peut pas attaquer`, text: f.noAttackUntilWhy ? `Cause : ${f.noAttackUntilWhy}.` : '', until: f.noAttackUntil });
+    if ((f.passivesOffUntil ?? 0) >= n) out.push({ icon: '🚫', title: `Effets passifs de ${who} annulés`, text: f.passivesOffUntilWhy ? `Cause : ${f.passivesOffUntilWhy}.` : '', until: f.passivesOffUntil });
+    if ((f.halfDamageUntil ?? 0) >= n) out.push({ icon: '½', title: `${who} inflige moitié moins de dégâts`, text: f.halfDamageUntilWhy ? `Cause : ${f.halfDamageUntilWhy}.` : '', until: f.halfDamageUntil });
+    if (state.extraAttacks?.[f.instanceId] && state.turn === pi) out.push({ icon: '×2', title: `${who} peut attaquer une fois de plus`, text: '', until: n });
+    for (const m of f.modifiers ?? []) if (m.until == null || m.until >= n) out.push({ icon: m.value > 0 ? '⬆' : '⬇', title: `${who} : ${m.value > 0 ? '+' : ''}${m.value} ${m.stat === 'attack' ? 'ATT' : 'END'}`, text: nameAt(m.source), until: m.until });
+  }
+  for (const o of p.objects) {
+    const holder = fightersOf(p).find(f => f.instanceId === o.fighterId);
+    out.push({ icon: '⚙', title: `${nameAt(o.cardId)} sur ${holder ? nameAt(holder.cardId) : '?'}`, text: effectText(o.cardId, 'effet'), until: null });
+  }
+  if (p.manager) out.push({ icon: '👔', title: `Manager : ${nameAt(p.manager.cardId)}${p.manager.used ? ' (effet utilisé)' : ''}`, text: effectText(p.manager.cardId, 'effet'), until: null });
+  for (const o of p.ongoingMomentum) out.push({ icon: '🔥', title: nameAt(o.cardId), text: effectText(o.cardId, 'effet'), until: null });
+  const s = p.status;
+  if ((s.noMomentumThroughTurn ?? 0) >= n) out.push({ icon: '⛔', title: 'Ne peut pas jouer de Momentum', text: '', until: s.noMomentumThroughTurn });
+  if ((s.noSsrSacrificeThroughTurn ?? 0) >= n) out.push({ icon: '⛔', title: 'Ne peut pas sacrifier pour invoquer une SSR', text: 'Domination Totale', until: s.noSsrSacrificeThroughTurn });
+  if ((s.effectsCancelledThroughTurn ?? 0) >= n) out.push({ icon: '🚫', title: 'Tous ses effets sont annulés', text: '', until: s.effectsCancelledThroughTurn });
+  if ((s.damageReductionUntil ?? 0) >= n) out.push({ icon: '🛡', title: 'Défense inébranlable', text: 'Les attaques adverses infligent 40 dégâts de moins.', until: s.damageReductionUntil });
+  if (s.noAttackThroughTurn >= n) out.push({ icon: '⛔', title: 'Ne peut plus attaquer ce tour', text: 'Contre', until: s.noAttackThroughTurn });
+  if (s.freeSsrSummon) out.push({ icon: '👔', title: 'Prochaine SSR sans sacrifice', text: 'Mr. McMahon', until: null });
+  if (state.turn === pi && p.limits.momentum < 0) out.push({ icon: '➕', title: `${1 - p.limits.momentum} Momenta autorisés ce tour`, text: '', until: n });
+  if (state.turn === pi && (p.limits.extraNormal ?? 0) > 0) out.push({ icon: '➕', title: 'Une invocation normale de plus ce tour', text: 'Big Gold', until: n });
+  if (state.botteCeltesBoostPlayer === pi && state.botteCeltesBoostTurn === n) out.push({ icon: '⬆', title: 'Sheamus : +15 ATT s’il attaque', text: 'Botte Celte', until: n });
+  return out;
+}
+
+// Texte de durée lisible : « ce tour-ci », « jusqu'à la fin du tour de l'IA »…
+export function untilText(state, until, viewer = 0) {
+  if (until == null) return 'tant que la carte reste en jeu';
+  if (until === state.turnNumber) return 'ce tour-ci';
+  const owner = (until - state.turnNumber) % 2 === 0 ? state.turn : 1 - state.turn;
+  return owner === viewer ? 'jusqu’à la fin de ton prochain tour' : 'jusqu’à la fin du prochain tour de l’IA';
 }
 
 // ---------- Attaques spéciales (effet spécial utilisé au moment d'attaquer) ----------
@@ -245,9 +301,15 @@ function knockOut(state, pi, f, killer) {
 // ---------- Résolution d'une attaque ----------
 
 export function resolveCombat(state, a) {
-  const pi = a.playerIndex, di = 1 - pi, p = state.players[pi], d = state.players[di];
-  const f = p.active.find(x => x.instanceId === a.attackerId);
+  const f = state.players[a.playerIndex].active.find(x => x.instanceId === a.attackerId);
   if (!f) { addHistory(state, 'L’attaquant a quitté le ring : l’attaque est perdue.'); return; }
+  const snap = snapshotStatus(state);
+  resolveHits(state, a, f);
+  stampWhy(state, snap, ATTACK_SPECIALS[a.special]?.name ?? label(f.cardId));
+}
+
+function resolveHits(state, a, f) {
+  const pi = a.playerIndex, di = 1 - pi, p = state.players[pi], d = state.players[di];
   const killer = { pi, instanceId: f.instanceId, steal: a.special === 'wyatt-04' };
   if (a.targets[0] === 'direct') {
     const dmg = previewDamage(state, a, 'direct');

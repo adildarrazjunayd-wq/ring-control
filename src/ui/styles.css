@@ -493,3 +493,41 @@ body.in-duel #view { min-height: 0; }
   .duel .info .tron { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
   .duel .info .tron > img { height: 100%; width: auto; max-height: none; }
 }
+
+/* ---------- Effets en cours + détail au survol (21/10/2026) ---------- */
+.duel { --infow: clamp(280px, 23vw, 390px); --fxw: 250px; grid-template-columns: var(--infow) minmax(0, 1fr) var(--fxw); grid-template-areas: "info hud hud" "info stage fxp" "info hand hand";
+  --cw: clamp(66px, min((100vw - var(--infow) - var(--fxw) - 80px) / 5.9, (100vh - 330px) * .33), 172px); }
+.duel.fx-closed { --fxw: 46px; }
+.fxp { grid-area: fxp; min-height: 0; display: flex; flex-direction: column; margin: 6px 10px 6px 0; background: rgba(13, 7, 26, .92); border: 2px solid var(--line); border-radius: 8px; overflow: hidden; }
+.fxp header { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: var(--panel2); font: 13px var(--title); letter-spacing: 1px; color: var(--y); }
+.fxp-toggle { background: none; border: 0; color: var(--y); font-size: 14px; }
+.fxp.closed { justify-content: center; align-items: center; }
+.fxp.closed .fxp-toggle { display: flex; flex-direction: column; align-items: center; gap: 10px; height: 100%; width: 100%; padding: 10px 0; }
+.fxp.closed .fxp-toggle span { writing-mode: vertical-rl; font: 12px var(--title); letter-spacing: 2px; }
+.fxp-body { overflow-y: auto; padding: 8px; display: grid; gap: 10px; scrollbar-width: thin; }
+.fx-side h4 { font: 12px var(--title); letter-spacing: 2px; margin-bottom: 6px; display: flex; justify-content: space-between; }
+.fx-side.ai h4 { color: var(--c); }
+.fx-side.me h4 { color: var(--m); }
+.fx-side h4 b { background: var(--panel2); padding: 0 6px; border-radius: 8px; }
+.fx-side article { display: grid; grid-template-columns: 24px 1fr; gap: 6px; padding: 7px 8px; margin-bottom: 6px; background: #f4ecd8; color: #1b1206; border-radius: 6px; border-left: 4px solid var(--m); }
+.fx-side.ai article { border-left-color: var(--c); }
+.fx-side article .ico { font-size: 16px; text-align: center; }
+.fx-side article b { font: 600 13.5px/1.25 var(--body); display: block; }
+.fx-side article p { font: 12.5px/1.35 var(--body); margin: 2px 0; color: #3a2a12; }
+.fx-side article small { font: 600 11.5px var(--body); color: #8a1538; }
+.duel .info ul.now { list-style: none; padding: 8px 10px; margin: 2px 0 4px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); border-radius: 6px; display: grid; gap: 4px; }
+.duel .info ul.now li { font: 14px/1.35 var(--body); color: #eadff0; }
+.duel .info ul.now li b { color: #fff; }
+.duel .info ul.now li.up b { color: var(--green); }
+.duel .info ul.now li.down b { color: #ff8a8a; }
+@media (max-width: 1000px) {
+  .duel { grid-template-columns: 1fr; grid-template-areas: "hud" "info" "stage" "hand"; }
+  .fxp { display: none; }
+}
+.duel { --cw: clamp(62px, min((100vw - var(--infow) - var(--fxw) - 120px) / 6.4, (100vh - 330px) * .33), 172px); }
+.duel .stage { overflow: hidden; }
+.duel .slots { gap: clamp(6px, .8vw, 14px); }
+.duel .side { gap: clamp(6px, 1vw, 14px); padding: 6px 6px 12px; }
+.fxp { position: relative; z-index: 5; }
+.duel .info .tron > img { max-height: 34vh; }
+.duel .info .tron-actions { position: static; background: none; padding-top: 4px; }
