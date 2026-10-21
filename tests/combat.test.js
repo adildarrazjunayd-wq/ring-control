@@ -16,6 +16,7 @@ const slot = (id, pos = 'active') => ({ instanceId: `${id}#${n++}`, cardId: id, 
 // Partie vide : joueur 0 en phase d'attaque, terrains fournis.
 function duel(me = [], ai = [], phase = 'attacks') {
   const s = game.createMatch(deck, deck, { random: () => 0 });
+  s.turnNumber = 3; // pas d'attaque au tout premier tour
   for (const p of s.players) { p.hand = []; p.deck = []; }
   s.players[0].active = me.map(id => slot(id));
   s.players[1].active = ai.map(id => slot(id));

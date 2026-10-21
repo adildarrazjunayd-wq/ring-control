@@ -21,8 +21,8 @@ export function handActions(m, id) {
     const positions = game.legalPositions(p);
     if (c.rarity === 'SSR' && !p.status.freeSsrSummon) {
       const board = fightersOf(p).map(f => card(f.cardId)?.rarity);
-      const canSac = board.includes('SR') || board.filter(r => r === 'R').length >= 2;
-      out.push(act('Invoquer avec sacrifice', `data-act="summonSSR" data-id="${id}" ${canSac ? '' : 'disabled'}`, canSac ? 'Sacrifie 1 SR ou 2 R' : 'Il faut un SR ou deux R sur ton ring', 'hot'));
+      const canSac = board.includes('SR') || board.includes('SSR') || board.filter(r => r === 'R').length >= 2;
+      out.push(act('Invoquer avec sacrifice', `data-act="summonSSR" data-id="${id}" ${canSac ? '' : 'disabled'}`, canSac ? 'Sacrifie 1 SR, 1 SSR ou 2 R' : 'Il faut 1 SR, 1 SSR ou 2 R sur ton ring', 'hot'));
     } else {
       const free = c.rarity === 'SSR' ? ' · sans sacrifice (McMahon)' : '';
       for (const pos of positions) out.push(act(pos === 'active' ? 'Invoquer en actif' : 'Invoquer en passif', `data-act="summon" data-id="${id}" data-pos="${pos}"`, (pos === 'active' ? 'Peut attaquer' : 'Protégé, n’attaque pas') + free, pos === 'active' ? 'hot' : ''));
@@ -146,7 +146,7 @@ function titantron(m) {
   const sel = selectedCard(m), id = sel?.id ?? S.hovered, c = id && card(id);
   if (!c) {
     const s = statusScreen(m);
-    return `<div class="tron idle"><div class="tron-body"><span class="k">${s.kicker}</span><h2>${s.title}</h2><p>${s.text}</p></div></div>`;
+    return `<div class="tron idle"><img src="/${CARD_BACK}" alt=""><div class="tron-body"><span class="k">${s.kicker}</span><h2>${s.title}</h2><p>${s.text}</p><p class="hint">Survole une carte pour lire ses effets en grand. Clique-la pour voir ses actions.</p></div></div>`;
   }
   const f = sel?.fighter ?? hoveredFighter(m, id), fpi = sel?.pi ?? (f && m.players[0].active.concat(m.players[0].passive).includes(f) ? 0 : 1);
   const stats = f ? fighterStats(m, fpi, f) : '';
@@ -251,6 +251,7 @@ function controls(m) {
   if (m.winner !== null) return '<div class="controls"><button class="btn hot big" data-act="go" data-page="lobby">REJOUER ▶</button></div>';
   if (m.turn === 1) return '<div class="controls"><button class="btn big" disabled>L’IA JOUE…</button></div>';
   if (m.pendingAttack) return '<div class="controls"></div>';
+  if (m.turnNumber === 1) return '<div class="controls"><button class="btn hot big" data-act="endTurn"><b>FIN DU TOUR ▶</b><small>Pas d’attaque au 1er tour</small></button></div>';
   return `<div class="controls">${m.phase === 'actions' ? '<button class="btn hot big" data-act="toAttacks">COMBAT ▶</button>' : '<button class="btn hot big" data-act="endTurn">FIN DU TOUR ▶</button>'}</div>`;
 }
 
@@ -269,12 +270,13 @@ let targets = new Set();
 
 export function duel(m) {
   targets = pickable(m);
+  const s = statusScreen(m);
   return `<div class="duel ${S.targeting ? 'is-targeting' : ''}">
-    <section class="top">${life(m, 0)}${titantron(m)}${life(m, 1)}</section>
+    <aside class="info">${titantron(m)}</aside>
+    <section class="hud">${life(m, 0)}<div class="status"><span class="k">${s.kicker}</span><b>${s.title}</b><button class="btn small ghost" data-act="quit">✕ Quitter</button></div>${life(m, 1)}</section>
     <section class="stage"><div class="board">${side(m, 1)}<div class="midline"><span class="vs">VS</span><button class="ticker" data-act="log">${esc(m.history[0] ?? '')}<small>JOURNAL ▸</small></button></div>${side(m, 0)}</div>${reaction(m)}</section>
     <footer class="handbar">${phases(m)}${hand(m)}${controls(m)}</footer>
     ${S.hideResult ? '' : result(m)}
-    <div class="duel-tools"><button class="btn small ghost" data-act="quit">✕ Quitter</button></div>
   </div>`;
 }
 

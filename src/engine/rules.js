@@ -9,7 +9,7 @@ export function validateDeck(deck){
 }
 export function normalSummonRequirement(card){
   if(card?.category!=='Catcheur') return {allowed:false, sacrifices:null, reason:'Seuls les catcheurs peuvent être invoqués.'};
-  if(card.rarity==='SSR') return {allowed:true, sacrifices:'1 SR ou 2 R'};
+  if(card.rarity==='SSR') return {allowed:true, sacrifices:'1 SR, 1 SSR ou 2 R'};
   if(card.rarity==='R'||card.rarity==='SR') return {allowed:true, sacrifices:'0'};
   return {allowed:false, sacrifices:null, reason:'Rareté inconnue : vérifier la carte.'};
 }
@@ -18,9 +18,10 @@ export function validateNormalSummon(card,sacrifices=[]){
   if(!requirement.allowed)return {valid:false,reason:requirement.reason};
   if(card.rarity==='R'||card.rarity==='SR')return sacrifices.length===0?{valid:true}:{valid:false,reason:'R et SR ne demandent aucun sacrifice pour une invocation normale.'};
   if(card.rarity==='SSR'){
-    if(sacrifices.length===1&&sacrifices[0]?.rarity==='SR'&&sacrifices[0]?.category==='Catcheur')return {valid:true};
+    // Une SSR peut aussi être sacrifiée pour en invoquer une autre (demande du propriétaire, 21/10/2026).
+    if(sacrifices.length===1&&['SR','SSR'].includes(sacrifices[0]?.rarity)&&sacrifices[0]?.category==='Catcheur')return {valid:true};
     if(sacrifices.length===2&&sacrifices.every(x=>x?.rarity==='R'&&x?.category==='Catcheur'))return {valid:true};
-    return {valid:false,reason:'Un SSR demande un SR ou deux R.'};
+    return {valid:false,reason:'Un SSR demande 1 SR, 1 SSR ou 2 R en sacrifice.'};
   }
   return {valid:false,reason:'Rareté inconnue : vérifier la carte.'};
 }

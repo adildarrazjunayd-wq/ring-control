@@ -40,7 +40,8 @@ function makePlayer(name, role, deck, random) {
   };
 }
 
-export function createMatch(humanDeck, aiDeck, { random = Math.random } = {}) {
+// first : joueur qui commence (0 = humain, 1 = IA), décidé par le pile ou face.
+export function createMatch(humanDeck, aiDeck, { random = Math.random, first = 0 } = {}) {
   if (!Array.isArray(humanDeck) || !Array.isArray(aiDeck)) throw new TypeError('Deux decks sont nécessaires.');
   const state = {
     players: [makePlayer('Vous', 'human', humanDeck, random), makePlayer('IA', 'ai', aiDeck, random)],
@@ -63,8 +64,9 @@ export function createMatch(humanDeck, aiDeck, { random = Math.random } = {}) {
     matchId: crypto.randomUUID(),
   };
   state.history.push('Le match commence : chaque joueur pioche 5 cartes.');
-  beginTurn(state, 0, { opening: true });
-  draw(state, 0, 1);
+  state.firstPlayer = first;
+  beginTurn(state, first, { opening: true });
+  draw(state, first, 1);
   return state;
 }
 
@@ -326,6 +328,7 @@ export function declareAttack(state, playerIndex, attackerId, targetId = 'direct
   const player = state.players[playerIndex], defender = state.players[1 - playerIndex];
   if (state.winner !== null || state.turn !== playerIndex || state.phase !== 'attacks' || state.pendingAttack) return { ok: false, reason: 'Aucune attaque ne peut être déclarée maintenant.' };
   if (player.status.noAttackThroughTurn >= state.turnNumber || state.attackLock) return { ok: false, reason: 'Un effet empêche toute nouvelle attaque ce tour.' };
+  if (state.turnNumber === 1) return { ok: false, reason: 'Pas d’attaque au tout premier tour : l’adversaire n’a pas encore joué.' };
   const attacker = player.active.find(x => x.instanceId === attackerId);
   if (!attacker) return { ok: false, reason: 'Seuls les catcheurs actifs peuvent attaquer.' };
   const allowed = combat.canAttack(state, playerIndex, attacker);

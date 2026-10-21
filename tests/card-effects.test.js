@@ -9,7 +9,7 @@ const byId = id => cards.find(c => c.id === id);
 game.configureCardLookup(byId);
 const playable = cards.filter(c => c.playable);
 const deck = Array.from({ length: 40 }, (_, i) => playable[i % playable.length].id);
-const fresh = () => { const s = game.createMatch(deck, deck, { random: () => 0 }); s.players[0].hand = []; s.players[0].deck = []; return s; };
+const fresh = () => { const s = game.createMatch(deck, deck, { random: () => 0 }); s.players[0].hand = []; s.players[0].deck = []; s.turnNumber = 3; return s; };
 const slot = (id, pos = 'active') => ({ instanceId: 'i-' + id + Math.random(), cardId: id, attack: byId(id).attack, endurance: byId(id).endurance, position: pos });
 const play = (s, id) => { s.players[0].hand.push(id); return game.playMomentum(s, 0, byId(id)); };
 

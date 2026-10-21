@@ -7,7 +7,7 @@ const cards=JSON.parse(readFileSync(new URL('../data/catalog.json',import.meta.u
 const byId=id=>cards.find(c=>c.id===id);
 game.configureCardLookup(byId);
 const deck=Array.from({length:40},(_,i)=>cards.filter(c=>c.playable)[i%cards.filter(c=>c.playable).length].id);
-const fresh=()=>game.createMatch(deck,deck,{random:()=>0});
+const fresh=()=>{const s=game.createMatch(deck,deck,{random:()=>0});s.turnNumber=3;return s};
 
 test('initialise une partie avec 5 cartes, puis pioche pour le premier tour',()=>{
   const s=fresh();assert.equal(s.players[0].hand.length,6);assert.equal(s.players[1].hand.length,5);assert.equal(s.players[0].hp,500);assert.equal(s.players[1].hp,500);
@@ -70,4 +70,15 @@ test('les corrections manuelles sont consignées et les PV à zéro terminent le
   const s=fresh(),c=byId('catcheur-08');s.players[0].active.push({instanceId:'manual',cardId:c.id,attack:c.attack,endurance:c.endurance,position:'active'});
   game.adjustFighter(s,0,'manual','attack',5,'effet imprimé');assert.equal(s.players[0].active[0].attack,c.attack+5);assert.match(s.history[0],/effet imprimé/);
   game.adjustPlayerHP(s,1,-500,'effet imprimé');assert.equal(s.winner,0);
+});
+
+test('pas d’attaque au tout premier tour, et le pile ou face décide qui commence', () => {
+  const s = game.createMatch(deck, deck, { random: () => 0, first: 1 });
+  assert.equal(s.turn, 1);
+  assert.equal(s.players[1].hand.length, 6);
+  assert.equal(s.players[0].hand.length, 5);
+  const c = cards.find(x => x.id === 'catcheur-01');
+  s.players[1].active = [{ instanceId: 'a', cardId: c.id, attack: c.attack, endurance: c.endurance, position: 'active' }];
+  s.phase = 'attacks';
+  assert.equal(game.declareAttack(s, 1, 'a', 'direct').ok, false);
 });

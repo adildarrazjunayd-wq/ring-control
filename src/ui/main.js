@@ -6,7 +6,7 @@ import { duel, refreshTitantron } from './duel.js';
 import { actions } from './actions.js';
 import { runAI } from './ai.js';
 import { beforeRender, afterRender } from './fx.js';
-import { soundOn } from './sound.js';
+import { soundOn, startCrowd, stopCrowd } from './sound.js';
 
 const TITLES = { home: 'Accueil', lobby: 'Nouveau duel', decks: 'Decks', collection: 'Collection', duel: 'Duel' };
 
@@ -14,6 +14,7 @@ function render() {
   const view = $('#view');
   const inDuel = S.page === 'duel' && S.match;
   document.body.classList.toggle('in-duel', Boolean(inDuel));
+  if (!inDuel) stopCrowd();
   if (inDuel) beforeRender(S.match);
   view.innerHTML = inDuel ? duel(S.match)
     : S.page === 'duel' || S.page === 'lobby' ? screens.lobby()
@@ -36,6 +37,7 @@ function showPendingChoice() {
 }
 
 document.addEventListener('click', event => {
+  if (S.page === 'duel' && S.match) startCrowd(); // le son ne peut démarrer qu'après un clic
   const el = event.target.closest('[data-act]');
   if (!el) {
     // Un clic dans le vide du plateau désélectionne la carte.

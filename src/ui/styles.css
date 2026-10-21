@@ -419,3 +419,77 @@ body.in-duel #view { min-height: 0; }
 .tron-effects .mode.attack, .tron-effects .mode.activated, .tron-effects .mode.search { color: var(--y); border-color: var(--y); }
 .tron-effects .mode.reaction { color: var(--c); border-color: var(--c); }
 .is-targeting .fcard:not(.target):not(.picked) { filter: brightness(.55); }
+
+/* =====================================================================
+   DUEL — mise en page lisible façon Duel Links (21/10/2026)
+   Grande fiche de carte à gauche, barre de vie fine en haut, plateau et main agrandis.
+   ===================================================================== */
+.duel {
+  --cw: clamp(70px, min((100vw - 470px) / 6.3, (100vh - 330px) * .33), 172px);
+  --hw: clamp(78px, min(8.2vw, 17vh), 140px);
+  grid-template-columns: clamp(300px, 27vw, 430px) minmax(0, 1fr);
+  grid-template-rows: 82px minmax(0, 1fr) clamp(140px, 21vh, 205px);
+  grid-template-areas: "info hud" "info stage" "info hand";
+}
+.duel .info { grid-area: info; min-height: 0; padding: 10px 0 10px 10px; display: flex; }
+.duel .hud { grid-area: hud; display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; padding: 6px 18px 0; }
+.duel .stage { grid-area: stage; }
+.duel .handbar { grid-area: hand; }
+.hud .status { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.hud .status .k { font: 11px var(--title); letter-spacing: 2px; color: var(--c); }
+.hud .status b { font: clamp(18px, 1.8vw, 26px) var(--title); text-shadow: 3px 3px 0 var(--m); white-space: nowrap; }
+.hud .status .btn { min-height: 24px; padding: 1px 8px; font-size: 10px; margin-top: 2px; }
+.hud .life { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "who gauge pv" "chips chips chips"; gap: 2px 12px; align-items: center; }
+.hud .life.ai { grid-template-columns: auto 1fr auto; grid-template-areas: "pv gauge who" "chips chips chips"; }
+.hud .life .who { grid-area: who; font-size: 18px; }
+.hud .life .who small { display: none; }
+.hud .life .gauge { grid-area: gauge; height: 22px; margin: 0; }
+.hud .life .pv { grid-area: pv; font-size: 34px; margin: 0; }
+.hud .life .chips { grid-area: chips; margin: 0; }
+.hud .life .chips span { font-size: 10px; padding: 2px 7px; }
+
+/* Fiche de carte (grand écran vertical) */
+.duel .info .tron { width: 100%; height: 100%; grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 10px; padding: 12px; }
+.duel .info .tron > img { width: 100%; height: auto; max-height: 44vh; object-fit: contain; aspect-ratio: auto; border: 0; filter: drop-shadow(0 8px 18px #000); }
+.duel .info .tron.idle { place-items: stretch; text-align: left; }
+.duel .info .tron.idle > img { max-height: 30vh; opacity: .5; }
+.duel .info .tron h2 { font-size: clamp(22px, 1.9vw, 30px); }
+.duel .info .tron p { font-size: 15px; }
+.duel .info .tron .facts span { font-size: 16px; }
+.duel .info .live-stats { font-size: 26px; flex-wrap: wrap; }
+.duel .info .tron-effects { background: #f4ecd8; color: #1b1206; border-radius: 6px; padding: 10px 12px; border: 2px solid #c9a96a; box-shadow: inset 0 0 12px rgba(120, 80, 20, .18); }
+.duel .info .tron-effects p { font: 15.5px/1.45 var(--body); color: #1b1206; margin: 4px 0; }
+.duel .info .tron-effects b { color: #8a1538; }
+.duel .info .tron-effects .mode { background: #fff; color: #555; border-color: #bbb; font-size: 14px; }
+.duel .info .tron-effects .mode.toggle, .duel .info .tron-effects .mode.activated, .duel .info .tron-effects .mode.attack, .duel .info .tron-effects .mode.search { color: #8a1538; border-color: #8a1538; }
+.duel .info .tron-effects .mode.reaction { color: #0a6f87; border-color: #0a6f87; }
+.duel .info .tron-actions { flex-direction: column; flex-wrap: nowrap; background: linear-gradient(rgba(29, 8, 32, 0), #1f0a1d 18%); }
+.duel .info .tron-actions .btn { width: 100%; transform: none; align-items: flex-start; text-align: left; min-height: 46px; font-size: 15px; padding: 6px 14px; }
+.duel .info .tron-actions .btn > * { transform: none; }
+.duel .info .tron-actions .btn small { font-size: 13px; }
+.duel .info .tron-actions .hint, .duel .info .hint { font-size: 14px; }
+
+/* Plateau et main plus grands */
+.board { transform: rotateX(8deg); width: min(100%, 1300px); }
+.pill b { font-size: 17px; }
+.pill i { font-size: 12px; }
+.badges i { font-size: 15px; }
+
+/* Pile ou face */
+.coin-screen { text-align: center; }
+.coin-screen .center { justify-content: center; margin-top: 16px; }
+.coin { width: 150px; height: 150px; margin: 22px auto; position: relative; transform-style: preserve-3d; }
+.coin-face { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50%; font: 26px var(--title); color: #3a2400; backface-visibility: hidden; background: radial-gradient(circle at 35% 30%, #fff4b8, #f5c542 45%, #a87412); border: 6px solid #7a5208; box-shadow: inset 0 0 0 6px #e7b23a, 0 10px 30px rgba(0, 0, 0, .6); }
+.coin-face.tails { transform: rotateY(180deg); }
+.coin.spin-face { animation: coin-face 1.6s cubic-bezier(.2, .7, .3, 1) forwards; }
+.coin.spin-pile { animation: coin-pile 1.6s cubic-bezier(.2, .7, .3, 1) forwards; }
+@keyframes coin-face { from { transform: translateY(0) rotateY(0); } 40% { transform: translateY(-90px) rotateY(1080deg); } to { transform: translateY(0) rotateY(2160deg); } }
+@keyframes coin-pile { from { transform: translateY(0) rotateY(0); } 40% { transform: translateY(-90px) rotateY(1080deg); } to { transform: translateY(0) rotateY(2340deg); } }
+.coin-result { font: 30px var(--title); color: var(--y); text-shadow: 3px 3px 0 var(--m); margin: 10px 0 14px; }
+
+@media (max-width: 1000px) {
+  .duel { grid-template-columns: 1fr; grid-template-rows: 82px clamp(200px, 30vh, 260px) minmax(0, 1fr) clamp(110px, 17vh, 160px); grid-template-areas: "hud" "info" "stage" "hand"; --cw: clamp(56px, min(14vw, (100vh - 560px) * .32), 120px); }
+  .duel .info { padding: 6px 10px 0; }
+  .duel .info .tron { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .duel .info .tron > img { height: 100%; width: auto; max-height: none; }
+}

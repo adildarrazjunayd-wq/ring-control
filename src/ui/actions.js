@@ -3,8 +3,9 @@ import { DECK_MAX, COPIES_MAX } from '../engine/rules.js';
 import * as effects from '../engine/card-effects.js';
 import * as combat from '../engine/combat.js';
 import * as activ from '../engine/activations.js';
-import { S, card, esc, game, persist, hooks, toast, modal, closeModal, option, btn, catalog, SIGNATURE_DECKS } from './core.js';
+import { S, card, esc, game, persist, hooks, toast, modal, closeModal, option, btn, SIGNATURE_DECKS } from './core.js';
 import { pickable, needed } from './targeting.js';
+import { AI_DECKS } from '../../data/ai-decks.js';
 import { cardDetail, applyFilters } from './screens.js';
 import { animateAttack, banner } from './fx.js';
 import { runAI, aiReact } from './ai.js';
@@ -35,15 +36,24 @@ export function go(page) {
   window.scrollTo(0, 0);
 }
 
-function newMatch(deck) {
-  const pool = catalog.filter(c => c.playable);
-  const aiDeck = Array.from({ length: 40 }, (_, i) => pool[i % pool.length].id);
-  S.match = game.createMatch(deck.cards.slice(), aiDeck);
+// Pile ou face : le joueur choisit, la pièce tourne, le gagnant commence.
+function coinToss(deck) {
+  const aiDeck = AI_DECKS[Math.floor(Math.random() * AI_DECKS.length)];
+  S.pendingStart = { deck, aiDeck };
+  modal(`<div class="coin-screen"><h2>PILE OU FACE ?</h2><p>Ton adversaire : <b>${esc(aiDeck.name)}</b>. Le gagnant du tirage commence (sans pouvoir attaquer au premier tour).</p><div class="coin"><div class="coin-face heads">FACE</div><div class="coin-face tails">PILE</div></div><div class="row center">${btn('FACE', 'data-act="coinPick" data-side="face"', 'btn hot big')}${btn('PILE', 'data-act="coinPick" data-side="pile"', 'btn hot big')}</div></div>`);
+}
+
+function newMatch(deck, aiDeck, first) {
+  S.match = game.createMatch(deck.cards.slice(), aiDeck.cards.slice(), { first });
   S.match.players[0].name = 'Vous';
   S.match.players[1].name = 'L’IA';
+  S.match.aiDeckName = aiDeck.name;
   S.hideResult = false;
+  S.pendingStart = null;
   persist();
   go('duel');
+  sfx('bell');
+  if (first === 1) { banner('<b>L’IA COMMENCE</b>'); runAI(); } else banner('<b>À TOI DE COMMENCER !</b>');
 }
 
 // Momentum joué par le joueur : on enchaîne sur le bon choix selon la carte.
@@ -123,8 +133,23 @@ export const actions = {
     const deck = kind === 'signature' ? SIGNATURE_DECKS.find(x => x.id === id) : S.decks.find(x => x.id === id);
     if (!deck) { toast('Choisis un deck complet.'); return; }
     if (S.match && S.match.winner === null && !confirm('Un duel est en cours. Le remplacer par un nouveau ?')) return;
-    newMatch(deck);
+    coinToss(deck);
   },
+  coinPick: d => {
+    if (!S.pendingStart) return;
+    const result = Math.random() < 0.5 ? 'face' : 'pile', won = result === d.side;
+    const coin = document.querySelector('.coin');
+    document.querySelectorAll('.coin-screen .btn').forEach(b => { b.disabled = true; });
+    coin?.classList.add(result === 'face' ? 'spin-face' : 'spin-pile');
+    sfx('coin');
+    setTimeout(() => {
+      const box = document.querySelector('.coin-screen');
+      if (!box) return;
+      box.insertAdjacentHTML('beforeend', `<p class="coin-result">${result.toUpperCase()} ! ${won ? 'Tu commences.' : 'L’IA commence.'}</p>${btn('ENTRER DANS L’ARÈNE ▶', `data-act="coinGo" data-first="${won ? 0 : 1}"`, 'btn hot big')}`);
+      sfx(won ? 'cheer' : 'boo');
+    }, 1700);
+  },
+  coinGo: d => { const { deck, aiDeck } = S.pendingStart ?? {}; if (!deck) return; closeModal(); newMatch(deck, aiDeck, Number(d.first)); },
   newDeck: () => { const d = { id: crypto.randomUUID(), name: `Deck ${S.decks.length + 1}`, cards: [] }; S.decks.push(d); S.deckId = d.id; persist(); render(); },
   duplicate: d => { const src = SIGNATURE_DECKS.find(x => x.id === d.id); const copy = { id: crypto.randomUUID(), name: `${src.name} — ma version`, cards: [...src.cards] }; S.decks.push(copy); S.deckId = copy.id; persist(); render(); toast('Deck dupliqué : tu peux le modifier.'); },
   openDeck: d => { S.deckId = d.id; render(); },
@@ -161,8 +186,8 @@ export const actions = {
   summon: d => done(game.normalSummon(m(), 0, card(d.id), [], d.pos), 'summon'),
   summonSSR: d => {
     const p = me(), c = card(d.id);
-    const pool = fighters(p).map(f => ({ f, c: card(f.cardId) })).filter(x => x.c.rarity === 'SR' || x.c.rarity === 'R');
-    modal(`<h2>Invoquer ${esc(c.displayName)}</h2><p>Sacrifie <b>1 SR</b> ou <b>2 R</b> de ton ring.</p><div class="opts">${pool.map(x => `<label class="pick"><input type="checkbox" data-sac value="${x.f.instanceId}"><img src="/${x.c.image}" alt=""><span>${esc(x.c.displayName)} · ${x.c.rarity}</span></label>`).join('')}</div><p>Position :</p><div class="row">${btn('Actif', `data-act="commitSSR" data-id="${d.id}" data-pos="active"`, 'btn hot')}${btn('Passif', `data-act="commitSSR" data-id="${d.id}" data-pos="passive"`, 'btn')}</div>`);
+    const pool = fighters(p).map(f => ({ f, c: card(f.cardId) })).filter(x => ['R', 'SR', 'SSR'].includes(x.c.rarity));
+    modal(`<h2>Invoquer ${esc(c.displayName)}</h2><p>Sacrifie <b>1 SR</b>, <b>1 SSR</b> ou <b>2 R</b> de ton ring.</p><div class="opts">${pool.map(x => `<label class="pick"><input type="checkbox" data-sac value="${x.f.instanceId}"><img src="/${x.c.image}" alt=""><span>${esc(x.c.displayName)} · ${x.c.rarity}</span></label>`).join('')}</div><p>Position :</p><div class="row">${btn('Actif', `data-act="commitSSR" data-id="${d.id}" data-pos="active"`, 'btn hot')}${btn('Passif', `data-act="commitSSR" data-id="${d.id}" data-pos="passive"`, 'btn')}</div>`);
   },
   commitSSR: d => done(game.normalSummon(m(), 0, card(d.id), [...document.querySelectorAll('[data-sac]:checked')].map(x => x.value), d.pos), 'summon'),
   playManager: d => done(game.playManager(m(), 0, card(d.id)), 'summon'),
