@@ -3,12 +3,15 @@ const recipes = [
     id: 'bloodline',
     name: 'The Bloodline',
     theme: 'Faction · Contrôle et pression',
-    description: 'Roman, les Usos, Solo et Sami soutenus par les cartes de la Bloodline.',
+    description: 'Roman, les Usos, Solo et Sami soutenus par les cartes de la Bloodline. Beaucoup de Momenta pour piocher et réunir la famille.',
+    // Renforcé le 21/10/2026 (31 % → 49 % de victoires en simulation) : L'appel du Main Event,
+    // Rappel stratégique et Retour inattendu remplacent Domination totale, Acknowledge me et
+    // Pioche tactique ; la Ceinture poids lourd (2 Momenta par tour) remplace « The Champ ».
     cardIds: [
       'catcheur-01', 'catcheur-20', 'catcheur-21', 'catcheur-22', 'catcheur-23', 'catcheur-02',
       'wyatt-08', 'wyatt-09', 'wyatt-10', 'wyatt-11',
-      'managers-01', 'wyatt-12', 'wyatt-13', 'momentum-01', 'momentum-13',
-      'momentum-05', 'momentum-15', 'momentum-20', 'objets-05', 'objets-08',
+      'managers-01', 'wyatt-12', 'wyatt-13', 'momentum-17', 'momentum-08',
+      'momentum-05', 'momentum-16', 'momentum-20', 'objets-05', 'objets-07',
     ],
   },
   {
