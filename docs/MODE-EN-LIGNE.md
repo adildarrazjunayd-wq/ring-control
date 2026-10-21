@@ -47,5 +47,6 @@ Pour publier une nouvelle version plus tard : dans GitHub Desktop, *Push origin*
   de réponse, dégâts identiques des deux côtés, fin de tour, reconnexion de l'invité.
 - 21/10/2026, depuis la version publiée sur GitHub Pages : salle créée sur `github.io`, rejointe depuis une autre
   fenêtre, partie lancée des deux côtés.
-- **Pas encore testé** : deux ordinateurs sur deux connexions Internet différentes. Certaines box ou réseaux
-  d'entreprise bloquent les connexions directes ; si la connexion échoue, le noter et me le dire.
+- 21/10/2026 : **partie réelle entre deux ordinateurs** (le propriétaire et son cousin, chacun chez soi) — la connexion
+  et la partie fonctionnent. Quelques soucis remontés ensuite par le propriétaire (à traiter un par un).
+- Remarque : certaines box ou réseaux d'entreprise peuvent bloquer les connexions directes.
