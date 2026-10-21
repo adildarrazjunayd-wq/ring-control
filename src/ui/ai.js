@@ -1,6 +1,7 @@
 // IA locale : joue son tour seule, puis rend la main au joueur.
 import * as effects from '../engine/card-effects.js';
 import * as combat from '../engine/combat.js';
+import * as activ from '../engine/activations.js';
 import { S, card, game, persist, hooks } from './core.js';
 import { animateAttack, banner } from './fx.js';
 
@@ -75,6 +76,30 @@ function attackOptions(m, fighter, target) {
   return combat.specialBonusAgainst(m, 1, fighter, t) != null ? { special: fighter.cardId } : {};
 }
 
+// L'IA active les effets de ses catcheurs : passifs, recherches et effets à cible (cible la plus forte).
+function useEffects(m) {
+  const p = m.players[1];
+  let used = false;
+  const strongest = list => list.map(t => ({ t, f: combat.fightersOf(m.players[t.pi]).find(x => x.instanceId === t.instanceId) })).sort((a, b) => combat.effective(m, a.t.pi, b.f).attack - combat.effective(m, a.t.pi, a.f).attack)[0]?.t;
+  for (const f of combat.fightersOf(p)) {
+    if (!combat.fightersOf(p).includes(f)) continue;
+    for (const [kind, key] of [['passif', 'passive'], ['spécial', 'special']]) {
+      if (!card(f.cardId)?.effects.some(e => e.kind === kind)) continue;
+      const full = `${f.cardId}:${key}`, mode = activ.effectMode(f.cardId, kind, { attackSpecial: combat.ATTACK_SPECIALS, search: effects.SEARCH_RULES });
+      if (mode === 'toggle' && f.passiveUsedTurn !== m.turnNumber) used = game.activateWrestlerEffect(m, 1, f.instanceId, 'passive').ok || used;
+      else if (mode === 'search' && effects.searchOptions(m, 1, full).length && game.activateWrestlerEffect(m, 1, f.instanceId, key).ok) {
+        effects.resolveSearch(m, 1, full, effects.searchOptions(m, 1, full)[0].cardId, card(f.cardId).displayName);
+        used = true;
+      } else if (mode === 'activated' && !activ.activationCheck(m, 1, full, f)) {
+        const e = activ.ACTIVATED[full], option = e.summon ? activ.summonCandidates(m, 1, e.summon, { leaving: e.leaves ? f : null })[0] : null;
+        const targets = (e.targets ?? []).map(spec => strongest(activ.targetCandidates(m, 1, spec)));
+        used = activ.activate(m, 1, full, f.instanceId, { targets, cardId: option?.cardId, position: option?.positions[0] }).ok || used;
+      }
+    }
+  }
+  return used;
+}
+
 export async function runAI() {
   const m = S.match;
   if (!m || m.turn !== 1 || m.winner !== null || S.busy) return;
@@ -95,6 +120,7 @@ export async function runAI() {
       if (object && holder && !p.limits.object && game.equipObject(m, 1, object, holder.instanceId).ok) await step();
       const momentum = playMomentum(m);
       if (momentum) { banner(`L’IA joue <b>${momentum.displayName}</b>`); await step(900); }
+      if (useEffects(m)) await step();
       m.phase = 'attacks';
       await step(400);
     }

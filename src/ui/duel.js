@@ -52,7 +52,7 @@ function momentumCheck(m, c) {
 }
 
 const modeOf = (cardId, kind) => activ.effectMode(cardId, kind, { attackSpecial: combat.ATTACK_SPECIALS, search: effects.SEARCH_RULES });
-const MODE_LABEL = { auto: 'automatique', attack: 'au moment d’attaquer', reaction: 'en réponse à une attaque', activated: 'à activer', search: 'à activer', grave: 'depuis le cimetière', manual: 'à appliquer à la main' };
+const MODE_LABEL = { toggle: 'à activer · dure jusqu’à ton prochain tour', auto: 'automatique', attack: 'au moment d’attaquer', reaction: 'en réponse à une attaque', activated: 'à activer', search: 'à activer', grave: 'depuis le cimetière', manual: 'à appliquer à la main' };
 
 function fighterActions(m, pi, f) {
   const p = m.players[pi], c = card(f.cardId), out = [];
@@ -79,7 +79,19 @@ function fighterActions(m, pi, f) {
     for (const [kind, key] of [['passif', 'passive'], ['spécial', 'special']]) {
       if (!hasEffect(c, kind)) continue;
       const mode = modeOf(c.id, kind), full = `${c.id}:${key}`, title = `Effet ${kind}`;
-      if (mode === 'activated') {
+      const effectName = esc(c.effects.find(e => e.kind === kind).text.split(':')[0].trim());
+      if (mode === 'toggle') {
+        const on = (f.passiveActiveUntil ?? 0) >= m.turnNumber, used = f.passiveUsedTurn === m.turnNumber;
+        const off = (f.passivesOffUntil ?? 0) >= m.turnNumber;
+        out.push(act(`Effet passif : ${effectName}`, `data-act="passive" data-iid="${f.instanceId}" ${used || off ? 'disabled' : ''}`, off ? 'Annulé par un effet adverse' : used || on ? '✨ Actif jusqu’à ton prochain tour' : 'Activer · dure jusqu’à ton prochain tour', 'hot'));
+      } else if (mode === 'attack' && f.position === 'active') {
+        const sp = combat.specialAvailable(m, 0, f);
+        if (sp && combat.canAttack(m, 0, f).ok && !m.attackLock) {
+          const probe = { mode: 'attack', iid: f.instanceId, special: f.cardId, picked: [] };
+          const ok = sp.targets.startsWith('all') ? m.players[1].active.length > 0 && combat.specialBonusAgainst(m, 0, f, m.players[1].active[0]) != null : pickable(m, probe).size > 0 || directAllowed(m, probe);
+          out.push(act(`Attaque spéciale : ${esc(sp.name)}`, `data-act="attack" data-iid="${f.instanceId}" data-special="${f.cardId}" ${ok ? '' : 'disabled'}`, ok ? 'Passe en phase Combat et vise directement' : 'Condition non remplie pour l’instant', 'hot'));
+        } else if (f.specialUsed) out.push(act(`Attaque spéciale : ${effectName}`, 'disabled', 'Déjà utilisée'));
+      } else if (mode === 'activated') {
         const refused = activ.activationCheck(m, 0, full, f);
         out.push(act(`${title} : ${esc(activ.ACTIVATED[full].name)}`, `data-act="activate" data-key="${full}" data-iid="${f.instanceId}" ${refused ? 'disabled' : ''}`, refused ?? 'Activer', 'hot'));
       } else if (mode === 'search') {
@@ -158,6 +170,7 @@ function fighterStats(m, pi, f) {
 
 function statusBadges(m, f) {
   const out = [];
+  if ((f.passiveActiveUntil ?? 0) >= m.turnNumber && !((f.passivesOffUntil ?? 0) >= m.turnNumber)) out.push(['✨', 'Effet passif actif']);
   if ((f.noAttackUntil ?? 0) >= m.turnNumber) out.push(['💤', 'Ne peut pas attaquer']);
   if ((f.passivesOffUntil ?? 0) >= m.turnNumber) out.push(['🚫', 'Effets passifs annulés']);
   if ((f.halfDamageUntil ?? 0) >= m.turnNumber) out.push(['½', 'Dégâts divisés par 2']);

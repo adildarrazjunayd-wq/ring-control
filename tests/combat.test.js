@@ -12,7 +12,7 @@ game.configureCardLookup(byId);
 const playable = cards.filter(c => c.playable);
 const deck = Array.from({ length: 40 }, (_, i) => playable[i % playable.length].id);
 let n = 0;
-const slot = (id, pos = 'active') => ({ instanceId: `${id}#${n++}`, cardId: id, attack: byId(id).attack, endurance: byId(id).endurance, baseEndurance: byId(id).endurance, position: pos, specialUsed: false, passiveUsedTurn: 0, modifiers: [] });
+const slot = (id, pos = 'active') => ({ instanceId: `${id}#${n++}`, cardId: id, attack: byId(id).attack, endurance: byId(id).endurance, baseEndurance: byId(id).endurance, position: pos, specialUsed: false, passiveUsedTurn: 0, modifiers: [], passiveActiveUntil: 999 });
 // Partie vide : joueur 0 en phase d'attaque, terrains fournis.
 function duel(me = [], ai = [], phase = 'attacks') {
   const s = game.createMatch(deck, deck, { random: () => 0 });
@@ -286,6 +286,7 @@ test('The Bloodline Rassemblement : Roman depuis le deck, +10 ATT, attaque des p
   game.playMomentum(s, 0, byId('wyatt-13'));
   assert.equal(act.resolveRassemblement(s, 0, { cardId: 'catcheur-01', position: 'passive' }).ok, true);
   assert.equal(p.ongoingMomentum[0].cardId, 'wyatt-13');
+  p.passive[0].passiveActiveUntil = 999; // Roman vient d'arriver : on active son passif
   const jey = p.active[0];
   assert.equal(eff(s, 0, jey).attack, 50 + 5 + 5 + 10); // Jimmy actif, Roman, Rassemblement
   s.phase = 'attacks';
@@ -302,4 +303,24 @@ test('Roman Reigns (wyatt-08) attaque deux fois quand la Bloodline est au comple
   s.players[0].passive = [slot('wyatt-11', 'passive')];
   const roman = s.players[0].active[0];
   assert.equal(combat.attacksAllowed(s, 0, roman), 2);
+});
+
+test('Un effet passif ne marche qu’une fois activé, et dure jusqu’au prochain tour de son propriétaire', () => {
+  const s = duel(['catcheur-11'], ['catcheur-12'], 'actions');
+  const gunther = s.players[1].active[0];
+  gunther.passiveActiveUntil = 0;
+  const lashley = s.players[0].active[0];
+  lashley.passiveActiveUntil = 0;
+  s.phase = 'attacks';
+  hit(s, lashley, gunther);
+  assert.equal(gunther.endurance, 85 - 45); // ni +5 de Lashley, ni -10 de Gunther
+  // L'IA active Gunther pendant son tour : il reste protégé pendant le tour suivant du joueur.
+  s.players[0].deck = ['objets-01', 'objets-02']; s.players[1].deck = ['objets-01'];
+  game.endTurn(s);
+  assert.equal(game.activateWrestlerEffect(s, 1, gunther.instanceId, 'passive').ok, true);
+  game.endTurn(s);
+  s.phase = 'attacks';
+  s.players[0].active[0] = lashley;
+  hit(s, lashley, gunther);
+  assert.equal(gunther.endurance, 40 - 35);
 });

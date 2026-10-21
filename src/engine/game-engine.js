@@ -263,6 +263,7 @@ export function activateWrestlerEffect(state, playerIndex, fighterId, kind) {
   if (kind === 'passive') {
     if (fighter.passiveUsedTurn === state.turnNumber) return { ok: false, reason: 'Cet effet passif a déjà été activé ce tour.' };
     fighter.passiveUsedTurn = state.turnNumber;
+    fighter.passiveActiveUntil = state.turnNumber + 1; // actif jusqu'au début de son prochain tour
   } else if (kind === 'special') {
     if (activeIndex < 0) return { ok: false, reason: 'Un catcheur passif ne peut pas utiliser son effet spécial.' };
     if (fighter.specialUsed) return { ok: false, reason: 'Cet effet spécial a déjà été utilisé pendant cette présence en jeu.' };

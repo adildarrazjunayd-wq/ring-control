@@ -52,6 +52,9 @@ export const ACTIVATED = Object.freeze({
   'catcheur-07:special': { name: 'Dirty Deeds', targets: [opp((s, pi, t) => effective(s, 1 - pi, t).endurance > 60)], run: (s, pi, f, [t]) => { const cut = Math.ceil(effective(s, 1 - pi, t).endurance / 2); t.endurance -= cut; return `l’END de ${label(t.cardId)} est réduite de moitié (-${cut})`; } },
   'catcheur-13:passive': { name: 'Prédateur Apex', run: (s, pi) => { s.players[1 - pi].status.effectsCancelledThroughTurn = s.turnNumber; return 'tous les effets adverses sont annulés ce tour-ci'; } },
   'catcheur-16:special': { name: 'South of Heaven', targets: [{ side: 'opp', zone: 'active' }], run: (s, pi, f, [t]) => { t.halfDamageUntil = s.turnNumber + 1; return `${label(t.cardId)} inflige moitié moins de dégâts au prochain tour`; } },
+  'catcheur-26:passive': { name: 'Force positive', run: (s, pi) => { for (const x of s.players[pi].active) heal(s, pi, x, 5, 'Big E'); return 'tes catcheurs actifs regagnent 5 END'; } },
+  'catcheur-28:passive': { name: 'Stratégiste du ring', check: (s, pi, f) => (f.position === 'active' ? null : 'Xavier Woods doit être actif.'), run: (s, pi) => { draw(s, pi, 1, 'Xavier Woods'); return 'une carte supplémentaire est piochée'; } },
+  'catcheur-36:passive': { name: 'Straight Edge Icon', run: (s, pi) => { for (const x of s.players[pi].active) heal(s, pi, x, 5, 'CM Punk'); return 'tes catcheurs actifs regagnent 5 END'; } },
   'catcheur-31:passive': { name: 'D-Generation-X', summon: { sources: ['deck'], filter: c => c.faction === 'DX' } },
   'catcheur-31:special': { name: 'Pedigree', check: (s, pi, f) => (s.players[pi].objects.some(o => o.fighterId === f.instanceId) ? null : 'Triple H doit porter un objet.'), run: (s, pi, f) => { f.attack += 5; return 'Triple H gagne +5 ATT'; } },
   'catcheur-32:passive': { name: 'Sweet Chin Music', targets: [opp()], run: (s, pi, f, [t]) => { t.noAttackUntil = s.turnNumber + 1; return `${label(t.cardId)} est endormi : pas d’attaque au prochain tour`; } },
@@ -67,11 +70,11 @@ export const ACTIVATED = Object.freeze({
 });
 
 // Mode d'un effet imprimé, pour l'affichage.
-const AUTO = new Set(['catcheur-01:passive', 'catcheur-02:passive', 'catcheur-03:passive', 'catcheur-04:passive', 'catcheur-05:passive', 'catcheur-06:passive', 'catcheur-07:passive', 'catcheur-08:passive', 'catcheur-09:passive', 'catcheur-10:passive', 'catcheur-11:passive', 'catcheur-12:passive', 'catcheur-14:passive', 'catcheur-15:passive', 'catcheur-16:passive', 'catcheur-18:passive', 'catcheur-19:passive', 'catcheur-20:passive', 'catcheur-21:passive', 'catcheur-22:passive', 'catcheur-24:passive', 'catcheur-25:passive', 'catcheur-26:passive', 'catcheur-28:passive', 'catcheur-34:passive', 'catcheur-35:passive', 'catcheur-36:passive', 'catcheur-39:passive', 'catcheur-32:special', 'wyatt-01:passive', 'wyatt-02:passive', 'wyatt-08:passive', 'wyatt-09:passive']);
+const AUTO = new Set(['catcheur-01:passive', 'catcheur-02:passive', 'catcheur-03:passive', 'catcheur-04:passive', 'catcheur-05:passive', 'catcheur-06:passive', 'catcheur-07:passive', 'catcheur-08:passive', 'catcheur-09:passive', 'catcheur-10:passive', 'catcheur-11:passive', 'catcheur-12:passive', 'catcheur-14:passive', 'catcheur-15:passive', 'catcheur-16:passive', 'catcheur-18:passive', 'catcheur-19:passive', 'catcheur-20:passive', 'catcheur-21:passive', 'catcheur-22:passive', 'catcheur-24:passive', 'catcheur-25:passive', 'catcheur-34:passive', 'catcheur-35:passive', 'catcheur-39:passive', 'catcheur-32:special', 'wyatt-01:passive', 'wyatt-02:passive', 'wyatt-08:passive', 'wyatt-09:passive']);
 const REACTION = new Set(['catcheur-10:special', 'catcheur-13:special', 'wyatt-11:special', 'wyatt-01:special']);
 export function effectMode(cardId, kind, { attackSpecial, search } = {}) {
   const key = `${cardId}:${kind === 'passif' ? 'passive' : 'special'}`;
-  if (AUTO.has(key)) return 'auto';
+  if (AUTO.has(key)) return kind === 'passif' && !['wyatt-01', 'wyatt-02'].includes(cardId) ? 'toggle' : 'auto';
   if (REACTION.has(key)) return 'reaction';
   if (ACTIVATED[key]) return 'activated';
   if (search?.[key]) return 'search';

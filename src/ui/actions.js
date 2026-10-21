@@ -200,7 +200,7 @@ export const actions = {
     if (!r.ok) { toast(r.reason); return; }
     persist();
     if (effects.SEARCH_RULES[key]) { searchModal(key, card(f.cardId).displayName); return; }
-    banner(`Effet passif · <b>${esc(card(f.cardId).displayName)}</b><small>Applique le texte imprimé</small>`);
+    banner(`✨ <b>${esc(card(f.cardId).displayName)}</b><small>Effet passif actif jusqu’à ton prochain tour</small>`);
     done(r, 'effect');
   },
   special: d => {
@@ -336,6 +336,7 @@ function launchAttack(target) {
   const t = S.targeting;
   if (!t) return;
   S.targeting = null;
+  if (m().phase === 'actions') { m().phase = 'attacks'; sfx('phase'); } // attaque spéciale lancée depuis la phase Actions
   const ids = t.picked.map(x => x.instanceId);
   const r = game.declareAttack(m(), 0, t.iid, target, { special: t.special, ladder: t.ladder, discard: t.discard, targets: ids, secondTarget: t.special === 'catcheur-08' ? ids[1] : null });
   if (!r.ok) { toast(r.reason); render(); return; }

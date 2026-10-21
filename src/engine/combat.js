@@ -14,7 +14,9 @@ const findFighter = (p, id) => fightersOf(p).find(f => f.instanceId === id);
 
 // « Annule tous les effets adverses » (Randy Orton, Acknowledge Me) coupe tous les effets du joueur visé.
 export const effectsOff = (state, pi) => (state.players[pi].status.effectsCancelledThroughTurn ?? 0) >= state.turnNumber;
-export const passiveOn = (state, pi, f) => !effectsOff(state, pi) && !((f.passivesOffUntil ?? 0) >= state.turnNumber);
+// Un effet passif ne marche que si le joueur l'a activé (choix du propriétaire) : il dure jusqu'au début
+// du tour suivant de son propriétaire, donc il protège aussi pendant le tour adverse.
+export const passiveOn = (state, pi, f) => (f.passiveActiveUntil ?? 0) >= state.turnNumber && !effectsOff(state, pi) && !((f.passivesOffUntil ?? 0) >= state.turnNumber);
 const has = (state, pi, f, id) => f.cardId === id && passiveOn(state, pi, f);
 const onRing = (state, pi, id, zone) => (zone ? state.players[pi][zone] : fightersOf(state.players[pi])).find(f => has(state, pi, f, id));
 const objectsOf = (state, pi, f) => (effectsOff(state, pi) ? [] : state.players[pi].objects.filter(o => o.fighterId === f.instanceId).map(o => o.cardId));
@@ -330,9 +332,6 @@ export function startOfTurn(state, pi) {
   state.extraAttacks = {};
   p.limits.extraNormal = 0;
   for (const f of fightersOf(p)) f.modifiers = (f.modifiers ?? []).filter(m => m.until == null || m.until >= state.turnNumber);
-  if (fightersOf(p).some(f => has(state, pi, f, 'catcheur-36'))) for (const f of p.active) heal(state, pi, f, 5, 'CM Punk : Straight Edge Icon');
-  if (fightersOf(p).some(f => has(state, pi, f, 'catcheur-26'))) for (const f of p.active) heal(state, pi, f, 5, 'Big E : Force positive');
-  if (p.active.some(f => has(state, pi, f, 'catcheur-28'))) draw(state, pi, 1, 'Xavier Woods : Stratégiste du ring');
   if (!effectsOff(state, pi)) {
     for (const o of p.objects) {
       const f = findFighter(p, o.fighterId);

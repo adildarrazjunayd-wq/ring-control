@@ -20,9 +20,15 @@
 
 ## Façon d'appliquer les effets (cahier des charges §11 : « selon sa formulation »)
 
-- Effet passif **continu** (« gagne +X », « réduit les dégâts reçus », « tant que… ») : appliqué en permanence, sans clic.
-- Effet passif **déclenché** (« chaque fois qu'il attaque », « après avoir subi une attaque », « au début de votre tour ») : appliqué automatiquement au bon moment.
-- Effet passif **à action** (« peut invoquer », « endors », « annule ») : le joueur l'active, une fois par tour.
-- Effet spécial **d'attaque** (« inflige +X dégâts ») : le joueur choisit « Attaque spéciale » au moment d'attaquer ; il est consommé (une fois tant que le catcheur reste en jeu).
+Mise à jour du 21 octobre 2026, à la demande du propriétaire (« je veux choisir d'activer ») :
+
+- **Tout effet passif a un bouton « Activer »** (une fois par tour). Il ne s'applique que s'il a été activé, puis
+  reste actif jusqu'au début du tour suivant de son propriétaire (il protège donc aussi pendant le tour adverse).
+  Bonus (« gagne +X », « réduit les dégâts reçus ») et déclencheurs (« chaque fois qu'il attaque », « après avoir subi une attaque ») ne marchent que pendant cette période.
+- Passifs « à action » (« peut invoquer », « endors », « soigne », « piochez ») : l'effet se produit au moment du clic.
+- Seuls les effets qui se déclenchent quand la carte arrive au cimetière (Strowman, Rowan) restent proposés automatiquement.
+- Effet spécial **d'attaque** (« inflige +X dégâts ») : bouton « Attaque spéciale » disponible dès la phase Actions ;
+  au lancement de l'attaque, le jeu passe en phase Combat. Il est consommé (une fois tant que le catcheur reste en jeu).
+- L'IA active elle aussi ses effets passifs pendant son tour.
 
 Ces choix sont consignés pour éviter de redemander les mêmes précisions. Les autres effets restent fidèles aux visuels; lorsqu’une résolution n’est pas explicitement transcrite, le mode manuel évite d’inventer son résultat.
