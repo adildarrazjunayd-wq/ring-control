@@ -14,9 +14,11 @@ const extra = [
   {
     id: 'ai-dx',
     name: 'D-Generation X',
+    // Renforcé le 22/10/2026 (34 % → 53 % de victoires, simulations de 2 100 parties) : John Cena et The Champ
+    // remplacent Braun Strowman et Saut de l'ange.
     cardIds: [
-      'catcheur-31', 'catcheur-32', 'catcheur-33', 'catcheur-24', 'catcheur-13', 'catcheur-11', 'catcheur-17', 'catcheur-19',
-      'managers-03', 'managers-04', 'momentum-30', 'momentum-15', 'momentum-05', 'momentum-20', 'momentum-16', 'momentum-11', 'momentum-03',
+      'catcheur-31', 'catcheur-32', 'catcheur-33', 'catcheur-24', 'catcheur-13', 'catcheur-11', 'catcheur-17', 'catcheur-35',
+      'managers-03', 'managers-04', 'momentum-30', 'momentum-15', 'momentum-05', 'momentum-20', 'momentum-16', 'momentum-11', 'momentum-29',
       'objets-06', 'objets-03', 'objets-04',
     ],
   },
