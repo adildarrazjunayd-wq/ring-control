@@ -32,7 +32,7 @@ export function handActions(m, id) {
   }
   if (c.category === 'Manager' && acting && !p.limits.manager && !p.manager) out.push(act('Jouer le manager', `data-act="playManager" data-id="${id}"`, 'Occupe ton emplacement Manager', 'hot'));
   if (c.category === 'Objet' && acting && !p.limits.object) {
-    for (const f of fightersOf(p).filter(x => (id !== 'nwo-07' || combat.isNwoMember(x.cardId)) && (id !== 'auth-07' || combat.isAuthority(x.cardId)))) { const e = combat.effective(m, 0, f); out.push(act(`Équiper à ${esc(card(f.cardId).displayName)}`, `data-act="equip" data-id="${id}" data-iid="${f.instanceId}"`, `${e.attack} ATT · ${e.endurance} END`)); }
+    for (const f of fightersOf(p).filter(x => (id !== 'nwo-07' || combat.isNwoMember(x.cardId)) && (id !== 'auth-07' || combat.isAuthority(x.cardId)) && (id !== 'evo-06' || combat.isEvolution(x.cardId)))) { const e = combat.effective(m, 0, f); out.push(act(`Équiper à ${esc(card(f.cardId).displayName)}`, `data-act="equip" data-id="${id}" data-iid="${f.instanceId}"`, `${e.attack} ATT · ${e.endurance} END`)); }
   }
   if (c.category === 'Momentum') {
     const reaction = m.pendingAttack?.playerIndex === 1 && c.rapid && m.outOfTurnMomentumUsed[0] < 1;
@@ -70,6 +70,12 @@ function fighterActions(m, pi, f) {
         out.push(act(`Attaque spéciale : ${esc(sp.name)}`, `data-act="attack" data-iid="${f.instanceId}" data-special="${f.cardId}" ${ok ? '' : 'disabled'}`, ok ? 'Effet spécial · une fois tant qu’il reste sur le ring' : 'Condition non remplie pour l’instant', 'hot'));
       }
       if (p.objects.some(o => o.fighterId === f.instanceId && o.cardId === 'objets-01')) out.push(act('Attaque à l’Échelle', `data-act="attack" data-iid="${f.instanceId}" data-ladder="1"`, '10 dégâts à chaque actif adverse, puis -10 END'));
+      // Evolution : attaque en meute (une fois par tour), avec ou sans l'attaque spéciale du meneur.
+      if (combat.isEvolution(f.cardId)) {
+        const refused = combat.packCheck(m, 0, f), max = combat.packMax(m, 0);
+        out.push(act('Attaque en meute 🐺', `data-act="pack" data-iid="${f.instanceId}" ${refused ? 'disabled' : ''}`, refused ?? `Avec ${max > 1 ? '1 ou 2 autres membres' : 'un autre membre'} : un seul coup, ATT additionnées · repos au tour suivant`, 'hot'));
+        if (!refused && sp && pickable(m, { mode: 'attack', iid: f.instanceId, special: f.cardId, picked: [] }).size) out.push(act(`Meute + ${esc(sp.name)}`, `data-act="pack" data-iid="${f.instanceId}" data-special="${f.cardId}"`, 'L’attaque spéciale du meneur s’ajoute au coup commun', 'hot'));
+      }
     }
   }
   // Mallette MITB : se défausse pour une attaque de plus (+20 ATT) ce tour-ci.
@@ -181,7 +187,7 @@ function titantron(m) {
   const f = sel?.fighter ?? hoveredFighter(m, id), fpi = sel?.pi ?? (f && m.players[0].active.concat(m.players[0].passive).includes(f) ? 0 : 1);
   const stats = f ? fighterStats(m, fpi, f) : '';
   const actions = (sel?.actions ?? []).map(a => `<button class="btn ${a.cls}" ${a.attrs}><b>${a.label}</b>${a.sub ? `<small>${a.sub}</small>` : ''}</button>`).join('');
-  const effectText = c.effects.map(e => { const mode = c.category === 'Catcheur' ? modeOf(c.id, e.kind) : null; return `<p><b>${KIND_LABEL[e.kind]} :</b> ${esc(e.text)}${mode ? ` <em class="mode ${mode}">${MODE_LABEL[mode]}</em>` : ''}</p>`; }).join('');
+  const effectText = c.effects.map(e => { const mode = c.category === 'Catcheur' && e.kind !== 'meute' ? modeOf(c.id, e.kind) : null; return `<p><b>${KIND_LABEL[e.kind]} :</b> ${esc(e.text)}${mode ? ` <em class="mode ${mode}">${MODE_LABEL[mode]}</em>` : ''}</p>`; }).join('');
   return `<div class="tron ${sel ? 'pinned' : ''}"><img src="${c.image}" alt="${esc(c.displayName)}" data-act="zoom" data-id="${c.id}"><div class="tron-body"><div class="facts">${cardFacts(c)}</div><h2>${esc(c.displayName)}</h2>${stats}<div class="tron-effects">${effectText || '<p class="muted">Aucun effet imprimé.</p>'}</div>${sel ? `<div class="tron-actions">${actions || '<p class="hint">Aucune action possible avec cette carte pour l’instant.</p>'}${sel.fighter ? corrections(sel.pi, sel.fighter) : ''}</div>` : '<p class="hint">Clique la carte pour voir ses actions.</p>'}</div></div>`;
 }
 
@@ -259,7 +265,7 @@ function life(m, pi) {
 function fighterCard(m, pi, f) {
   const c = card(f.cardId), sel = S.selected?.kind === 'fighter' && S.selected.id === f.instanceId;
   const targetable = S.targeting && targets.has(f.instanceId);
-  const picked = S.targeting?.picked?.some(x => x.instanceId === f.instanceId);
+  const picked = S.targeting?.picked?.some(x => x.instanceId === f.instanceId) || S.targeting?.pack?.includes(f.instanceId) || (S.targeting?.pack && S.targeting.iid === f.instanceId);
   const spent = m.turn === pi && !combat.canAttack(m, pi, f).ok && f.position === 'active';
   const objects = m.players[pi].objects.filter(o => o.fighterId === f.instanceId);
   const e = combat.effective(m, pi, f);
@@ -303,8 +309,9 @@ function reaction(m) {
   const canMomentum = m.outOfTurnMomentumUsed[0] < 1 && !(p.status.noMomentumThroughTurn >= m.turnNumber);
   const rapid = canMomentum ? [...new Set(p.hand)].map(card).filter(c => c?.category === 'Momentum' && c.rapid && momentumCheck(m, c).ok) : [];
   const answers = game.reactionOptions(m, 0);
-  const sp = a.special ? combat.ATTACK_SPECIALS[a.special]?.name : a.ladder ? 'Échelle' : '';
-  return `<div class="reaction"><div class="r-head">⚡ ${esc(card(attacker?.cardId)?.displayName)}${sp ? ` · ${esc(sp)}` : ''} <small>${a.attack} dégâts</small> ➜ ${target}</div><div class="r-actions">${rapid.map(c => `<button class="btn hot" data-act="momentum" data-id="${c.id}" data-preview="${c.id}"><b>${esc(c.displayName)}</b><small>Momentum rapide</small></button>`).join('')}${answers.map(o => `<button class="btn hot" data-act="react" data-key="${o.key}" data-iid="${o.fighterId ?? ''}"><b>${esc(o.label)}</b><small>${esc(o.detail)}</small></button>`).join('')}<button class="btn" data-act="letPass"><b>Laisser passer</b><small>${ids[0] === 'direct' ? `-${a.attack} PV` : `-${a.attack} END`}</small></button></div></div>`;
+  const sp = [a.pack?.length && 'Attaque en meute', a.special ? combat.ATTACK_SPECIALS[a.special]?.name : a.ladder ? 'Échelle' : ''].filter(Boolean).join(' · ');
+  const crew = [attacker, ...(a.pack ?? []).map(id => m.players[1].active.find(f => f.instanceId === id))].filter(Boolean).map(f => esc(card(f.cardId)?.displayName)).join(' + ');
+  return `<div class="reaction"><div class="r-head">⚡ ${crew}${sp ? ` · ${esc(sp)}` : ''} <small>${a.attack} dégâts</small> ➜ ${target}</div><div class="r-actions">${rapid.map(c => `<button class="btn hot" data-act="momentum" data-id="${c.id}" data-preview="${c.id}"><b>${esc(c.displayName)}</b><small>Momentum rapide</small></button>`).join('')}${answers.map(o => `<button class="btn hot" data-act="react" data-key="${o.key}" data-iid="${o.fighterId ?? ''}"><b>${esc(o.label)}</b><small>${esc(o.detail)}</small></button>`).join('')}<button class="btn" data-act="letPass"><b>Laisser passer</b><small>${ids[0] === 'direct' ? `-${a.attack} PV` : `-${a.attack} END`}</small></button></div></div>`;
 }
 
 function hand(m) {

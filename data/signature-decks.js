@@ -63,6 +63,19 @@ const recipes = [
       'momentum-05', 'momentum-08', 'momentum-15', 'momentum-20', 'objets-05', 'managers-03',
     ],
   },
+  {
+    id: 'evolution',
+    name: 'Evolution',
+    theme: 'Faction · Attaque en meute',
+    description: 'Triple H mène la meute : deux membres frappent ensemble le même catcheur. Flair cherche la famille et fait entrer Triple H.',
+    cardIds: [
+      'evo-01', 'evo-02', 'evo-03', 'evo-04', 'evo-05', 'evo-06', 'evo-07', 'evo-08', 'evo-09',
+      // Équilibré le 22/10/2026 (simulations de 1 400 parties, réponses comprises) : 50 à 54 % de victoires.
+      // Pas de 2e manager (une seule place) ; The Champ et Retour inattendu remplacent Triple H (manager) et le Contre.
+      'catcheur-04', 'catcheur-19', 'catcheur-38', 'catcheur-35', 'catcheur-03',
+      'momentum-05', 'momentum-08', 'momentum-15', 'momentum-16', 'objets-05', 'momentum-29',
+    ],
+  },
 ];
 
 export const SIGNATURE_DECKS = Object.freeze(recipes.map(recipe => Object.freeze({

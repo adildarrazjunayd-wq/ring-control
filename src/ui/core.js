@@ -12,7 +12,7 @@ export const card = id => byId.get(id);
 export const CARD_BACK = card('catcheur-40').image;
 game.configureCardLookup(card);
 
-export const KIND_LABEL = { passif: 'Effet passif', spécial: 'Effet spécial', effet: 'Effet' };
+export const KIND_LABEL = { passif: 'Effet passif', spécial: 'Effet spécial', effet: 'Effet', meute: 'Meute' };
 
 // Le stockage garde la même clé et la même forme qu'avant : les decks et la
 // partie déjà enregistrés par le joueur restent lisibles.

@@ -55,6 +55,22 @@
 - **MITB** : encaissée (défaussée) pendant ton tour, son porteur actif gagne une attaque de plus et +20 ATT jusqu'à la fin du tour.
 - **Décret « pas de SSR »** : bloque toute invocation de SSR adverse (normale ou spéciale) jusqu'à la fin de son prochain tour.
 
+## Archétype Evolution (validé par le propriétaire le 22 octobre 2026)
+
+- 9 cartes créées dans son Canva (dossier « ARCHETYPE EVOLUTION ») : `evo-01` à `evo-09`, deck signature « Evolution ».
+- **Attaque en meute** (règle imprimée sur les 4 catcheurs) : une fois par tour, un membre d'Evolution actif attaque un
+  catcheur adverse actif avec un autre membre d'Evolution actif qui peut encore attaquer. Un seul coup : les ATT et bonus de
+  chacun s'additionnent (l'attaque spéciale du meneur peut s'y ajouter). Jamais sur les PV. Les règles de ciblage restent
+  (Big Show d'abord, une cible une seule fois par tour). Les réductions du défenseur s'appliquent une fois au coup commun.
+- **Repos** (choix du propriétaire : « les deux catcheurs ne peuvent pas attaquer au prochain tour ») : tous les participants
+  utilisent leur attaque et ne peuvent pas attaquer à leur prochain tour, **même si l'attaque est annulée** (Contre, RKO…).
+- Le Leader (+15), Le Muscle (+10) et Legend Killer (+15 contre une SSR) sont des passifs à activer, comme les autres.
+- **Masse** : +10 ATT en permanence, et +10 dégâts de plus quand le porteur participe à une meute.
+- **Assaut Total** : ce tour-ci, la meute peut réunir 3 membres (2 partenaires) ; elle reste limitée à une par tour.
+- **Tous pour un** (Momentum rapide) : annule seulement l'attaque annoncée ; l'adversaire peut encore attaquer ensuite.
+- **Ric Flair** : Mentor se déclenche à son arrivée (le joueur choisit le membre, il peut renoncer ; l'IA prend Triple H).
+  « Woooo ! » invoque n'importe quelle carte Triple H (comme J&J avec Seth Rollins). Refusé si le Décret interdit les SSR.
+
 ## Façon d'appliquer les effets (cahier des charges §11 : « selon sa formulation »)
 
 Mise à jour du 21 octobre 2026, à la demande du propriétaire (« je veux choisir d'activer ») :

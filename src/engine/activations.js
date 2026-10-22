@@ -26,10 +26,11 @@ export function summonCandidates(state, pi, spec, { leaving = null } = {}) {
   const positions = legalPositions(leaving ? { active: p.active.filter(x => x !== leaving), passive: p.passive.filter(x => x !== leaving) } : p);
   if (!positions.length) return [];
   const out = [], seen = new Set();
+  const noSsr = (p.status.noSsrSummonThroughTurn ?? 0) >= state.turnNumber; // Décret de l'Authority
   for (const source of spec.sources) {
     for (const id of p[source === 'grave' ? 'grave' : source]) {
       const c = lookupCard(id);
-      if (seen.has(id) || !c || c.category !== 'Catcheur' || c.playable === false || !spec.filter(c)) continue;
+      if (seen.has(id) || !c || c.category !== 'Catcheur' || c.playable === false || (noSsr && c.rarity === 'SSR') || !spec.filter(c)) continue;
       seen.add(id);
       out.push({ cardId: id, source, positions });
     }
@@ -66,15 +67,16 @@ export const ACTIVATED = Object.freeze({
   'wyatt-10:passive': { name: 'Frappe de Jimmy', check: (s, pi, f) => (f.position === 'active' && s.players[pi].active.some(x => x !== f && lookupCard(x.cardId)?.faction === 'The Bloodline') ? null : 'Jimmy Uso et un autre membre de la Bloodline doivent être actifs.'), targets: [{ side: 'opp', zone: 'active' }], run: (s, pi, f, [t]) => { t.endurance -= 10; return `${label(t.cardId)} subit 10 dégâts`; } },
   'auth-05:special': { name: 'Appel du boss', leaves: true, summon: { sources: ['hand', 'deck'], filter: c => is(c.id, 'seth rollins') }, before: (s, pi, f) => sendFighterToGrave(s, pi, f, 'envoyé au cimetière par son effet') },
   'nwo-03:special': { name: 'The Outsiders', summon: { sources: ['deck'], filter: c => is(c.id, 'kevin nash') }, after: (s, pi, f) => { f.noAttackUntil = s.turnNumber; } },
+  'evo-04:special': { name: 'Woooo !', leaves: true, summon: { sources: ['hand', 'deck'], filter: c => is(c.id, 'triple h') }, before: (s, pi, f) => sendFighterToGrave(s, pi, f, 'sacrifié par son effet') },
   // Depuis le cimetière.
   'wyatt-02:grave': { name: 'Erick Rowan (cimetière)', grave: true, banish: true, targets: [{ side: 'me', zone: 'any', filter: (s, pi, t) => is(t.cardId, 'bray wyatt') }], run: (s, pi, f, [t]) => { addModifier(t, 'attack', 20, s.turnNumber, 'wyatt-02'); return 'Bray Wyatt gagne +20 ATT ce tour-ci'; } },
   'wyatt-03:grave': { name: 'Luke Harper (cimetière)', grave: true, perTurn: true, check: (s, pi) => (s.players[pi].active.some(x => is(x.cardId, 'bray wyatt')) ? null : 'Bray Wyatt doit être sur ton ring, en zone ACTIVE (pas passive).'), targets: [opp()], run: (s, pi, f, [t]) => { t.noAttackUntil = s.turnNumber + 1; return `${label(t.cardId)} est endormi`; } },
 });
 
 // Mode d'un effet imprimé, pour l'affichage.
-const AUTO = new Set(['catcheur-01:passive', 'catcheur-02:passive', 'catcheur-03:passive', 'catcheur-04:passive', 'catcheur-05:passive', 'catcheur-06:passive', 'catcheur-07:passive', 'catcheur-08:passive', 'catcheur-09:passive', 'catcheur-10:passive', 'catcheur-11:passive', 'catcheur-12:passive', 'catcheur-14:passive', 'catcheur-15:passive', 'catcheur-16:passive', 'catcheur-18:passive', 'catcheur-19:passive', 'catcheur-20:passive', 'catcheur-21:passive', 'catcheur-22:passive', 'catcheur-24:passive', 'catcheur-25:passive', 'catcheur-34:passive', 'catcheur-35:passive', 'catcheur-39:passive', 'catcheur-32:special', 'wyatt-01:passive', 'wyatt-02:passive', 'wyatt-08:passive', 'wyatt-09:passive', 'nwo-01:passive', 'nwo-02:passive', 'nwo-03:passive', 'nwo-04:passive', 'nwo-05:passive', 'auth-01:passive', 'auth-02:passive', 'auth-03:passive', 'auth-04:passive']);
+const AUTO = new Set(['catcheur-01:passive', 'catcheur-02:passive', 'catcheur-03:passive', 'catcheur-04:passive', 'catcheur-05:passive', 'catcheur-06:passive', 'catcheur-07:passive', 'catcheur-08:passive', 'catcheur-09:passive', 'catcheur-10:passive', 'catcheur-11:passive', 'catcheur-12:passive', 'catcheur-14:passive', 'catcheur-15:passive', 'catcheur-16:passive', 'catcheur-18:passive', 'catcheur-19:passive', 'catcheur-20:passive', 'catcheur-21:passive', 'catcheur-22:passive', 'catcheur-24:passive', 'catcheur-25:passive', 'catcheur-34:passive', 'catcheur-35:passive', 'catcheur-39:passive', 'catcheur-32:special', 'wyatt-01:passive', 'wyatt-02:passive', 'wyatt-08:passive', 'wyatt-09:passive', 'nwo-01:passive', 'nwo-02:passive', 'nwo-03:passive', 'nwo-04:passive', 'nwo-05:passive', 'auth-01:passive', 'auth-02:passive', 'auth-03:passive', 'auth-04:passive', 'evo-01:passive', 'evo-02:passive', 'evo-03:passive', 'evo-04:passive']);
 // Effets automatiques sans bouton « Activer » (déclenchés par l'arrivée au cimetière ou sur le ring).
-const NO_TOGGLE = ['wyatt-01', 'wyatt-02', 'nwo-01', 'nwo-05', 'auth-02'];
+const NO_TOGGLE = ['wyatt-01', 'wyatt-02', 'nwo-01', 'nwo-05', 'auth-02', 'evo-04'];
 const REACTION = new Set(['catcheur-10:special', 'catcheur-13:special', 'wyatt-11:special', 'wyatt-01:special', 'auth-03:special', 'auth-05:passive']);
 export function effectMode(cardId, kind, { attackSpecial, search } = {}) {
   const key = `${cardId}:${kind === 'passif' ? 'passive' : 'special'}`;
@@ -172,6 +174,7 @@ export const SUMMON_MOMENTA = Object.freeze({
   'wyatt-12': { summon: { sources: ['deck'], filter: c => is(c.id, 'jey uso') }, after: (s, pi) => { s.players[pi].status.extraMomentumTurn = s.turnNumber + 2; } },
   'auth-09': { summon: { sources: ['hand', 'deck'], filter: c => c.faction === 'The Authority' && ['R', 'SR'].includes(c.rarity) }, after: (s, pi) => { s.players[pi].status.handicapTurn = s.turnNumber; } },
   'nwo-09': { summon: { sources: ['hand', 'deck'], filter: c => c.faction === 'nWo' && ['R', 'SR'].includes(c.rarity) }, after: (s, pi) => { if (!effectsOff(s, pi)) chooseMark(s, pi, 'nWo 4 Life', 'nwo-09'); } },
+  'evo-07': { summon: { sources: ['hand', 'deck'], filter: c => c.faction === 'Evolution' && ['R', 'SR'].includes(c.rarity) } },
 });
 
 export function momentumTargetsAvailable(state, pi, cardId) {
@@ -251,6 +254,7 @@ const CHOICES = {
   'wyatt-01': { title: 'Braun Strowman', what: 'une carte Wyatt Family du deck à envoyer au cimetière', options: p => p.deck.filter(id => wyattFamily(lookupCard(id))), apply: (s, pi, id) => { const p = s.players[pi]; p.deck.splice(p.deck.indexOf(id), 1); p.grave.push(id); return `${label(id)} est envoyé du deck au cimetière`; } },
   'wyatt-02': { title: 'Erick Rowan', what: 'une carte qui cite la Wyatt Family (R ou SR) à ajouter à ta main', options: p => p.deck.filter(id => wyattFamily(lookupCard(id)) && ['R', 'SR'].includes(lookupCard(id).rarity)), apply: (s, pi, id) => { const p = s.players[pi]; p.deck.splice(p.deck.indexOf(id), 1); p.hand.push(id); return `${label(id)} est ajouté à la main`; } },
   'auth-02': { title: 'Kane : Directeur des opérations', what: 'une carte Authority de ton deck à ajouter à ta main', options: p => p.deck.filter(id => id.startsWith('auth-')), apply: (s, pi, id) => { const p = s.players[pi]; p.deck.splice(p.deck.indexOf(id), 1); p.hand.push(id); return `${label(id)} est ajouté à la main`; } },
+  'evo-04': { title: 'Ric Flair : Mentor', what: 'un membre d’Evolution de ton deck à ajouter à ta main', options: p => p.deck.filter(id => lookupCard(id)?.faction === 'Evolution' && lookupCard(id)?.category === 'Catcheur'), apply: (s, pi, id) => { const p = s.players[pi]; p.deck.splice(p.deck.indexOf(id), 1); p.hand.push(id); return `${label(id)} est ajouté à la main`; } },
   'wyatt-07': { title: 'Lanterne de l’obscurité', what: 'un Momentum du cimetière à reprendre en main', options: p => p.grave.filter(id => lookupCard(id)?.category === 'Momentum'), apply: (s, pi, id) => { const p = s.players[pi]; p.grave.splice(p.grave.indexOf(id), 1); p.hand.push(id); return `${label(id)} revient en main`; } },
 };
 

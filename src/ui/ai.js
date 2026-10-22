@@ -77,6 +77,8 @@ export function aiReact(m) {
   if (!brain.shouldReact(m, 1)) return false;
   const answer = game.reactionOptions(m, 1)[0];
   if (answer) return game.useReaction(m, 1, answer.key, answer.fighterId ?? null).ok;
-  if (m.outOfTurnMomentumUsed[1] >= 1 || p.status.noMomentumThroughTurn >= m.turnNumber || !p.hand.includes('momentum-20')) return false;
-  return game.playMomentum(m, 1, card('momentum-20')).ok;
+  if (m.outOfTurnMomentumUsed[1] >= 1 || p.status.noMomentumThroughTurn >= m.turnNumber) return false;
+  // Tous pour un (si la cible est un membre d'Evolution) passe avant le Contre.
+  const rapid = ['evo-09', 'momentum-20'].find(id => p.hand.includes(id) && effects.momentumRequirement(m, 1, card(id)).ok);
+  return rapid ? game.playMomentum(m, 1, card(rapid)).ok : false;
 }

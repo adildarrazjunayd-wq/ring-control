@@ -283,6 +283,7 @@ export function equipObject(state, playerIndex, card, fighterId) {
   if (!fighter) return { ok: false, reason: 'Choisissez le catcheur à équiper.' };
   if (card.id === 'nwo-07' && !combat.isNwoMember(fighter.cardId)) return { ok: false, reason: 'Le Spray s’équipe uniquement sur un catcheur nWo.' };
   if (card.id === 'auth-07' && !combat.isAuthority(fighter.cardId)) return { ok: false, reason: 'La mallette s’équipe uniquement sur un membre de l’Authority.' };
+  if (card.id === 'evo-06' && !combat.isEvolution(fighter.cardId)) return { ok: false, reason: 'La Masse s’équipe uniquement sur un membre d’Evolution.' };
   removeFromHand(player, card.id);
   player.objects.push({ instanceId: crypto.randomUUID(), cardId: card.id, fighterId, expiresAfterTurn: null });
   player.limits.object = true;
@@ -347,6 +348,7 @@ export function playMomentum(state, playerIndex, card, { allowTimingException = 
   if (ownAction && player.limits.momentum >= 1) return { ok: false, reason: 'La limite de Momentum de ce tour est atteinte.' };
   if (response && state.outOfTurnMomentumUsed[playerIndex] >= 1) return { ok: false, reason: 'Vous avez déjà joué un Momentum rapide pendant ce tour adverse.' };
   if (player.status.noMomentumThroughTurn >= state.turnNumber) return { ok: false, reason: 'Un effet empêche ce joueur de jouer un Momentum.' };
+  if (card.id === 'evo-09' && !combat.tousPourUnOk(state, playerIndex)) return { ok: false, reason: 'Tous pour un : l’attaque doit viser un membre d’Evolution, et un autre membre d’Evolution doit être actif.' };
   removeFromHand(player, card.id);
   player.resolvingMomentum = { cardId: card.id, controller: playerIndex, rapid: Boolean(card.rapid), pendingAttackId: state.pendingAttack?.id ?? null };
   if (ownAction) player.limits.momentum += 1;
@@ -356,6 +358,14 @@ export function playMomentum(state, playerIndex, card, { allowTimingException = 
   emit(state, { kind: 'card', pi: playerIndex, cardId: card.id, title: card.rapid ? 'Momentum rapide !' : 'Momentum' });
   if (player.active.some(f => f.cardId === 'catcheur-34' && combat.passiveOn(state, playerIndex, f))) combat.draw(state, playerIndex, 1, 'Cody Rhodes : Héritier de la gloire');
   if (card.id === 'momentum-20' && state.pendingAttack) counterPendingAttack(state, playerIndex, card);
+  if (card.id === 'evo-09' && state.pendingAttack) {
+    // Tous pour un : annule seulement l'attaque annoncée (l'adversaire peut encore attaquer).
+    state.pendingAttack = null;
+    state.phase = 'attacks';
+    player.grave.push(card.id);
+    player.resolvingMomentum = null;
+    addHistory(state, `${card.displayName} : un membre d’Evolution vient en renfort, l’attaque est annulée.`);
+  }
   return { ok: true, response };
 }
 
@@ -399,6 +409,15 @@ export function declareAttack(state, playerIndex, attackerId, targetId = 'direct
   const sp = special ? combat.specialAvailable(state, playerIndex, attacker) : null;
   if (special && (special !== attacker.cardId || !sp)) return { ok: false, reason: 'Cette attaque spéciale est indisponible.' };
   if (ladder && !player.objects.some(o => o.fighterId === attackerId && o.cardId === 'objets-01')) return { ok: false, reason: 'Ce catcheur ne porte pas l’Échelle.' };
+  // Evolution : attaque en meute (options.pack = partenaires qui frappent avec l'attaquant).
+  const pack = options.pack?.length ? [...new Set(options.pack)] : null;
+  if (pack) {
+    const refused = combat.packCheck(state, playerIndex, attacker);
+    if (refused) return { ok: false, reason: refused };
+    const allowedIds = combat.packPartners(state, playerIndex, attacker).map(x => x.instanceId);
+    if (pack.length > combat.packMax(state, playerIndex) || pack.some(id => !allowedIds.includes(id))) return { ok: false, reason: 'Choisis un autre membre d’Evolution actif qui peut encore attaquer.' };
+    if (ladder || targetId === 'direct' || (sp && !['one', 'fighter'].includes(sp.targets))) return { ok: false, reason: 'L’attaque en meute vise un seul catcheur adverse (jamais les PV).' };
+  }
   let targets;
   const multi = ladder ? 'all-active' : sp && ['two', 'all-active', 'all-ring'].includes(sp.targets) ? sp.targets : null;
   if (multi === 'all-active') targets = defender.active.map(x => x.instanceId);
@@ -439,11 +458,20 @@ export function declareAttack(state, playerIndex, attackerId, targetId = 'direct
     attacker.specialUsed = true;
     emit(state, { kind: 'effect', pi: playerIndex, cardId: attacker.cardId, title: 'Attaque spéciale', sub: sp.name });
   }
-  state.pendingAttack = { id: crypto.randomUUID(), playerIndex, attackerId, targetId: targets.length > 1 ? 'multi' : targets[0], targets, special: sp ? special : null, ladder, first, secondTarget: options.secondTarget ?? null };
+  const crew = pack ? [attacker, ...pack.map(id => player.active.find(x => x.instanceId === id))] : [attacker];
+  if (pack) {
+    // Tous les participants ont utilisé leur attaque et se reposent au tour suivant, même si l'attaque est annulée.
+    state.usedAttackers.push(...pack);
+    player.status.packTurn = state.turnNumber;
+    for (const x of crew) { x.noAttackUntil = Math.max(x.noAttackUntil ?? 0, state.turnNumber + 2); x.noAttackUntilWhy = 'Attaque en meute'; }
+    emit(state, { kind: 'effect', pi: playerIndex, cardId: attacker.cardId, title: 'Attaque en meute !', sub: crew.map(x => rarityLookup(x.cardId)?.displayName).join(' + ') });
+  }
+  state.pendingAttack = { id: crypto.randomUUID(), playerIndex, attackerId, targetId: targets.length > 1 ? 'multi' : targets[0], targets, special: sp ? special : null, ladder, first, secondTarget: options.secondTarget ?? null, ...(pack ? { pack } : {}) };
   state.pendingAttack.attack = combat.previewDamage(state, state.pendingAttack);
   state.phase = 'reaction';
   const names = targets.map(id => (id === 'direct' ? 'les PV adverses' : rarityLookup(getCards(defender).find(x => x.instanceId === id)?.cardId)?.displayName ?? 'un catcheur'));
-  addHistory(state, `${player.name} annonce ${sp ? `l’attaque spéciale ${sp.name} de` : ladder ? 'une attaque à l’Échelle de' : 'l’attaque de'} ${rarityLookup(attacker.cardId)?.displayName ?? 'son catcheur'} ${targets[0] === 'direct' ? 'sur' : 'contre'} ${names.join(', ')}.`);
+  const who = crew.map(x => rarityLookup(x.cardId)?.displayName ?? 'son catcheur').join(' et ');
+  addHistory(state, `${player.name} annonce ${pack ? `l’attaque en meute${sp ? ` (${sp.name})` : ''} de` : sp ? `l’attaque spéciale ${sp.name} de` : ladder ? 'une attaque à l’Échelle de' : 'l’attaque de'} ${who} ${targets[0] === 'direct' ? 'sur' : 'contre'} ${names.join(', ')}.`);
   return { ok: true, pendingAttack: state.pendingAttack };
 }
 

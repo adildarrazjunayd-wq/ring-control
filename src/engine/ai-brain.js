@@ -74,6 +74,7 @@ function managerOptions(state, pi) {
       if (id === 'managers-05') s = 15 + (p.hand.filter(h => card(h)?.category === 'Momentum' && !card(h).rapid).length >= 2 ? 15 : 0);
       if (id === 'nwo-06') s = 25 + 10 * ring.filter(f => combat.isNwoMember(f.cardId)).length;
       if (id === 'auth-06') s = 30 + 8 * ring.filter(f => combat.isAuthority(f.cardId)).length;
+      if (id === 'evo-05') { const n = ring.filter(f => combat.isEvolution(f.cardId)).length; s = 10 + 5 * n * Math.max(0, n - 1) + 8 * n; }
       out.push({ score: s, label: `joue le manager ${c.displayName}`, run: () => game.playManager(state, pi, c) });
     }
   }
@@ -118,6 +119,7 @@ function objectScore(state, pi, o, f) {
     case 'wyatt-07': return is(f.cardId, 'bray wyatt') ? 25 : 1;
     case 'nwo-07': return combat.isNwoMember(f.cardId) ? 22 + (active ? 8 : 0) : -1;
     case 'auth-07': return combat.isAuthority(f.cardId) ? 18 + (active ? 8 : 0) + (is(f.cardId, 'seth rollins') ? 6 : 0) : -1;
+    case 'evo-06': return combat.isEvolution(f.cardId) ? 22 + (active ? 8 : 0) : -1;
     default: return 5;
   }
 }
@@ -146,7 +148,9 @@ function momentumScore(state, pi, c) {
     case 'momentum-16': return Math.max(0, ...p.grave.filter(g => card(g)?.category === 'Catcheur').map(g => cardValue(card(g)))) * 0.6;
     case 'nwo-08': return 15 * (fightersOf(d).filter(f => f.nwoMark).length + (d.active.some(f => !f.nwoMark) ? 1 : 0));
     case 'auth-08': return d.active.some(f => combat.canSendToPassive(state, 1 - pi, f)) ? 18 + Math.max(0, ...d.active.map(f => effective(state, 1 - pi, f).attack)) / 4 : -1;
-    case 'wyatt-06': case 'wyatt-12': case 'nwo-09': case 'auth-09': return Math.max(0, ...act.summonCandidates(state, pi, act.SUMMON_MOMENTA[id].summon).map(o => cardValue(card(o.cardId)))) * 0.6;
+    case 'wyatt-06': case 'wyatt-12': case 'nwo-09': case 'auth-09': case 'evo-07': return Math.max(0, ...act.summonCandidates(state, pi, act.SUMMON_MOMENTA[id].summon).map(o => cardValue(card(o.cardId)))) * 0.6;
+    // Assaut Total : utile seulement si trois membres d'Evolution actifs peuvent encore attaquer ensemble.
+    case 'evo-08': return state.turnNumber > 1 && p.status.packTurn !== state.turnNumber && p.active.filter(f => combat.isEvolution(f.cardId) && combat.canAttack(state, pi, f).ok).length >= 3 && d.active.length ? 32 : -1;
     case 'momentum-05': case 'wyatt-05': case 'momentum-26': return 25;
     case 'momentum-08': case 'momentum-15': case 'momentum-17': return 30;
     case 'momentum-04': return p.hand.filter(h => card(h)?.category === 'Momentum' && !card(h).rapid).length >= 3 ? 25 : 2;
@@ -339,9 +343,30 @@ export function bestAttack(state, pi) {
       }
       const directOk = !guard && combat.directAttackAllowed(state, pi) && (!v.special || (type === 'one' && combat.specialBonusAgainst(state, pi, f, null) != null));
       if (directOk) consider(hitScore(state, pi, null, combat.previewDamage(state, { ...base, targets: ['direct'] }, 'direct')) - cost, { attackerId: f.instanceId, target: 'direct', options: { special: v.special } });
+      if (!v.ladder && type !== 'two') packPlans(state, pi, f, v.special, cost, consider);
     }
   }
   return best;
+}
+
+// Evolution : attaque en meute. Elle vaut le coup quand le coup commun met K.O. une cible
+// qu'un seul catcheur n'aurait pas abattue ; les partenaires perdent leur attaque et se reposent au tour suivant.
+function packPlans(state, pi, f, special, cost, consider) {
+  if (combat.packCheck(state, pi, f)) return;
+  const d = state.players[1 - pi], partners = combat.packPartners(state, pi, f), max = combat.packMax(state, pi);
+  const crews = partners.map(x => [x]);
+  if (max >= 2) for (let i = 0; i < partners.length; i += 1) for (let j = i + 1; j < partners.length; j += 1) crews.push([partners[i], partners[j]]);
+  const guard = combat.forcedTarget(state, pi);
+  const pool = d.active.filter(t => (!guard || t.instanceId === guard) && !state.usedTargets.includes(t.instanceId) && (!special || combat.specialBonusAgainst(state, pi, f, t) != null));
+  const solo = x => Math.max(0, ...pool.map(t => hitScore(state, pi, t, combat.previewDamage(state, { playerIndex: pi, attackerId: x.instanceId, targets: [t.instanceId] }, t.instanceId))));
+  for (const crew of crews) {
+    // Réglé par simulation (22/10/2026) : plus de meutes ne fait pas gagner plus, à cause du repos forcé.
+    const ids = crew.map(x => x.instanceId), lost = crew.reduce((n, x) => n + solo(x) * 0.6, 0) + 3 * (crew.length + 1);
+    for (const t of pool) {
+      const a = { playerIndex: pi, attackerId: f.instanceId, special, ladder: false, first: state.usedAttackers.length === 0, targets: [t.instanceId], pack: ids };
+      consider(hitScore(state, pi, t, combat.previewDamage(state, a, t.instanceId)) - lost - cost, { attackerId: f.instanceId, target: t.instanceId, options: { special, pack: ids } });
+    }
+  }
 }
 
 // ---------- Réponse à une attaque adverse ----------

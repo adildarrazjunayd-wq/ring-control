@@ -54,6 +54,30 @@ export function forcedTarget(state, pi) {
 // Match Handicap : ce tour-ci, les catcheurs de l'Authority peuvent viser un adversaire déjà attaqué.
 export const canRetarget = (state, pi, f) => isAuthority(f.cardId) && state.players[pi].status.handicapTurn === state.turnNumber && !effectsOff(state, pi);
 
+// ---------- Evolution : l'attaque en meute ----------
+// Une fois par tour, un membre d'Evolution attaque un catcheur adverse avec un autre membre actif
+// (deux autres avec Assaut Total) : un seul coup, les ATT additionnées, jamais sur les PV.
+// Tous les participants utilisent leur attaque et ne peuvent pas attaquer au tour suivant.
+export const isEvolution = id => factionOf(id) === 'Evolution';
+export const packMax = (state, pi) => (state.players[pi].status.assautTurn === state.turnNumber ? 2 : 1);
+export const packPartners = (state, pi, f) => state.players[pi].active.filter(x => x !== f && isEvolution(x.cardId) && canAttack(state, pi, x).ok);
+export function packCheck(state, pi, f) {
+  if (!f || !isEvolution(f.cardId)) return 'Seul un membre d’Evolution peut lancer une attaque en meute.';
+  if (effectsOff(state, pi)) return 'Tes effets sont annulés ce tour-ci.';
+  if (state.players[pi].status.packTurn === state.turnNumber) return 'Une seule attaque en meute par tour.';
+  const can = canAttack(state, pi, f);
+  if (!can.ok) return can.reason;
+  if (!packPartners(state, pi, f).length) return 'Il faut un autre membre d’Evolution actif qui peut encore attaquer.';
+  return null;
+}
+// Tous pour un : l'attaque vise un membre d'Evolution et un autre membre d'Evolution est actif.
+export function tousPourUnOk(state, pi) {
+  const a = state.pendingAttack, p = state.players[pi];
+  if (!a || a.playerIndex === pi) return false;
+  const hit = (a.targets ?? [a.targetId]).map(id => fightersOf(p).find(x => x.instanceId === id)).filter(t => t && isEvolution(t.cardId));
+  return hit.some(t => p.active.some(x => x !== t && isEvolution(x.cardId)));
+}
+
 // ---------- nWo : la « marque nWo » ----------
 // Un catcheur marqué le reste tant qu'il ne quitte pas le ring. Les cartes nWo posent la marque
 // (Hall, Nash, Steiner, X-Pac, Hogan, Bischoff, Spray, Too Sweet, nWo 4 Life) puis en profitent.
@@ -97,6 +121,17 @@ export function onEnter(state, pi, f) {
     addHistory(state, `Kane : Directeur des opérations : ${p.name} ajoute ${label(pick)} à sa main.`);
     emit(state, { kind: 'reveal', pi, cardIds: [pick], title: 'Ajoutée à la main', sub: 'Kane' });
   }
+  // Ric Flair : Mentor, prend un membre d'Evolution du deck (le joueur choisit, l'IA prend le plus fort).
+  if (f.cardId === 'evo-04') {
+    const p = state.players[pi], opts = [...new Set(p.deck.filter(id => isEvolution(id) && lookupCard(id)?.category === 'Catcheur'))];
+    if (!opts.length) return;
+    if (p.role !== 'ai') { (state.pendingChoices ??= []).push({ pi, key: 'evo-04', id: crypto.randomUUID() }); return; }
+    const pick = ['evo-01', 'evo-02', 'evo-03', 'evo-04'].find(id => opts.includes(id)) ?? opts[0];
+    p.deck.splice(p.deck.indexOf(pick), 1);
+    p.hand.push(pick);
+    addHistory(state, `Ric Flair : Mentor : ${p.name} ajoute ${label(pick)} à sa main.`);
+    emit(state, { kind: 'reveal', pi, cardIds: [pick], title: 'Ajoutée à la main', sub: 'Ric Flair' });
+  }
 }
 
 export function heal(state, pi, f, amount, why) {
@@ -135,8 +170,13 @@ export function statBonus(state, pi, f) {
   if (managerIs(state, pi, 'managers-01') && f.position === 'active' && (is(f.cardId, 'roman reigns') || is(f.cardId, 'brock lesnar'))) { add('attack', 10, 'Paul Heyman'); add('endurance', 10, 'Paul Heyman'); }
   if (managerIs(state, pi, 'managers-03') && p.active.some(x => factionOf(x.cardId))) add('attack', 10, 'Triple H (manager)');
   if (f.nwoMark && managerIs(state, 1 - pi, 'nwo-06')) add('attack', -5, 'Eric Bischoff (marqué nWo)');
+  if (managerIs(state, pi, 'evo-05') && isEvolution(f.cardId)) {
+    const mates = fightersOf(p).filter(x => x !== f && isEvolution(x.cardId)).length;
+    if (mates) add('attack', 5 * mates, `Evolution (manager) : ${mates} autre${mates > 1 ? 's' : ''} membre${mates > 1 ? 's' : ''}`);
+  }
   for (const o of objectsOf(state, pi, f)) {
     if (o === 'nwo-07') add('attack', 5, 'Spray');
+    if (o === 'evo-06') add('attack', 10, 'Masse');
     if (o === 'objets-05') add('attack', 10, 'Ceinture Universelle');
     if (o === 'objets-08') add('endurance', 10, 'Ceinture « The Champ »');
     if (o === 'wyatt-07' && is(f.cardId, 'bray wyatt')) { add('attack', 10, 'Lanterne de l’obscurité'); add('endurance', -10, 'Lanterne de l’obscurité'); }
@@ -189,6 +229,8 @@ export function activeEffects(state, pi) {
   if ((s.noMomentumThroughTurn ?? 0) >= n) out.push({ tone: 'debuff', icon: '⛔', title: 'Ne peut pas jouer de Momentum', text: '', until: s.noMomentumThroughTurn });
   if ((s.noSsrSummonThroughTurn ?? 0) >= n) out.push({ cardId: 'auth-06', tone: 'debuff', icon: '⛔', title: 'Ne peut pas invoquer de SSR', text: 'Décret de l’Authority', until: s.noSsrSummonThroughTurn });
   if (s.handicapTurn === n && state.turn === pi) out.push({ cardId: 'auth-09', tone: 'buff', icon: '⚔', title: 'Match Handicap', text: 'Tes catcheurs Authority peuvent viser un adversaire déjà attaqué.', until: n });
+  if (s.assautTurn === n && state.turn === pi) out.push({ cardId: 'evo-08', tone: 'buff', icon: '🐺', title: 'Assaut Total', text: 'Ton attaque en meute peut réunir 3 membres d’Evolution.', until: n });
+  if (s.packTurn === n && state.turn === pi) out.push({ cardId: 'evo-01', tone: 'item', icon: '🐺', title: 'Attaque en meute utilisée', text: 'Une seule par tour.', until: n });
   if ((s.noSsrSacrificeThroughTurn ?? 0) >= n) out.push({ cardId: 'momentum-01', tone: 'debuff', icon: '⛔', title: 'Ne peut pas sacrifier pour invoquer une SSR', text: 'Domination Totale', until: s.noSsrSacrificeThroughTurn });
   if ((s.effectsCancelledThroughTurn ?? 0) >= n) out.push({ tone: 'debuff', icon: '🚫', title: 'Tous ses effets sont annulés', text: '', until: s.effectsCancelledThroughTurn });
   if ((s.damageReductionUntil ?? 0) >= n) out.push({ cardId: 'momentum-07', tone: 'buff', icon: '🛡', title: 'Défense inébranlable', text: 'Les attaques adverses infligent 40 dégâts de moins.', until: s.damageReductionUntil });
@@ -248,6 +290,10 @@ export const ATTACK_SPECIALS = Object.freeze({
   'auth-01': { name: 'Curb Stomp', targets: 'fighter', bonus: () => 20 },
   'auth-02': { name: 'Chokeslam', targets: 'fighter', bonus: () => 15 },
   'auth-04': { name: 'KO Punch', targets: 'fighter', bonus: () => 25 },
+  // Evolution
+  'evo-01': { name: 'Pedigree', targets: 'fighter', bonus: () => 20 },
+  'evo-02': { name: 'Batista Bomb', targets: 'fighter', bonus: () => 25 },
+  'evo-03': { name: 'Punt Kick', targets: 'fighter', bonus: () => 10 },
 });
 
 export function specialAvailable(state, pi, f) {
@@ -288,8 +334,12 @@ function offense(state, a, f, target) {
     if (f.cardId === 'nwo-04' && target?.nwoMark) dmg += 10;                                           // Scott Steiner : Genetic Freak
     if (f.cardId === 'auth-01' && target?.hitTurn === state.turnNumber) dmg += 15;                     // Seth Rollins : Cash-in
     if (f.cardId === 'auth-03' && target?.position === 'passive') dmg += 10;                           // Randy Orton : Vipère
+    if (f.cardId === 'evo-01' && a.pack?.length) dmg += 15;                                            // Triple H : Le Leader
+    if (f.cardId === 'evo-02' && a.pack?.length) dmg += 10;                                            // Batista : Le Muscle
+    if (f.cardId === 'evo-03' && target && lookupCard(target.cardId)?.rarity === 'SSR') dmg += 15;     // Randy Orton : Legend Killer
   }
   for (const o of objectsOf(state, pi, f)) {
+    if (o === 'evo-06' && a.pack?.length) dmg += 10;                                                   // Masse (en meute)
     if (o === 'objets-02') dmg += 10;                                                                  // Bâton de Kendo
     if (o === 'objets-03' && target) dmg += 15;                                                        // Chaise en acier
     if (o === 'objets-04' && eff.attack >= 50) dmg += 20;                                              // Table
@@ -302,7 +352,8 @@ function offense(state, a, f, target) {
   return dmg;
 }
 
-function defense(state, a, f, target, dmg) {
+// `half` : appliquer « moitié moins de dégâts » de l'attaquant (déjà fait par participant en meute).
+function defense(state, a, f, target, dmg, half = true) {
   const di = 1 - a.playerIndex, d = state.players[di];
   const pierce = (f.cardId === 'catcheur-03' && passiveOn(state, a.playerIndex, f)) || ATTACK_SPECIALS[a.special]?.pierce;
   if (pierce) return Math.max(0, dmg);
@@ -314,15 +365,26 @@ function defense(state, a, f, target, dmg) {
   }
   if (onRing(state, di, 'catcheur-39', 'active')) dmg -= 10;                                           // Bray Wyatt : Manipulation mentale
   if ((d.status.damageReductionUntil ?? 0) >= state.turnNumber && !effectsOff(state, di)) dmg -= 40;  // Défense inébranlable
-  if ((f.halfDamageUntil ?? 0) >= state.turnNumber) dmg = Math.floor(dmg / 2);                         // Damien Priest : South of Heaven
+  if (half && (f.halfDamageUntil ?? 0) >= state.turnNumber) dmg = Math.floor(dmg / 2);                 // Damien Priest : South of Heaven
   return Math.max(0, dmg);
 }
 
-export function previewDamage(state, a, targetId = a.targets?.[0]) {
+// Catcheurs qui frappent ensemble : l'attaquant, puis ses partenaires de meute encore actifs.
+export const packCrew = (state, a) => {
   const p = state.players[a.playerIndex], f = p.active.find(x => x.instanceId === a.attackerId);
+  return f ? [f, ...(a.pack ?? []).map(id => p.active.find(x => x.instanceId === id)).filter(Boolean)] : [];
+};
+
+export function previewDamage(state, a, targetId = a.targets?.[0]) {
+  const [f, ...partners] = packCrew(state, a);
   if (!f) return 0;
   const target = targetId && targetId !== 'direct' ? findFighter(state.players[1 - a.playerIndex], targetId) : null;
-  return defense(state, a, f, target, offense(state, a, f, target));
+  if (!a.pack?.length) return defense(state, a, f, target, offense(state, a, f, target));
+  // Meute : chaque participant frappe avec son ATT et ses bonus (l'attaque spéciale reste celle du meneur),
+  // puis les réductions du défenseur s'appliquent une seule fois au coup commun.
+  const halved = (x, dmg) => ((x.halfDamageUntil ?? 0) >= state.turnNumber ? Math.floor(dmg / 2) : dmg);
+  const total = halved(f, offense(state, a, f, target)) + partners.reduce((n, x) => n + halved(x, offense(state, { ...a, special: null }, x, target)), 0);
+  return defense(state, a, f, target, total, false);
 }
 
 // ---------- Mise K.-O. ----------
@@ -394,13 +456,15 @@ export function resolveCombat(state, a) {
   if (!f) { addHistory(state, 'L’attaquant a quitté le ring : l’attaque est perdue.'); return; }
   const snap = snapshotStatus(state);
   resolveHits(state, a, f);
-  stampWhy(state, snap, ATTACK_SPECIALS[a.special]?.name ?? label(f.cardId));
+  stampWhy(state, snap, ATTACK_SPECIALS[a.special]?.name ?? (a.pack?.length ? 'Attaque en meute' : label(f.cardId)));
 }
 
 function resolveHits(state, a, f) {
   const pi = a.playerIndex, di = 1 - pi, p = state.players[pi], d = state.players[di];
   const killer = { pi, instanceId: f.instanceId, cardId: f.cardId, steal: Boolean(ATTACK_SPECIALS[a.special]?.steal) || a.special === 'wyatt-04' };
   const markedBefore = a.targets.filter(id => fightersOf(d).find(x => x.instanceId === id)?.nwoMark);
+  const partners = packCrew(state, a).slice(1);
+  const who = partners.length ? `${[f, ...partners].map(x => label(x.cardId)).join(' et ')} (en meute)` : label(f.cardId);
   if (a.targets[0] === 'direct') {
     const dmg = previewDamage(state, a, 'direct');
     d.hp -= dmg;
@@ -418,13 +482,15 @@ function resolveHits(state, a, f) {
     target.endurance -= dmg;
     target.wasAttacked = true;
     if (dmg > 0) { target.tookDamage = true; target.hitTurn = state.turnNumber; }
-    addHistory(state, `${label(f.cardId)} inflige ${dmg} dégâts à ${label(target.cardId)} : END ${effective(state, di, target).endurance}.`);
+    addHistory(state, `${who} ${partners.length ? 'infligent' : 'inflige'} ${dmg} dégâts à ${label(target.cardId)} : END ${effective(state, di, target).endurance}.`);
     hit.push(target);
   }
   afterAttack(state, a, f, hit);
+  for (const x of partners) afterAttack(state, { ...a, special: null }, x, hit);
   checkKOs(state, killer);
   nwoAfterHits(state, a, f, hit, markedBefore);
   authorityAfterHits(state, a, f, hit);
+  evolutionAfterHits(state, a, f, hit);
   // Soins des survivants « après avoir subi une attaque ».
   for (const t of hit) {
     if (!fightersOf(d).includes(t)) continue;
@@ -477,6 +543,18 @@ function authorityAfterHits(state, a, f, hit) {
   }
   if (a.special === 'auth-02' && alive && !sendToPassive(state, di, t, 'Chokeslam')) addHistory(state, `Chokeslam : pas de place pour envoyer ${label(t.cardId)} en zone passive.`);
   if (a.special === 'auth-04') { f.noAttackUntil = state.turnNumber + 2; f.noAttackUntilWhy = 'KO Punch'; addHistory(state, 'KO Punch : Big Show ne pourra pas attaquer à son prochain tour.'); }
+}
+
+function evolutionAfterHits(state, a, f, hit) {
+  const pi = a.playerIndex, di = 1 - pi, d = state.players[di];
+  const t = hit[0], alive = t && fightersOf(d).includes(t);
+  if (a.special === 'evo-01' && t && !alive) draw(state, pi, 1, 'Triple H : Pedigree');
+  if (a.special === 'evo-02' && fightersOf(state.players[pi]).includes(f)) {
+    f.endurance -= 10;
+    addHistory(state, 'Batista Bomb : Batista perd 10 END.');
+    checkKOs(state);
+  }
+  if (a.special === 'evo-03' && alive) { t.noAttackUntil = state.turnNumber + 1; addHistory(state, `Punt Kick : ${label(t.cardId)} ne pourra pas attaquer à son prochain tour.`); }
 }
 
 function afterAttack(state, a, f, hit) {

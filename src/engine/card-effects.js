@@ -10,7 +10,7 @@ import {
   legalPositions,
   DIRECT_SUMMON_RULES,
 } from './game-engine.js';
-import { heal, addModifier, effective, markNwo, effectsOff, canSendToPassive, sendToPassive } from './combat.js';
+import { heal, addModifier, effective, markNwo, effectsOff, canSendToPassive, sendToPassive, tousPourUnOk } from './combat.js';
 import { momentumTargetsAvailable, TARGET_MOMENTA, SUMMON_MOMENTA, targetCandidates, summonCandidates, resolveTargetMomentum, resolveSummonMomentum, rassemblementCheck, rassemblementOptions, resolveRassemblement } from './activations.js';
 
 const fighters = player => [...player.active, ...player.passive];
@@ -76,6 +76,7 @@ export const MOMENTUM_CONDITIONS = Object.freeze({
   'momentum-10': { when: (p, s, pi) => (s.koThisTurn?.[pi] ?? 0) > 0, reason: 'Aucun de tes catcheurs n’a été mis K.O. ce tour-ci.' },
   'momentum-11': { when: p => p.active.length >= 2, reason: 'Il faut 2 catcheurs actifs.' },
   'momentum-13': { when: p => activeNamed(p, 'roman reigns'), reason: 'Roman Reigns doit être actif.' },
+  'evo-09': { when: (p, s, pi) => tousPourUnOk(s, pi), reason: 'L’attaque doit viser un membre d’Evolution, et un autre membre d’Evolution doit être actif.' },
 });
 
 const shieldMembers = ids => ids.filter(id => lookupCard(id)?.category === 'Catcheur' && lookupCard(id)?.faction === 'The Shield');
@@ -102,7 +103,7 @@ export function momentumRequirement(state, playerIndex, card) {
 }
 
 // Momenta résolus d'un coup, sans choix (utile pour savoir quoi demander au joueur).
-export const isSimpleMomentum = id => Boolean(DRAW_RULES[id]) || ['momentum-01', 'momentum-04', 'momentum-06', 'momentum-07', 'momentum-10', 'momentum-11', 'momentum-12', 'momentum-13'].includes(id);
+export const isSimpleMomentum = id => Boolean(DRAW_RULES[id]) || ['momentum-01', 'momentum-04', 'momentum-06', 'momentum-07', 'momentum-10', 'momentum-11', 'momentum-12', 'momentum-13', 'evo-08'].includes(id);
 
 // Résolution immédiate des Momenta sans choix du joueur. Renvoie null si la
 // carte demande un choix (recherche, invocation, cimetière…) ou reste manuelle.
@@ -133,6 +134,9 @@ export function resolveSimpleMomentum(state, playerIndex, card) {
   } else if (card.id === 'momentum-13') {
     opponent.status.effectsCancelledThroughTurn = state.turnNumber;
     addHistory(state, `Acknowledge Me : tous les effets de ${opponent.name} sont annulés ce tour-ci.`);
+  } else if (card.id === 'evo-08') {
+    player.status.assautTurn = state.turnNumber;
+    addHistory(state, 'Assaut Total : ce tour-ci, l’attaque en meute peut réunir 3 membres d’Evolution.');
   } else return null;
   resolveMomentum(state, playerIndex);
   return { ok: true };

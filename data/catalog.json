@@ -2572,5 +2572,227 @@
         "text": "Invoque un catcheur de l'Authority R ou SR depuis ta main ou ton deck, sans sacrifice. Ce tour-ci, tes catcheurs Authority peuvent attaquer un adversaire déjà attaqué."
       }
     ]
+  },
+  {
+    "id": "evo-01",
+    "displayName": "TRIPLE H",
+    "category": "Catcheur",
+    "rarity": "SSR",
+    "attack": 70,
+    "endurance": 100,
+    "source": "Canva : ARCHETYPE EVOLUTION",
+    "page": 1,
+    "image": "public/cards/evo-01.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "Evolution",
+    "nickname": "THE GAME",
+    "effects": [
+      {
+        "kind": "meute",
+        "text": "Meute : 1 fois par tour, attaque un catcheur avec un autre membre d'Evolution. Ces 2 membres n'attaquent pas au tour suivant."
+      },
+      {
+        "kind": "passif",
+        "text": "Le Leader : +15 dégâts en meute."
+      },
+      {
+        "kind": "spécial",
+        "text": "Pedigree : +20 dégâts. Si l'adversaire est mis K.O., pioche 1 carte."
+      }
+    ]
+  },
+  {
+    "id": "evo-02",
+    "displayName": "BATISTA",
+    "category": "Catcheur",
+    "rarity": "SR",
+    "attack": 60,
+    "endurance": 80,
+    "source": "Canva : ARCHETYPE EVOLUTION",
+    "page": 2,
+    "image": "public/cards/evo-02.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "Evolution",
+    "nickname": "THE ANIMAL",
+    "effects": [
+      {
+        "kind": "meute",
+        "text": "Meute : 1 fois par tour, attaque un catcheur avec un autre membre d'Evolution. Ces 2 membres n'attaquent pas au tour suivant."
+      },
+      {
+        "kind": "passif",
+        "text": "Le Muscle : +10 dégâts en meute."
+      },
+      {
+        "kind": "spécial",
+        "text": "Batista Bomb : +25 dégâts, puis Batista perd 10 END."
+      }
+    ]
+  },
+  {
+    "id": "evo-03",
+    "displayName": "RANDY ORTON",
+    "category": "Catcheur",
+    "rarity": "SR",
+    "attack": 55,
+    "endurance": 75,
+    "source": "Canva : ARCHETYPE EVOLUTION",
+    "page": 3,
+    "image": "public/cards/evo-03.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "Evolution",
+    "nickname": "LEGEND KILLER",
+    "effects": [
+      {
+        "kind": "meute",
+        "text": "Meute : 1 fois par tour, attaque un catcheur avec un autre membre d'Evolution. Ces 2 membres n'attaquent pas au tour suivant."
+      },
+      {
+        "kind": "passif",
+        "text": "Legend Killer : +15 dégâts contre une SSR."
+      },
+      {
+        "kind": "spécial",
+        "text": "Punt Kick : +10 dégâts. La cible ne peut pas attaquer à son prochain tour."
+      }
+    ]
+  },
+  {
+    "id": "evo-04",
+    "displayName": "RIC FLAIR",
+    "category": "Catcheur",
+    "rarity": "R",
+    "attack": 45,
+    "endurance": 65,
+    "source": "Canva : ARCHETYPE EVOLUTION",
+    "page": 4,
+    "image": "public/cards/evo-04.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "Evolution",
+    "nickname": "NATURE BOY",
+    "effects": [
+      {
+        "kind": "meute",
+        "text": "Meute : 1 fois par tour, attaque un catcheur avec un autre membre d'Evolution. Ces 2 membres n'attaquent pas au tour suivant."
+      },
+      {
+        "kind": "passif",
+        "text": "Mentor : à son arrivée, prends 1 membre d'Evolution du deck."
+      },
+      {
+        "kind": "spécial",
+        "text": "Woooo ! : Flair va au cimetière et invoque Triple H de ta main ou deck."
+      }
+    ]
+  },
+  {
+    "id": "evo-05",
+    "displayName": "EVOLUTION",
+    "category": "Manager",
+    "rarity": "SR",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE EVOLUTION",
+    "page": 5,
+    "image": "public/cards/evo-05.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Chaque membre d'Evolution gagne +5 ATT pour chaque autre membre d'Evolution sur le ring."
+      }
+    ]
+  },
+  {
+    "id": "evo-06",
+    "displayName": "MASSE",
+    "category": "Objet",
+    "rarity": "R",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE EVOLUTION",
+    "page": 6,
+    "image": "public/cards/evo-06.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "À équiper sur un membre d'Evolution. Il gagne +10 ATT, et +10 dégâts en plus quand il attaque en meute."
+      }
+    ]
+  },
+  {
+    "id": "evo-07",
+    "displayName": "EVOLUTION IS A MYSTERY",
+    "category": "Momentum",
+    "rarity": "SR",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE EVOLUTION",
+    "page": 7,
+    "image": "public/cards/evo-07.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Invoque un membre d'Evolution R ou SR de ta main ou de ton deck, sans sacrifice."
+      }
+    ]
+  },
+  {
+    "id": "evo-08",
+    "displayName": "ASSAUT TOTAL",
+    "category": "Momentum",
+    "rarity": "SR",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE EVOLUTION",
+    "page": 8,
+    "image": "public/cards/evo-08.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Ce tour-ci, ton attaque en meute peut réunir 3 membres d'Evolution. Les 3 n'attaquent pas au tour suivant."
+      }
+    ]
+  },
+  {
+    "id": "evo-09",
+    "displayName": "TOUS POUR UN",
+    "category": "Momentum",
+    "rarity": "R",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE EVOLUTION",
+    "page": 9,
+    "image": "public/cards/evo-09.png",
+    "playable": true,
+    "excludedReason": null,
+    "rapid": true,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Réponse : annule une attaque contre un membre d'Evolution, si un autre membre d'Evolution est actif."
+      }
+    ]
   }
 ]

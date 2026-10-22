@@ -77,7 +77,7 @@ async function afterMomentum(c, result) {
     modal(`<h2>${esc(c.displayName)}</h2><p>Choisis le catcheur à invoquer. S’il n’est pas dans ta main, il est pris dans ton deck. Ton invocation normale reste disponible.</p><div class="opts">${opts.map(o => { const t = card(o.cardId); return option(esc(t.displayName), `${t.rarity} · ${t.attack} ATT · ${t.endurance} END · depuis ${o.source === 'deck' ? 'le deck' : 'la main'}`, `data-act="directPick" data-mid="${c.id}" data-id="${o.cardId}"`); }).join('')}</div>${btn('Terminer sans invoquer', 'data-act="skipMomentum"', 'btn ghost')}`);
     return;
   }
-  if (c.id === 'momentum-20' && result.response) { done({ ok: true }, 'effect'); if (match.turn === 1) runAI(); return; }
+  if ((c.id === 'momentum-20' || c.id === 'evo-09') && result.response) { done({ ok: true }, 'effect'); if (match.turn === 1) runAI(); return; }
   if (effects.isSimpleMomentum(c.id)) { done(await exec('simpleMomentum', c.id), 'effect'); return; }
   if (effects.SEARCH_RULES[c.id]) { searchModal(c.id, c.displayName); return; }
   if (c.id === 'wyatt-13') {
@@ -359,12 +359,28 @@ export const actions = {
     render();
   },
   cancelTarget: () => { S.targeting = null; render(); },
+  // Attaque en meute : on choisit d'abord le(s) partenaire(s), puis la cible.
+  pack: d => {
+    S.targeting = { mode: 'attack', iid: d.iid, special: d.special || null, ladder: false, picked: [], pack: [], packing: true };
+    S.selected = null;
+    sfx('tap');
+    render();
+  },
+  packGo: () => { if (S.targeting?.pack?.length) { S.targeting.packing = false; render(); } },
   target: async d => {
     const t = S.targeting;
     if (!t || S.busy) return;
     if (d.target === 'direct') { launchAttack('direct'); return; }
     const pi = Number(d.pi ?? 1);
     if (!pickable(m()).has(d.target)) return;
+    if (t.packing) {
+      t.pack.push(d.target);
+      sfx('tap');
+      const f = me().active.find(x => x.instanceId === t.iid);
+      if (t.pack.length >= combat.packMax(m(), 0) || !f || combat.packPartners(m(), 0, f).every(x => t.pack.includes(x.instanceId))) t.packing = false;
+      render();
+      return;
+    }
     t.picked.push({ pi, instanceId: d.target });
     sfx('tap');
     if (t.picked.length < needed(m(), t)) { render(); return; }
@@ -408,7 +424,7 @@ async function launchAttack(target) {
   S.targeting = null;
   if (m().phase === 'actions') sfx('phase'); // attaque spéciale lancée depuis la phase Actions
   const ids = t.picked.map(x => x.instanceId);
-  const r = await exec('declareAttack', t.iid, target, { special: t.special, ladder: t.ladder, discard: t.discard, targets: ids, secondTarget: t.special === 'catcheur-08' ? ids[1] : null });
+  const r = await exec('declareAttack', t.iid, target, { special: t.special, ladder: t.ladder, discard: t.discard, targets: ids, secondTarget: t.special === 'catcheur-08' ? ids[1] : null, ...(t.pack?.length ? { pack: t.pack } : {}) });
   if (!r.ok) { toast(r.reason); render(); return; }
   resolvePlayerAttack();
 }

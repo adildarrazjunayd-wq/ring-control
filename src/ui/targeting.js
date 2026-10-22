@@ -1,6 +1,7 @@
 // Mode « viser » : le joueur clique les cartes qui brillent sur le ring.
-// S.targeting = { mode: 'attack', iid, special, ladder, discard, picked }
+// S.targeting = { mode: 'attack', iid, special, ladder, discard, picked, pack?, packing? }
 //            ou { mode: 'effect', kind: 'activate' | 'momentum', key, iid, specs, picked, name }.
+// Attaque en meute : `packing` = on choisit d'abord les partenaires (mes catcheurs), puis la cible.
 import * as combat from '../engine/combat.js';
 import * as act from '../engine/activations.js';
 import { S, card, esc } from './core.js';
@@ -10,7 +11,7 @@ const typeOf = t => (t.ladder ? 'all-active' : combat.ATTACK_SPECIALS[t.special]
 function attacker(m, t) { return m.players[0].active.find(f => f.instanceId === t.iid); }
 
 export function directAllowed(m, t = S.targeting) {
-  if (!t || t.mode !== 'attack' || typeOf(t) !== 'one' || t.picked.length) return false;
+  if (!t || t.mode !== 'attack' || typeOf(t) !== 'one' || t.picked.length || t.pack) return false; // la meute ne vise jamais les PV
   if (!combat.directAttackAllowed(m, 0) || combat.forcedTarget(m, 0)) return false;
   return !t.special || combat.specialBonusAgainst(m, 0, attacker(m, t), null) != null;
 }
@@ -21,6 +22,7 @@ export function pickable(m, t = S.targeting) {
   if (t.mode === 'effect') return new Set(act.targetCandidates(m, 0, t.specs[t.picked.length] ?? {}).map(c => c.instanceId));
   const d = m.players[1], f = attacker(m, t), type = typeOf(t), picked = t.picked.map(x => x.instanceId);
   if (!f || type.startsWith('all')) return new Set();
+  if (t.packing) return new Set(combat.packPartners(m, 0, f).filter(x => !t.pack.includes(x.instanceId)).map(x => x.instanceId));
   if (type === 'two') return new Set(d.active.filter(x => !picked.includes(x.instanceId)).map(x => x.instanceId));
   if (t.special === 'catcheur-08' && picked.length === 1) return new Set(d.active.filter(x => x.instanceId !== picked[0]).map(x => x.instanceId));
   const pool = combat.canHitPassive(m, 0, f) ? [...d.active, ...d.passive] : d.active;
@@ -49,6 +51,7 @@ export function targetingScreen(m) {
   const f = attacker(m, t);
   if (!f) return '';
   const type = typeOf(t), sp = combat.ATTACK_SPECIALS[t.special];
+  if (t.pack) return packScreen(m, t, f, sp);
   const name = t.ladder ? 'ÉCHELLE' : sp ? sp.name.toUpperCase() : 'ATTAQUE';
   const text = type.startsWith('all') ? `Frappe ${type === 'all-ring' ? 'tous les catcheurs' : 'tous les catcheurs actifs'} de ${esc(m.players[1].name)}.`
     : type === 'two' ? `Clique deux catcheurs actifs de ${esc(m.players[1].name)} (${t.picked.length}/${needed(m, t)}).`
@@ -61,4 +64,16 @@ export function targetingScreen(m) {
     '<button class="btn ghost" data-act="cancelTarget">Annuler</button>',
   ].join('');
   return `<div class="tron targeting"><img src="${card(f.cardId).image}" alt=""><div class="tron-body"><span class="k">COMBAT · ${combat.effective(m, 0, f).attack} ATT</span><h2>${esc(name)}</h2><p>${text}</p><div class="tron-actions">${buttons}</div></div></div>`;
+}
+
+// Attaque en meute : 1) les partenaires, 2) la cible adverse.
+function packScreen(m, t, f, sp) {
+  const me = m.players[0], crew = [f, ...t.pack.map(id => me.active.find(x => x.instanceId === id)).filter(Boolean)];
+  const names = crew.map(x => esc(card(x.cardId).displayName)).join(' + '), max = combat.packMax(m, 0);
+  const title = `ATTAQUE EN MEUTE${sp ? ` · ${sp.name.toUpperCase()}` : ''}`;
+  const text = t.packing
+    ? `Clique le membre d’Evolution qui frappe avec ${names} (il brille sur ton ring)${max > 1 ? ` · jusqu’à ${max} partenaires avec Assaut Total` : ''}.`
+    : `${names} frappent ensemble. Clique le catcheur de ${esc(m.players[1].name)} qui brille. Tous les participants se reposeront au tour suivant.`;
+  const go = t.packing && t.pack.length ? `<button class="btn hot" data-act="packGo">Continuer à ${crew.length} ▶</button>` : '';
+  return `<div class="tron targeting"><img src="${card(f.cardId).image}" alt=""><div class="tron-body"><span class="k">🐺 MEUTE · ${crew.length} catcheur${crew.length > 1 ? 's' : ''}</span><h2>${esc(title)}</h2><p>${text}</p><div class="tron-actions">${go}<button class="btn ghost" data-act="cancelTarget">Annuler</button></div></div></div>`;
 }
