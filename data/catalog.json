@@ -2363,5 +2363,214 @@
         "text": "Invoque un catcheur nWo R ou SR depuis ta main ou ton deck, sans sacrifice. Puis marque nWo un adversaire actif."
       }
     ]
+  },
+  {
+    "id": "auth-01",
+    "displayName": "SETH ROLLINS",
+    "category": "Catcheur",
+    "rarity": "SSR",
+    "attack": 70,
+    "endurance": 100,
+    "source": "Canva : ARCHETYPE THE AUTHORITY",
+    "page": 1,
+    "image": "public/cards/auth-01.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "The Authority",
+    "nickname": "THE ARCHITECT",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Cash-in : +15 dégâts contre un adversaire déjà touché ce tour-ci."
+      },
+      {
+        "kind": "spécial",
+        "text": "Curb Stomp : +20 dégâts. Si l'adversaire est mis K.O., Rollins peut attaquer une 2e fois ce tour-ci."
+      }
+    ]
+  },
+  {
+    "id": "auth-02",
+    "displayName": "KANE",
+    "category": "Catcheur",
+    "rarity": "SR",
+    "attack": 55,
+    "endurance": 80,
+    "source": "Canva : ARCHETYPE THE AUTHORITY",
+    "page": 2,
+    "image": "public/cards/auth-02.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "The Authority",
+    "nickname": "CORPORATE KANE",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Directeur des opérations : à son arrivée, ajoute une carte Authority de ton deck à ta main."
+      },
+      {
+        "kind": "spécial",
+        "text": "Chokeslam : +15 dégâts. L'adversaire touché passe en zone passive (s'il y a de la place)."
+      }
+    ]
+  },
+  {
+    "id": "auth-03",
+    "displayName": "RANDY ORTON",
+    "category": "Catcheur",
+    "rarity": "SR",
+    "attack": 55,
+    "endurance": 75,
+    "source": "Canva : ARCHETYPE THE AUTHORITY",
+    "page": 3,
+    "image": "public/cards/auth-03.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "The Authority",
+    "nickname": "THE VIPER",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Vipère : peut attaquer les catcheurs en zone passive, avec +10 dégâts contre eux."
+      },
+      {
+        "kind": "spécial",
+        "text": "RKO Outta Nowhere : en réponse à une attaque, annule-la et inflige 15 dégâts à l'attaquant."
+      }
+    ]
+  },
+  {
+    "id": "auth-04",
+    "displayName": "BIG SHOW",
+    "category": "Catcheur",
+    "rarity": "SR",
+    "attack": 45,
+    "endurance": 80,
+    "source": "Canva : ARCHETYPE THE AUTHORITY",
+    "page": 4,
+    "image": "public/cards/auth-04.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "The Authority",
+    "nickname": "THE GIANT",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Garde du corps : tant qu'il est actif, l'adversaire doit l'attaquer en premier."
+      },
+      {
+        "kind": "spécial",
+        "text": "KO Punch : +25 dégâts, mais Big Show ne peut pas attaquer à son prochain tour."
+      }
+    ]
+  },
+  {
+    "id": "auth-05",
+    "displayName": "J&J SECURITY",
+    "category": "Catcheur",
+    "rarity": "R",
+    "attack": 40,
+    "endurance": 65,
+    "source": "Canva : ARCHETYPE THE AUTHORITY",
+    "page": 5,
+    "image": "public/cards/auth-05.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "The Authority",
+    "nickname": "JAMIE & JOEY",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Protection : quand Seth Rollins est attaqué, envoie J&J Security au cimetière pour annuler l'attaque."
+      },
+      {
+        "kind": "spécial",
+        "text": "Appel du boss : envoie J&J au cimetière et invoque Seth Rollins depuis ta main ou ton deck, sans sacrifice."
+      }
+    ]
+  },
+  {
+    "id": "auth-06",
+    "displayName": "AUTHORITY",
+    "category": "Manager",
+    "rarity": "SR",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE THE AUTHORITY",
+    "page": 6,
+    "image": "public/cards/auth-06.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Une fois par tour, Décret au choix : envoie un catcheur adverse actif en zone passive, OU l'adversaire ne peut pas invoquer de SSR jusqu'à la fin de son prochain tour."
+      }
+    ]
+  },
+  {
+    "id": "auth-07",
+    "displayName": "MITB",
+    "category": "Objet",
+    "rarity": "R",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE THE AUTHORITY",
+    "page": 7,
+    "image": "public/cards/auth-07.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "À équiper sur un membre de l'Authority. Une fois, défausse la mallette : ce catcheur peut attaquer une fois de plus ce tour-ci, avec +20 dégâts."
+      }
+    ]
+  },
+  {
+    "id": "auth-08",
+    "displayName": "BEST FOR BUSINESS",
+    "category": "Momentum",
+    "rarity": "R",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE THE AUTHORITY",
+    "page": 8,
+    "image": "public/cards/auth-08.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Décret : envoie un catcheur adverse actif en zone passive. Il ne pourra pas revenir en actif à son prochain tour."
+      }
+    ]
+  },
+  {
+    "id": "auth-09",
+    "displayName": "MATCH HANDICAP",
+    "category": "Momentum",
+    "rarity": "SR",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE THE AUTHORITY",
+    "page": 9,
+    "image": "public/cards/auth-09.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Invoque un catcheur de l'Authority R ou SR depuis ta main ou ton deck, sans sacrifice. Ce tour-ci, tes catcheurs Authority peuvent attaquer un adversaire déjà attaqué."
+      }
+    ]
   }
 ]

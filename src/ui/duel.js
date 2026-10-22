@@ -32,7 +32,7 @@ export function handActions(m, id) {
   }
   if (c.category === 'Manager' && acting && !p.limits.manager && !p.manager) out.push(act('Jouer le manager', `data-act="playManager" data-id="${id}"`, 'Occupe ton emplacement Manager', 'hot'));
   if (c.category === 'Objet' && acting && !p.limits.object) {
-    for (const f of fightersOf(p).filter(x => id !== 'nwo-07' || combat.isNwoMember(x.cardId))) { const e = combat.effective(m, 0, f); out.push(act(`Équiper à ${esc(card(f.cardId).displayName)}`, `data-act="equip" data-id="${id}" data-iid="${f.instanceId}"`, `${e.attack} ATT · ${e.endurance} END`)); }
+    for (const f of fightersOf(p).filter(x => (id !== 'nwo-07' || combat.isNwoMember(x.cardId)) && (id !== 'auth-07' || combat.isAuthority(x.cardId)))) { const e = combat.effective(m, 0, f); out.push(act(`Équiper à ${esc(card(f.cardId).displayName)}`, `data-act="equip" data-id="${id}" data-iid="${f.instanceId}"`, `${e.attack} ATT · ${e.endurance} END`)); }
   }
   if (c.category === 'Momentum') {
     const reaction = m.pendingAttack?.playerIndex === 1 && c.rapid && m.outOfTurnMomentumUsed[0] < 1;
@@ -71,6 +71,11 @@ function fighterActions(m, pi, f) {
       }
       if (p.objects.some(o => o.fighterId === f.instanceId && o.cardId === 'objets-01')) out.push(act('Attaque à l’Échelle', `data-act="attack" data-iid="${f.instanceId}" data-ladder="1"`, '10 dégâts à chaque actif adverse, puis -10 END'));
     }
+  }
+  // Mallette MITB : se défausse pour une attaque de plus (+20 ATT) ce tour-ci.
+  if (pi === 0 && myTurn(m) && ['actions', 'attacks'].includes(m.phase) && !m.pendingAttack && p.objects.some(o => o.fighterId === f.instanceId && o.cardId === 'auth-07')) {
+    const ok = f.position === 'active';
+    out.push(act('Encaisser la mallette MITB', `data-act="cashIn" data-iid="${f.instanceId}" ${ok ? '' : 'disabled'}`, ok ? 'Une attaque de plus ce tour-ci, avec +20 ATT' : 'Le porteur doit être actif', 'hot'));
   }
   if (pi === 0 && myTurn(m) && m.phase === 'actions') {
     // Changement de position : une fois par tour (déplacement simple ou échange actif ↔ passif).
@@ -114,6 +119,13 @@ function fighterActions(m, pi, f) {
 
 function managerActions(m, pi) {
   const p = m.players[pi];
+  if (pi === 0 && p.manager?.cardId === 'auth-06' && m.winner === null) {
+    const pass = effects.authorityCheck(m, 0, 'passive'), nossr = effects.authorityCheck(m, 0, 'nossr');
+    return [
+      act('Décret : un adversaire en zone passive', `data-act="authorityPassive" ${pass ? 'disabled' : ''}`, pass ?? 'Une fois par tour (au choix)', 'hot'),
+      act('Décret : pas de SSR adverse', `data-act="authorityNoSsr" ${nossr ? 'disabled' : ''}`, nossr ?? 'Jusqu’à la fin de son prochain tour', 'hot'),
+    ];
+  }
   if (pi === 0 && p.manager?.cardId === 'nwo-06' && m.winner === null) {
     const mark = effects.bischoffCheck(m, 0, 'mark'), search = effects.bischoffCheck(m, 0, 'search');
     return [
@@ -191,6 +203,7 @@ function fighterStats(m, pi, f) {
   if ((f.noAttackUntil ?? 0) >= m.turnNumber) lines.push(`<li class="down">💤 <b>Ne peut pas attaquer</b>${f.noAttackUntilWhy ? ` (${esc(f.noAttackUntilWhy)})` : ''} · ${when(f.noAttackUntil)}</li>`);
   if ((f.passivesOffUntil ?? 0) >= m.turnNumber) lines.push(`<li class="down">🚫 <b>Effets passifs annulés</b>${f.passivesOffUntilWhy ? ` (${esc(f.passivesOffUntilWhy)})` : ''} · ${when(f.passivesOffUntil)}</li>`);
   if ((f.halfDamageUntil ?? 0) >= m.turnNumber) lines.push(`<li class="down">½ <b>Inflige moitié moins de dégâts</b>${f.halfDamageUntilWhy ? ` (${esc(f.halfDamageUntilWhy)})` : ''} · ${when(f.halfDamageUntil)}</li>`);
+  if ((f.lockedPassiveUntil ?? 0) >= m.turnNumber) lines.push(`<li class="down">🔒 <b>Ne peut pas revenir en actif</b>${f.lockedPassiveUntilWhy ? ` (${esc(f.lockedPassiveUntilWhy)})` : ''} · ${when(f.lockedPassiveUntil)}</li>`);
   if (f.nwoMark) lines.push(`<li class="down">🎯 <b>Marqué nWo</b>${f.nwoMarkWhy ? ` (${esc(f.nwoMarkWhy)})` : ''} · tant qu’il reste sur le ring</li>`);
   if (f.specialUsed) lines.push('<li class="muted">Effet spécial déjà utilisé</li>');
   if (m.turn === pi && f.position === 'active') { const n = combat.attacksAllowed(m, pi, f), used = combat.attacksUsed(m, f); lines.push(`<li>⚔ Attaques ce tour : <b>${used}/${n}</b></li>`); }
@@ -224,6 +237,7 @@ function statusBadges(m, f) {
   if ((f.halfDamageUntil ?? 0) >= m.turnNumber) out.push(['½', 'Dégâts divisés par 2']);
   if (m.extraAttacks?.[f.instanceId]) out.push(['×2', 'Attaque deux fois']);
   if (f.nwoMark) out.push(['🎯', 'Marqué nWo']);
+  if ((f.lockedPassiveUntil ?? 0) >= m.turnNumber) out.push(['🔒', 'Bloqué en zone passive']);
   return out;
 }
 

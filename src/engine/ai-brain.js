@@ -43,6 +43,7 @@ function summonOptions(state, pi) {
   for (const id of uniq(p.hand)) {
     const c = card(id);
     if (c?.category !== 'Catcheur' || c.playable === false) continue;
+    if (c.rarity === 'SSR' && (p.status.noSsrSummonThroughTurn ?? 0) >= state.turnNumber) continue;
     let sacrifices = [], cost = 0;
     if (c.rarity === 'SSR' && !p.status.freeSsrSummon && !(c.id === 'nwo-01' && combat.hoganFree(state, pi))) {
       const board = fightersOf(p).map(f => ({ f, v: fighterValue(state, pi, f), r: card(f.cardId).rarity })).sort((a, b) => a.v - b.v);
@@ -72,6 +73,7 @@ function managerOptions(state, pi) {
       if (id === 'managers-04') s = 15 + (fx.teddyLongOptions(state, pi).length ? 25 : 0);
       if (id === 'managers-05') s = 15 + (p.hand.filter(h => card(h)?.category === 'Momentum' && !card(h).rapid).length >= 2 ? 15 : 0);
       if (id === 'nwo-06') s = 25 + 10 * ring.filter(f => combat.isNwoMember(f.cardId)).length;
+      if (id === 'auth-06') s = 30 + 8 * ring.filter(f => combat.isAuthority(f.cardId)).length;
       out.push({ score: s, label: `joue le manager ${c.displayName}`, run: () => game.playManager(state, pi, c) });
     }
   }
@@ -82,7 +84,13 @@ function managerOptions(state, pi) {
     const best = fx.searchOptions(state, pi, 'nwo-06').map(o => card(o.cardId)).sort((a, b) => cardValue(b) - cardValue(a))[0];
     if (best && !fx.bischoffCheck(state, pi, 'search')) out.push({ score: 20, label: 'Eric Bischoff cherche une carte nWo', run: () => fx.managerEffect(state, pi, { mode: 'search', cardId: best.id }) });
   }
-  if (m && !m.used && m.cardId !== 'nwo-06') {
+  if (m?.cardId === 'auth-06') {
+    const d = state.players[1 - pi];
+    const target = [...d.active].filter(f => combat.canSendToPassive(state, 1 - pi, f)).sort((a, b) => effective(state, 1 - pi, b).attack - effective(state, 1 - pi, a).attack)[0];
+    if (target && !fx.authorityCheck(state, pi, 'passive')) out.push({ score: 28, label: 'Décret : un adversaire en zone passive', run: () => fx.managerEffect(state, pi, { mode: 'passive', targets: [{ instanceId: target.instanceId }] }) });
+    else if (!fx.authorityCheck(state, pi, 'nossr')) out.push({ score: d.hand.some(h => card(h)?.rarity === 'SSR' && card(h)?.category === 'Catcheur') ? 22 : 8, label: 'Décret : pas de SSR adverse', run: () => fx.managerEffect(state, pi, { mode: 'nossr' }) });
+  }
+  if (m && !m.used && !['nwo-06', 'auth-06'].includes(m.cardId)) {
     if (m.cardId === 'managers-02' && !p.limits.normal && p.hand.some(h => card(h)?.rarity === 'SSR' && card(h)?.category === 'Catcheur') && legalPositions(p).length) out.push({ score: 45, label: 'active Mr. McMahon', run: () => fx.managerEffect(state, pi) });
     if (m.cardId === 'managers-05' && p.limits.momentum >= 1 && p.hand.some(h => card(h)?.category === 'Momentum' && !card(h).rapid && fx.momentumRequirement(state, pi, card(h)).ok)) out.push({ score: 30, label: 'active Stephanie McMahon', run: () => fx.managerEffect(state, pi) });
     if (m.cardId === 'managers-04') {
@@ -109,6 +117,7 @@ function objectScore(state, pi, o, f) {
     case 'objets-08': return 15 + (is(f.cardId, 'john cena') || is(f.cardId, 'cm punk') ? 22 : 0);
     case 'wyatt-07': return is(f.cardId, 'bray wyatt') ? 25 : 1;
     case 'nwo-07': return combat.isNwoMember(f.cardId) ? 22 + (active ? 8 : 0) : -1;
+    case 'auth-07': return combat.isAuthority(f.cardId) ? 18 + (active ? 8 : 0) + (is(f.cardId, 'seth rollins') ? 6 : 0) : -1;
     default: return 5;
   }
 }
@@ -136,7 +145,8 @@ function momentumScore(state, pi, c) {
     case 'momentum-24': return 30 + 25 * Math.min(2, fx.shieldSummonOptions(state, pi).length);
     case 'momentum-16': return Math.max(0, ...p.grave.filter(g => card(g)?.category === 'Catcheur').map(g => cardValue(card(g)))) * 0.6;
     case 'nwo-08': return 15 * (fightersOf(d).filter(f => f.nwoMark).length + (d.active.some(f => !f.nwoMark) ? 1 : 0));
-    case 'wyatt-06': case 'wyatt-12': case 'nwo-09': return Math.max(0, ...act.summonCandidates(state, pi, act.SUMMON_MOMENTA[id].summon).map(o => cardValue(card(o.cardId)))) * 0.6;
+    case 'auth-08': return d.active.some(f => combat.canSendToPassive(state, 1 - pi, f)) ? 18 + Math.max(0, ...d.active.map(f => effective(state, 1 - pi, f).attack)) / 4 : -1;
+    case 'wyatt-06': case 'wyatt-12': case 'nwo-09': case 'auth-09': return Math.max(0, ...act.summonCandidates(state, pi, act.SUMMON_MOMENTA[id].summon).map(o => cardValue(card(o.cardId)))) * 0.6;
     case 'momentum-05': case 'wyatt-05': case 'momentum-26': return 25;
     case 'momentum-08': case 'momentum-15': case 'momentum-17': return 30;
     case 'momentum-04': return p.hand.filter(h => card(h)?.category === 'Momentum' && !card(h).rapid).length >= 3 ? 25 : 2;
@@ -250,6 +260,11 @@ function effectOptions(state, pi) {
       }
     }
   }
+  // Mallette MITB : l'encaisser quand son porteur peut attaquer et qu'il y a quelqu'un à frapper.
+  for (const o of p.objects.filter(x => x.cardId === 'auth-07')) {
+    const f = p.active.find(x => x.instanceId === o.fighterId), d = state.players[1 - pi];
+    if (f && state.turnNumber > 1 && (d.active.length || combat.directAttackAllowed(state, pi)) && combat.canAttack(state, pi, f).ok) out.push({ score: 24, label: 'encaisse la mallette', run: () => game.cashInBriefcase(state, pi, f.instanceId) });
+  }
   for (const key of ['wyatt-02:grave', 'wyatt-03:grave']) {
     if (!p.grave.includes(key.split(':')[0]) || act.activationCheck(state, pi, key, null)) continue;
     const e = act.ACTIVATED[key];
@@ -303,7 +318,7 @@ export function bestAttack(state, pi) {
       const type = v.ladder ? 'all-active' : v.special ? sp.targets : 'one';
       const base = { playerIndex: pi, attackerId: f.instanceId, special: v.special, ladder: v.ladder, first: state.usedAttackers.length === 0 };
       // Les attaques spéciales nWo qui posent la marque valent un peu plus qu'une attaque simple.
-      const cost = ['nwo-02', 'nwo-04', 'nwo-05'].includes(v.special) ? -3 : v.special || v.ladder ? 12 : 0;
+      const cost = ['nwo-02', 'nwo-04', 'nwo-05', 'auth-01', 'auth-02'].includes(v.special) ? -3 : v.special === 'auth-04' ? 18 : v.special || v.ladder ? 12 : 0;
       if (type === 'all-active' || type === 'all-ring') {
         const targets = (type === 'all-ring' ? fightersOf(d) : d.active);
         if (!targets.length || (v.special && combat.specialBonusAgainst(state, pi, f, d.active[0] ?? null) == null)) continue;
@@ -311,7 +326,8 @@ export function bestAttack(state, pi) {
         consider(targets.reduce((n, t) => n + hitScore(state, pi, t, combat.previewDamage(state, a, t.instanceId)), 0) - cost, { attackerId: f.instanceId, target: 'multi', options: { special: v.special, ladder: v.ladder } });
         continue;
       }
-      const pool = (combat.canHitPassive(state, pi, f) ? fightersOf(d) : d.active).filter(t => !state.usedTargets.includes(t.instanceId) && (!v.special || combat.specialBonusAgainst(state, pi, f, t) != null));
+      const guard = combat.forcedTarget(state, pi);
+      const pool = (combat.canHitPassive(state, pi, f) ? fightersOf(d) : d.active).filter(t => (!guard || t.instanceId === guard) && (!state.usedTargets.includes(t.instanceId) || combat.canRetarget(state, pi, f)) && (!v.special || combat.specialBonusAgainst(state, pi, f, t) != null));
       const scored = pool.map(t => ({ t, s: hitScore(state, pi, t, combat.previewDamage(state, { ...base, targets: [t.instanceId] }, t.instanceId)) })).sort((a, b) => b.s - a.s);
       if (type === 'two') {
         if (scored.length >= 2) consider(scored[0].s + scored[1].s - cost, { attackerId: f.instanceId, target: 'multi', options: { special: v.special, targets: [scored[0].t.instanceId, scored[1].t.instanceId] } });
@@ -321,7 +337,7 @@ export function bestAttack(state, pi) {
         const extra = v.special === 'catcheur-08' ? d.active.filter(x => x !== t).sort((a, b) => effective(state, 1 - pi, b).endurance - effective(state, 1 - pi, a).endurance)[0] : null;
         consider(s - cost, { attackerId: f.instanceId, target: t.instanceId, options: { special: v.special, secondTarget: extra?.instanceId ?? null } });
       }
-      const directOk = combat.directAttackAllowed(state, pi) && (!v.special || (type === 'one' && combat.specialBonusAgainst(state, pi, f, null) != null));
+      const directOk = !guard && combat.directAttackAllowed(state, pi) && (!v.special || (type === 'one' && combat.specialBonusAgainst(state, pi, f, null) != null));
       if (directOk) consider(hitScore(state, pi, null, combat.previewDamage(state, { ...base, targets: ['direct'] }, 'direct')) - cost, { attackerId: f.instanceId, target: 'direct', options: { special: v.special } });
     }
   }

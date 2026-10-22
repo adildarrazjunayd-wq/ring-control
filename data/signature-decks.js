@@ -51,6 +51,17 @@ const recipes = [
       'momentum-05', 'momentum-08', 'momentum-15', 'momentum-20', 'momentum-29', 'objets-05',
     ],
   },
+  {
+    id: 'authority',
+    name: 'The Authority',
+    theme: 'Faction · Décrets et contrôle',
+    description: 'Envoie les adversaires en zone passive, frappe-les là-bas avec Orton, et fais entrer Rollins grâce à J&J Security.',
+    cardIds: [
+      'auth-01', 'auth-02', 'auth-03', 'auth-04', 'auth-05', 'auth-06', 'auth-07', 'auth-08', 'auth-09',
+      'catcheur-04', 'catcheur-19', 'catcheur-38', 'catcheur-11', 'catcheur-03',
+      'momentum-05', 'momentum-08', 'momentum-15', 'momentum-20', 'objets-05', 'managers-03',
+    ],
+  },
 ];
 
 export const SIGNATURE_DECKS = Object.freeze(recipes.map(recipe => Object.freeze({

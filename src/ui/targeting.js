@@ -11,7 +11,7 @@ function attacker(m, t) { return m.players[0].active.find(f => f.instanceId === 
 
 export function directAllowed(m, t = S.targeting) {
   if (!t || t.mode !== 'attack' || typeOf(t) !== 'one' || t.picked.length) return false;
-  if (!combat.directAttackAllowed(m, 0)) return false;
+  if (!combat.directAttackAllowed(m, 0) || combat.forcedTarget(m, 0)) return false;
   return !t.special || combat.specialBonusAgainst(m, 0, attacker(m, t), null) != null;
 }
 
@@ -24,7 +24,8 @@ export function pickable(m, t = S.targeting) {
   if (type === 'two') return new Set(d.active.filter(x => !picked.includes(x.instanceId)).map(x => x.instanceId));
   if (t.special === 'catcheur-08' && picked.length === 1) return new Set(d.active.filter(x => x.instanceId !== picked[0]).map(x => x.instanceId));
   const pool = combat.canHitPassive(m, 0, f) ? [...d.active, ...d.passive] : d.active;
-  return new Set(pool.filter(x => !m.usedTargets.includes(x.instanceId) && (!t.special || combat.specialBonusAgainst(m, 0, f, x) != null)).map(x => x.instanceId));
+  const guard = combat.forcedTarget(m, 0); // Big Show doit être attaqué en premier
+  return new Set(pool.filter(x => (!guard || x.instanceId === guard) && (!m.usedTargets.includes(x.instanceId) || combat.canRetarget(m, 0, f)) && (!t.special || combat.specialBonusAgainst(m, 0, f, x) != null)).map(x => x.instanceId));
 }
 
 // Combien de cibles faut-il avant de lancer ?

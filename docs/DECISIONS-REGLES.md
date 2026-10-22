@@ -39,6 +39,22 @@
 - Eric Bischoff : une fois par tour, au choix, marquer (on vise) ou chercher une carte nWo ; -5 ATT aux marqués en permanence.
 - Spray : uniquement sur un catcheur de la nWo.
 
+## Archétype The Authority (validé par le propriétaire le 22 octobre 2026)
+
+- 9 cartes créées dans son Canva (dossier « ARCHETYPE THE AUTHORITY ») : `auth-01` à `auth-09`, deck signature « The Authority ».
+- **Envoyer en zone passive** (Décret du manager, Chokeslam de Kane, Best for Business) : seulement si l'adversaire garde au
+  moins un actif et a une place passive libre. Best for Business bloque en plus le catcheur en passif pendant son prochain tour
+  (ni déplacement ni échange vers l'actif).
+- **« Déjà touché ce tour-ci »** (Cash-in de Rollins) = a perdu de l'END ce tour-ci (attaque ou effet).
+- **Match Handicap** : ce tour-ci, les catcheurs de l'Authority peuvent viser un adversaire déjà attaqué (exception à la règle
+  « une cible une seule fois par tour »).
+- **Big Show (Garde du corps, passif activé)** : tant qu'il est actif et pas encore attaqué ce tour-ci, les attaques à une seule
+  cible (et l'attaque directe) doivent le viser ; les attaques sur plusieurs cibles restent libres.
+- **J&J Security** : la protection de Rollins est une réponse (comme Strowman) disponible tant que J&J est sur le ring.
+- **Kane** : à son arrivée sur le ring, le joueur choisit une carte Authority du deck (il peut renoncer) ; l'IA prend Rollins en priorité.
+- **MITB** : encaissée (défaussée) pendant ton tour, son porteur actif gagne une attaque de plus et +20 ATT jusqu'à la fin du tour.
+- **Décret « pas de SSR »** : bloque toute invocation de SSR adverse (normale ou spéciale) jusqu'à la fin de son prochain tour.
+
 ## Façon d'appliquer les effets (cahier des charges §11 : « selon sa formulation »)
 
 Mise à jour du 21 octobre 2026, à la demande du propriétaire (« je veux choisir d'activer ») :

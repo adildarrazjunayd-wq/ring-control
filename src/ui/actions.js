@@ -296,6 +296,16 @@ export const actions = {
     const opts = effects.searchOptions(m(), 0, 'nwo-06');
     modal(`<h2>Eric Bischoff</h2><p>Choisis une carte nWo dans ton deck : elle va dans ta main.</p><div class="opts">${opts.map(o => { const c = card(o.cardId); return `<button class="opt row" data-act="bischoffPick" data-id="${o.cardId}"><img src="${c.image}" alt=""><b>${esc(c.displayName)}</b><small>${c.category} · ${c.rarity} · ×${o.copies} dans le deck</small></button>`; }).join('') || '<p>Aucune carte nWo dans ton deck.</p>'}</div>${btn('Annuler', 'data-act="close"', 'btn ghost')}`);
   },
+  // The Authority (manager) : les deux Décrets.
+  authorityPassive: () => {
+    const refused = effects.authorityCheck(m(), 0, 'passive');
+    if (refused) { toast(refused); return; }
+    S.targeting = { mode: 'effect', kind: 'manager', managerMode: 'passive', key: 'auth-06', iid: null, specs: [{ side: 'opp', zone: 'active', filter: (s, pi, t) => combat.canSendToPassive(s, 1 - pi, t) }], picked: [], name: 'Décret de l’Authority' };
+    S.selected = null;
+    render();
+  },
+  authorityNoSsr: async () => done(await exec('managerEffect', { mode: 'nossr' }), 'effect'),
+  cashIn: async d => done(await exec('cashIn', d.iid), 'effect'),
   bischoffPick: async d => done(await exec('managerEffect', { mode: 'search', cardId: d.id }), 'effect'),
   teddyConfirm: async () => {
     const ids = [...document.querySelectorAll('[data-teddy]:checked')].map(x => x.value);
@@ -365,7 +375,7 @@ export const actions = {
       : t.kind === 'activate'
       ? await exec('activate', t.key, t.iid, { targets: t.picked })
       : t.kind === 'manager'
-        ? await exec('managerEffect', { mode: 'mark', targets: t.picked.map(x => ({ instanceId: x.instanceId })) })
+        ? await exec('managerEffect', { mode: t.managerMode ?? 'mark', targets: t.picked.map(x => ({ instanceId: x.instanceId })) })
         : await exec('targetMomentum', t.key, t.picked);
     done(r, 'effect');
   },

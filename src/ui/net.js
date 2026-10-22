@@ -36,6 +36,7 @@ export const COMMANDS = {
   move: (s, a, iid, dest) => game.moveFighter(s, a, iid, dest),
   swap: (s, a, x, y) => game.swapFighters(s, a, x, y),
   wrestlerEffect: (s, a, iid, kind) => game.activateWrestlerEffect(s, a, iid, kind),
+  cashIn: (s, a, iid) => game.cashInBriefcase(s, a, iid),
   managerEffect: (s, a, opts) => effects.managerEffect(s, a, opts),
   activate: (s, a, key, iid, opts = {}) => activ.activate(s, a, key, iid, { ...opts, targets: relTargets(a, opts.targets) }),
   targetMomentum: (s, a, key, targets) => activ.resolveTargetMomentum(s, a, key, relTargets(a, targets)),

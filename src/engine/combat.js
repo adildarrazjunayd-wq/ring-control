@@ -28,7 +28,31 @@ export const BLOODLINE_CORE = ['roman reigns', 'jey uso', 'jimmy uso', 'sami zay
 export const bloodlineComplete = (state, pi) => BLOODLINE_CORE.every(n => fightersOf(state.players[pi]).some(f => is(f.cardId, n)));
 export const rassemblementActive = (state, pi) => !effectsOff(state, pi) && state.players[pi].ongoingMomentum.some(o => o.cardId === 'wyatt-13') && bloodlineComplete(state, pi);
 // The Bloodline Rassemblement : les membres de la Bloodline peuvent attaquer les catcheurs passifs.
-export const canHitPassive = (state, pi, f) => rassemblementActive(state, pi) && factionOf(f.cardId) === 'The Bloodline';
+// Randy Orton (Authority) : passif « Vipère » activé, il peut viser la zone passive.
+export const canHitPassive = (state, pi, f) => (rassemblementActive(state, pi) && factionOf(f.cardId) === 'The Bloodline') || has(state, pi, f, 'auth-03');
+
+// ---------- The Authority : les Décrets ----------
+export const isAuthority = id => factionOf(id) === 'The Authority';
+// Un actif adverse peut être envoyé en zone passive s'il reste un autre actif et une place passive.
+export const canSendToPassive = (state, di, f) => { const d = state.players[di]; return f.position === 'active' && d.passive.length < 2 && d.active.length > 1; };
+// `lockUntil` : dernier tour pendant lequel il ne peut pas revenir en actif (Best for Business).
+export function sendToPassive(state, di, f, why, lockUntil = null) {
+  if (!f || !canSendToPassive(state, di, f)) return false;
+  const d = state.players[di];
+  d.active.splice(d.active.indexOf(f), 1);
+  f.position = 'passive';
+  d.passive.push(f);
+  if (lockUntil) { f.lockedPassiveUntil = lockUntil; f.lockedPassiveUntilWhy = why; }
+  addHistory(state, `${why} : ${label(f.cardId)} est envoyé en zone passive${lockUntil ? ' et ne pourra pas revenir en actif à son prochain tour' : ''}.`);
+  return true;
+}
+// Big Show : passif « Garde du corps » activé, il doit être attaqué en premier (attaques à une seule cible).
+export function forcedTarget(state, pi) {
+  const di = 1 - pi, guard = state.players[di].active.find(x => x.cardId === 'auth-04' && passiveOn(state, di, x) && !state.usedTargets.includes(x.instanceId));
+  return guard?.instanceId ?? null;
+}
+// Match Handicap : ce tour-ci, les catcheurs de l'Authority peuvent viser un adversaire déjà attaqué.
+export const canRetarget = (state, pi, f) => isAuthority(f.cardId) && state.players[pi].status.handicapTurn === state.turnNumber && !effectsOff(state, pi);
 
 // ---------- nWo : la « marque nWo » ----------
 // Un catcheur marqué le reste tant qu'il ne quitte pas le ring. Les cartes nWo posent la marque
@@ -62,6 +86,17 @@ export function onEnter(state, pi, f) {
   if (effectsOff(state, pi)) return;
   if (f.cardId === 'nwo-01') for (const t of state.players[1 - pi].active) markNwo(state, t, 'Hulk Hogan : Le 3e homme');
   if (f.cardId === 'nwo-05') chooseMark(state, pi, 'X-Pac : Syxx', 'nwo-05');
+  // Kane : ajoute une carte Authority du deck à la main (le joueur choisit, l'IA prend Rollins en priorité).
+  if (f.cardId === 'auth-02') {
+    const p = state.players[pi], opts = [...new Set(p.deck.filter(id => id.startsWith('auth-')))];
+    if (!opts.length) return;
+    if (p.role !== 'ai') { (state.pendingChoices ??= []).push({ pi, key: 'auth-02', id: crypto.randomUUID() }); return; }
+    const pick = opts.includes('auth-01') ? 'auth-01' : opts[0];
+    p.deck.splice(p.deck.indexOf(pick), 1);
+    p.hand.push(pick);
+    addHistory(state, `Kane : Directeur des opérations : ${p.name} ajoute ${label(pick)} à sa main.`);
+    emit(state, { kind: 'reveal', pi, cardIds: [pick], title: 'Ajoutée à la main', sub: 'Kane' });
+  }
 }
 
 export function heal(state, pi, f, amount, why) {
@@ -139,6 +174,7 @@ export function activeEffects(state, pi) {
     if ((f.noAttackUntil ?? 0) >= n) out.push({ cardId: f.cardId, tone: 'debuff', icon: '💤', title: `${who} ne peut pas attaquer`, text: f.noAttackUntilWhy ? `Cause : ${f.noAttackUntilWhy}.` : '', until: f.noAttackUntil });
     if ((f.passivesOffUntil ?? 0) >= n) out.push({ cardId: f.cardId, tone: 'debuff', icon: '🚫', title: `Effets passifs de ${who} annulés`, text: f.passivesOffUntilWhy ? `Cause : ${f.passivesOffUntilWhy}.` : '', until: f.passivesOffUntil });
     if ((f.halfDamageUntil ?? 0) >= n) out.push({ cardId: f.cardId, tone: 'debuff', icon: '½', title: `${who} inflige moitié moins de dégâts`, text: f.halfDamageUntilWhy ? `Cause : ${f.halfDamageUntilWhy}.` : '', until: f.halfDamageUntil });
+    if ((f.lockedPassiveUntil ?? 0) >= n) out.push({ cardId: f.cardId, tone: 'debuff', icon: '🔒', title: `${who} ne peut pas revenir en actif`, text: f.lockedPassiveUntilWhy ? `Cause : ${f.lockedPassiveUntilWhy}.` : '', until: f.lockedPassiveUntil });
     if (f.nwoMark) out.push({ cardId: f.cardId, tone: 'debuff', icon: '🎯', title: `${who} est marqué nWo`, text: f.nwoMarkWhy ? `Cause : ${f.nwoMarkWhy}.` : '', until: null });
     if (state.extraAttacks?.[f.instanceId] && state.turn === pi) out.push({ cardId: f.cardId, tone: 'buff', icon: '×2', title: `${who} peut attaquer une fois de plus`, text: '', until: n });
     for (const m of f.modifiers ?? []) if (m.until == null || m.until >= n) out.push({ cardId: m.source, tone: m.value > 0 ? 'buff' : 'debuff', icon: m.value > 0 ? '⬆' : '⬇', title: `${who} : ${m.value > 0 ? '+' : ''}${m.value} ${m.stat === 'attack' ? 'ATT' : 'END'}`, text: nameAt(m.source), until: m.until });
@@ -151,6 +187,8 @@ export function activeEffects(state, pi) {
   for (const o of p.ongoingMomentum) out.push({ cardId: o.cardId, tone: 'buff', icon: '🔥', title: nameAt(o.cardId), text: effectText(o.cardId, 'effet'), until: null });
   const s = p.status;
   if ((s.noMomentumThroughTurn ?? 0) >= n) out.push({ tone: 'debuff', icon: '⛔', title: 'Ne peut pas jouer de Momentum', text: '', until: s.noMomentumThroughTurn });
+  if ((s.noSsrSummonThroughTurn ?? 0) >= n) out.push({ cardId: 'auth-06', tone: 'debuff', icon: '⛔', title: 'Ne peut pas invoquer de SSR', text: 'Décret de l’Authority', until: s.noSsrSummonThroughTurn });
+  if (s.handicapTurn === n && state.turn === pi) out.push({ cardId: 'auth-09', tone: 'buff', icon: '⚔', title: 'Match Handicap', text: 'Tes catcheurs Authority peuvent viser un adversaire déjà attaqué.', until: n });
   if ((s.noSsrSacrificeThroughTurn ?? 0) >= n) out.push({ cardId: 'momentum-01', tone: 'debuff', icon: '⛔', title: 'Ne peut pas sacrifier pour invoquer une SSR', text: 'Domination Totale', until: s.noSsrSacrificeThroughTurn });
   if ((s.effectsCancelledThroughTurn ?? 0) >= n) out.push({ tone: 'debuff', icon: '🚫', title: 'Tous ses effets sont annulés', text: '', until: s.effectsCancelledThroughTurn });
   if ((s.damageReductionUntil ?? 0) >= n) out.push({ cardId: 'momentum-07', tone: 'buff', icon: '🛡', title: 'Défense inébranlable', text: 'Les attaques adverses infligent 40 dégâts de moins.', until: s.damageReductionUntil });
@@ -206,6 +244,10 @@ export const ATTACK_SPECIALS = Object.freeze({
   'nwo-02': { name: 'Jackknife Powerbomb', targets: 'fighter', bonus: () => 15 },
   'nwo-04': { name: 'Steiner Recliner', targets: 'fighter', bonus: () => 0 },
   'nwo-05': { name: 'Bronco Buster', targets: 'fighter', bonus: () => 10 },
+  // The Authority
+  'auth-01': { name: 'Curb Stomp', targets: 'fighter', bonus: () => 20 },
+  'auth-02': { name: 'Chokeslam', targets: 'fighter', bonus: () => 15 },
+  'auth-04': { name: 'KO Punch', targets: 'fighter', bonus: () => 25 },
 });
 
 export function specialAvailable(state, pi, f) {
@@ -244,6 +286,8 @@ function offense(state, a, f, target) {
     if (f.cardId === 'catcheur-15' && target && tEnd > 85) dmg += 10;                                  // Finn Balor
     if (f.cardId === 'catcheur-24' && mp) dmg += 5;                                                    // Edge
     if (f.cardId === 'nwo-04' && target?.nwoMark) dmg += 10;                                           // Scott Steiner : Genetic Freak
+    if (f.cardId === 'auth-01' && target?.hitTurn === state.turnNumber) dmg += 15;                     // Seth Rollins : Cash-in
+    if (f.cardId === 'auth-03' && target?.position === 'passive') dmg += 10;                           // Randy Orton : Vipère
   }
   for (const o of objectsOf(state, pi, f)) {
     if (o === 'objets-02') dmg += 10;                                                                  // Bâton de Kendo
@@ -373,13 +417,14 @@ function resolveHits(state, a, f) {
     target.endBeforeHit = target.endurance;
     target.endurance -= dmg;
     target.wasAttacked = true;
-    if (dmg > 0) target.tookDamage = true;
+    if (dmg > 0) { target.tookDamage = true; target.hitTurn = state.turnNumber; }
     addHistory(state, `${label(f.cardId)} inflige ${dmg} dégâts à ${label(target.cardId)} : END ${effective(state, di, target).endurance}.`);
     hit.push(target);
   }
   afterAttack(state, a, f, hit);
   checkKOs(state, killer);
   nwoAfterHits(state, a, f, hit, markedBefore);
+  authorityAfterHits(state, a, f, hit);
   // Soins des survivants « après avoir subi une attaque ».
   for (const t of hit) {
     if (!fightersOf(d).includes(t)) continue;
@@ -421,6 +466,17 @@ function nwoAfterHits(state, a, f, hit, markedBefore) {
   if (a.special === 'nwo-02') chooseMark(state, pi, 'Jackknife Powerbomb', 'nwo-02', hit.map(t => t.instanceId));
   if (a.special === 'nwo-04' && alive[0]) { alive[0].noAttackUntil = state.turnNumber + 1; addHistory(state, `Steiner Recliner : ${label(alive[0].cardId)} est endormi (pas d’attaque au prochain tour).`); }
   if (a.special === 'nwo-05' && markedBefore.length) draw(state, pi, 1, 'X-Pac : Bronco Buster');
+}
+
+function authorityAfterHits(state, a, f, hit) {
+  const pi = a.playerIndex, di = 1 - pi, d = state.players[di];
+  const t = hit[0], alive = t && fightersOf(d).includes(t);
+  if (a.special === 'auth-01' && t && !alive && fightersOf(state.players[pi]).includes(f)) {
+    state.extraAttacks[f.instanceId] = (state.extraAttacks[f.instanceId] ?? 0) + 1;
+    addHistory(state, 'Curb Stomp : Seth Rollins peut attaquer une 2e fois ce tour-ci.');
+  }
+  if (a.special === 'auth-02' && alive && !sendToPassive(state, di, t, 'Chokeslam')) addHistory(state, `Chokeslam : pas de place pour envoyer ${label(t.cardId)} en zone passive.`);
+  if (a.special === 'auth-04') { f.noAttackUntil = state.turnNumber + 2; f.noAttackUntilWhy = 'KO Punch'; addHistory(state, 'KO Punch : Big Show ne pourra pas attaquer à son prochain tour.'); }
 }
 
 function afterAttack(state, a, f, hit) {

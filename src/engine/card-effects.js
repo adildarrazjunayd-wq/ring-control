@@ -10,7 +10,7 @@ import {
   legalPositions,
   DIRECT_SUMMON_RULES,
 } from './game-engine.js';
-import { heal, addModifier, effective, markNwo, effectsOff } from './combat.js';
+import { heal, addModifier, effective, markNwo, effectsOff, canSendToPassive, sendToPassive } from './combat.js';
 import { momentumTargetsAvailable, TARGET_MOMENTA, SUMMON_MOMENTA, targetCandidates, summonCandidates, resolveTargetMomentum, resolveSummonMomentum, rassemblementCheck, rassemblementOptions, resolveRassemblement } from './activations.js';
 
 const fighters = player => [...player.active, ...player.passive];
@@ -174,6 +174,7 @@ export function resolveShieldSummon(state, playerIndex, placements) {
 export function managerEffect(state, playerIndex, options = {}) {
   const player = state.players[playerIndex], manager = player.manager;
   if (manager?.cardId === 'nwo-06') return bischoff(state, playerIndex, options);
+  if (manager?.cardId === 'auth-06') return authority(state, playerIndex, options);
   if (!manager || manager.used) return { ok: false, reason: 'Effet du manager indisponible.' };
   const once = player.status.onceUsed ?? (player.status.onceUsed = []);
   if (manager.cardId === 'managers-02') {
@@ -222,6 +223,37 @@ function bischoff(state, playerIndex, { mode, targets = [], cardId } = {}) {
     if (!searchOptions(state, playerIndex, 'nwo-06').some(o => o.cardId === cardId)) return { ok: false, reason: 'Choisis une carte nWo de ton deck.' };
     takeFromDeck(state, playerIndex, cardId, 'Eric Bischoff');
   } else return { ok: false, reason: 'Choisis : marquer un adversaire ou chercher une carte nWo.' };
+  player.manager.usedTurn = state.turnNumber;
+  return { ok: true };
+}
+
+// The Authority (manager) : une fois par tour, Décret au choix.
+// options : { mode: 'passive', targets: [{ instanceId }] } (un actif adverse en zone passive)
+//        ou { mode: 'nossr' } (pas d'invocation de SSR adverse jusqu'à la fin de son prochain tour).
+export function authorityCheck(state, playerIndex, mode) {
+  const player = state.players[playerIndex], di = 1 - playerIndex;
+  if (state.turn !== playerIndex || state.phase !== 'actions' || state.winner !== null) return 'À utiliser pendant ta phase d’action.';
+  if (effectsOff(state, playerIndex)) return 'Tes effets sont annulés ce tour-ci.';
+  if (player.manager?.usedTurn === state.turnNumber) return 'Un Décret a déjà été pris ce tour-ci.';
+  if (mode === 'passive' && !state.players[di].active.some(f => canSendToPassive(state, di, f))) return 'Impossible : il faut que l’adversaire garde un actif et ait une place passive.';
+  if (mode === 'nossr' && (state.players[di].status.noSsrSummonThroughTurn ?? 0) > state.turnNumber) return 'Ce Décret est déjà en place.';
+  return null;
+}
+
+function authority(state, playerIndex, { mode, targets = [] } = {}) {
+  const player = state.players[playerIndex], di = 1 - playerIndex, opponent = state.players[di];
+  const refused = authorityCheck(state, playerIndex, mode);
+  if (refused) return { ok: false, reason: refused };
+  if (mode === 'passive') {
+    const t = opponent.active.find(f => f.instanceId === targets[0]?.instanceId);
+    if (!t || !canSendToPassive(state, di, t)) return { ok: false, reason: 'Choisis un actif adverse.' };
+    emit(state, { kind: 'effect', pi: playerIndex, cardId: 'auth-06', title: 'Décret', sub: 'En zone passive !' });
+    sendToPassive(state, di, t, 'Décret de l’Authority');
+  } else if (mode === 'nossr') {
+    opponent.status.noSsrSummonThroughTurn = state.turnNumber + 1;
+    emit(state, { kind: 'effect', pi: playerIndex, cardId: 'auth-06', title: 'Décret', sub: 'Pas de SSR !' });
+    addHistory(state, `Décret de l’Authority : ${opponent.name} ne peut pas invoquer de SSR jusqu’à la fin de son prochain tour.`);
+  } else return { ok: false, reason: 'Choisis un Décret.' };
   player.manager.usedTurn = state.turnNumber;
   return { ok: true };
 }
