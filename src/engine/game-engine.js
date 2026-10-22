@@ -172,8 +172,11 @@ export function normalSummon(state, playerIndex, card, sacrificeIds = [], positi
   const capacity = position === ZONES.ACTIVE ? player.active.length < 3 : player.passive.length < 2 && player.active.length > 0;
   if (!capacity || getCards(player).length >= 5) return { ok: false, reason: 'Aucune place légale dans cette zone.' };
   const sacrifices = sacrificeIds.map(id => getCards(player).find(x => x.instanceId === id)).filter(Boolean);
+  // Hulk Hogan : sans sacrifice si Scott Hall et Kevin Nash sont sur le ring.
+  const hogan = card.id === 'nwo-01' && sacrifices.length === 0 && combat.hoganFree(state, playerIndex);
   // Mr. McMahon : une invocation SSR sans sacrifice, une fois par partie.
-  const free = card.rarity === 'SSR' && player.status.freeSsrSummon && sacrifices.length === 0;
+  const mcmahon = !hogan && card.rarity === 'SSR' && player.status.freeSsrSummon && sacrifices.length === 0;
+  const free = hogan || mcmahon;
   if (!free) {
     const validation = validateNormalSummon(card, sacrifices.map(x => ({ category: 'Catcheur', rarity: getCardRarity(x.cardId) })));
     if (!validation.valid) return { ok: false, reason: validation.reason };
@@ -187,9 +190,10 @@ export function normalSummon(state, playerIndex, card, sacrificeIds = [], positi
   player[position].push(fighter);
   if (bonusSummon) player.limits.extraNormal -= 1;
   player.limits.normal = true;
-  if (free) player.status.freeSsrSummon = false;
+  if (mcmahon) player.status.freeSsrSummon = false;
   emit(state, { kind: 'summon', pi: playerIndex, cardId: card.id, title: 'Invocation' });
-  addHistory(state, `${player.name} invoque normalement ${card.displayName}${sacrifices.length ? ` en sacrifiant ${sacrifices.length} catcheur${sacrifices.length === 1 ? '' : 's'}` : free ? ' sans sacrifice grâce à Mr. McMahon' : ''}.`);
+  addHistory(state, `${player.name} invoque normalement ${card.displayName}${sacrifices.length ? ` en sacrifiant ${sacrifices.length} catcheur${sacrifices.length === 1 ? '' : 's'}` : hogan ? ' sans sacrifice (Hall et Nash sont sur le ring)' : mcmahon ? ' sans sacrifice grâce à Mr. McMahon' : ''}.`);
+  combat.onEnter(state, playerIndex, fighter);
   return { ok: true, fighter };
 }
 
@@ -210,10 +214,12 @@ export function specialSummon(state, playerIndex, card, source, position = ZONES
   const at = sourceZone.indexOf(card.id);
   if (at < 0) return { ok: false, reason: 'Carte introuvable dans la zone choisie.' };
   sourceZone.splice(at, 1);
-  player[position].push(slotFor(card, position));
+  const fighter = slotFor(card, position);
+  player[position].push(fighter);
   addHistory(state, `${player.name} invoque spécialement ${card.displayName} depuis ${source === 'grave' ? 'le cimetière' : source === 'deck' ? 'le deck' : 'la main'}.`);
   emit(state, { kind: 'summon', pi: playerIndex, cardId: card.id, title: source === 'deck' ? 'Invoqué depuis le deck' : source === 'grave' ? 'Retour du cimetière' : 'Invocation spéciale' });
-  return { ok: true };
+  combat.onEnter(state, playerIndex, fighter);
+  return { ok: true, fighter };
 }
 
 export function moveFighter(state, playerIndex, instanceId, destination) {
@@ -271,6 +277,7 @@ export function equipObject(state, playerIndex, card, fighterId) {
   if (player.limits.object) return { ok: false, reason: 'Un objet a déjà été joué ce tour.' };
   const fighter = getCards(player).find(x => x.instanceId === fighterId);
   if (!fighter) return { ok: false, reason: 'Choisissez le catcheur à équiper.' };
+  if (card.id === 'nwo-07' && !combat.isNwoMember(fighter.cardId)) return { ok: false, reason: 'Le Spray s’équipe uniquement sur un catcheur nWo.' };
   removeFromHand(player, card.id);
   player.objects.push({ instanceId: crypto.randomUUID(), cardId: card.id, fighterId, expiresAfterTurn: null });
   player.limits.object = true;
@@ -278,6 +285,7 @@ export function equipObject(state, playerIndex, card, fighterId) {
   emit(state, { kind: 'card', pi: playerIndex, cardId: card.id, title: 'Objet équipé', sub: rarityLookup(fighter.cardId)?.displayName });
   // Effets immédiats des objets (« ce tour-ci »).
   if (card.id === 'objets-06') { player.limits.extraNormal = (player.limits.extraNormal ?? 0) + 1; addHistory(state, 'Big Gold : une invocation supplémentaire est possible ce tour-ci.'); }
+  if (card.id === 'nwo-07' && !combat.effectsOff(state, playerIndex)) combat.autoMarkNwo(state, playerIndex, 'Spray');
   if (card.id === 'objets-07') { player.limits.momentum -= 1; addHistory(state, 'Ceinture poids lourd : deux Momenta peuvent être joués par tour.'); }
   if (card.id === 'objets-08' && (combat.is(fighter.cardId, 'john cena') || combat.is(fighter.cardId, 'cm punk'))) {
     state.extraAttacks[fighterId] = (state.extraAttacks[fighterId] ?? 0) + 1;
@@ -533,6 +541,7 @@ export function reviveFromGrave(state, playerIndex, card, position) {
   player[position].push(fighter);
   emit(state, { kind: 'summon', pi: playerIndex, cardId: card.id, title: 'Retour du cimetière' });
   addHistory(state, `${player.name} fait revenir ${card.displayName} du cimetière en position ${position === 'active' ? 'active' : 'passive'}, avec ${fighter.endurance} END.`);
+  combat.onEnter(state, playerIndex, fighter);
   return { ok: true, fighter };
 }
 

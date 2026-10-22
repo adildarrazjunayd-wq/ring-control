@@ -44,7 +44,7 @@ function summonOptions(state, pi) {
     const c = card(id);
     if (c?.category !== 'Catcheur' || c.playable === false) continue;
     let sacrifices = [], cost = 0;
-    if (c.rarity === 'SSR' && !p.status.freeSsrSummon) {
+    if (c.rarity === 'SSR' && !p.status.freeSsrSummon && !(c.id === 'nwo-01' && combat.hoganFree(state, pi))) {
       const board = fightersOf(p).map(f => ({ f, v: fighterValue(state, pi, f), r: card(f.cardId).rarity })).sort((a, b) => a.v - b.v);
       const single = board.find(x => x.r === 'SR' || x.r === 'SSR'), rs = board.filter(x => x.r === 'R').slice(0, 2);
       const pick = [single ? [single] : null, rs.length === 2 ? rs : null].filter(Boolean).sort((a, b) => a.reduce((n, x) => n + x.v, 0) - b.reduce((n, x) => n + x.v, 0))[0];
@@ -71,11 +71,18 @@ function managerOptions(state, pi) {
       if (id === 'managers-03') s = 25 + (p.active.some(f => card(f.cardId).faction) ? 20 : 0);
       if (id === 'managers-04') s = 15 + (fx.teddyLongOptions(state, pi).length ? 25 : 0);
       if (id === 'managers-05') s = 15 + (p.hand.filter(h => card(h)?.category === 'Momentum' && !card(h).rapid).length >= 2 ? 15 : 0);
+      if (id === 'nwo-06') s = 25 + 10 * ring.filter(f => combat.isNwoMember(f.cardId)).length;
       out.push({ score: s, label: `joue le manager ${c.displayName}`, run: () => game.playManager(state, pi, c) });
     }
   }
   const m = p.manager;
-  if (m && !m.used) {
+  if (m?.cardId === 'nwo-06') {
+    const target = [...state.players[1 - pi].active].filter(f => !f.nwoMark).sort((a, b) => fighterValue(state, 1 - pi, b) - fighterValue(state, 1 - pi, a))[0];
+    if (target && !fx.bischoffCheck(state, pi, 'mark')) out.push({ score: 22, label: 'Eric Bischoff marque un adversaire', run: () => fx.managerEffect(state, pi, { mode: 'mark', targets: [{ instanceId: target.instanceId }] }) });
+    const best = fx.searchOptions(state, pi, 'nwo-06').map(o => card(o.cardId)).sort((a, b) => cardValue(b) - cardValue(a))[0];
+    if (best && !fx.bischoffCheck(state, pi, 'search')) out.push({ score: 20, label: 'Eric Bischoff cherche une carte nWo', run: () => fx.managerEffect(state, pi, { mode: 'search', cardId: best.id }) });
+  }
+  if (m && !m.used && m.cardId !== 'nwo-06') {
     if (m.cardId === 'managers-02' && !p.limits.normal && p.hand.some(h => card(h)?.rarity === 'SSR' && card(h)?.category === 'Catcheur') && legalPositions(p).length) out.push({ score: 45, label: 'active Mr. McMahon', run: () => fx.managerEffect(state, pi) });
     if (m.cardId === 'managers-05' && p.limits.momentum >= 1 && p.hand.some(h => card(h)?.category === 'Momentum' && !card(h).rapid && fx.momentumRequirement(state, pi, card(h)).ok)) out.push({ score: 30, label: 'active Stephanie McMahon', run: () => fx.managerEffect(state, pi) });
     if (m.cardId === 'managers-04') {
@@ -101,6 +108,7 @@ function objectScore(state, pi, o, f) {
     case 'objets-07': return 25 + (['catcheur-08', 'catcheur-06', 'catcheur-03'].includes(f.cardId) ? 15 : 0);
     case 'objets-08': return 15 + (is(f.cardId, 'john cena') || is(f.cardId, 'cm punk') ? 22 : 0);
     case 'wyatt-07': return is(f.cardId, 'bray wyatt') ? 25 : 1;
+    case 'nwo-07': return combat.isNwoMember(f.cardId) ? 22 + (active ? 8 : 0) : -1;
     default: return 5;
   }
 }
@@ -127,7 +135,8 @@ function momentumScore(state, pi, c) {
     case 'wyatt-13': return 95;
     case 'momentum-24': return 30 + 25 * Math.min(2, fx.shieldSummonOptions(state, pi).length);
     case 'momentum-16': return Math.max(0, ...p.grave.filter(g => card(g)?.category === 'Catcheur').map(g => cardValue(card(g)))) * 0.6;
-    case 'wyatt-06': case 'wyatt-12': return Math.max(0, ...act.summonCandidates(state, pi, act.SUMMON_MOMENTA[id].summon).map(o => cardValue(card(o.cardId)))) * 0.6;
+    case 'nwo-08': return 15 * (fightersOf(d).filter(f => f.nwoMark).length + (d.active.some(f => !f.nwoMark) ? 1 : 0));
+    case 'wyatt-06': case 'wyatt-12': case 'nwo-09': return Math.max(0, ...act.summonCandidates(state, pi, act.SUMMON_MOMENTA[id].summon).map(o => cardValue(card(o.cardId)))) * 0.6;
     case 'momentum-05': case 'wyatt-05': case 'momentum-26': return 25;
     case 'momentum-08': case 'momentum-15': case 'momentum-17': return 30;
     case 'momentum-04': return p.hand.filter(h => card(h)?.category === 'Momentum' && !card(h).rapid).length >= 3 ? 25 : 2;
@@ -293,7 +302,8 @@ export function bestAttack(state, pi) {
     for (const v of variants) {
       const type = v.ladder ? 'all-active' : v.special ? sp.targets : 'one';
       const base = { playerIndex: pi, attackerId: f.instanceId, special: v.special, ladder: v.ladder, first: state.usedAttackers.length === 0 };
-      const cost = v.special || v.ladder ? 12 : 0;
+      // Les attaques spéciales nWo qui posent la marque valent un peu plus qu'une attaque simple.
+      const cost = ['nwo-02', 'nwo-04', 'nwo-05'].includes(v.special) ? -3 : v.special || v.ladder ? 12 : 0;
       if (type === 'all-active' || type === 'all-ring') {
         const targets = (type === 'all-ring' ? fightersOf(d) : d.active);
         if (!targets.length || (v.special && combat.specialBonusAgainst(state, pi, f, d.active[0] ?? null) == null)) continue;

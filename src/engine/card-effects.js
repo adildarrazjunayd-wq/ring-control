@@ -10,7 +10,7 @@ import {
   legalPositions,
   DIRECT_SUMMON_RULES,
 } from './game-engine.js';
-import { heal, addModifier, effective } from './combat.js';
+import { heal, addModifier, effective, markNwo, effectsOff } from './combat.js';
 import { momentumTargetsAvailable, TARGET_MOMENTA, SUMMON_MOMENTA, targetCandidates, summonCandidates, resolveTargetMomentum, resolveSummonMomentum, rassemblementCheck, rassemblementOptions, resolveRassemblement } from './activations.js';
 
 const fighters = player => [...player.active, ...player.passive];
@@ -29,6 +29,7 @@ export const SEARCH_RULES = Object.freeze({
   'momentum-26': { names: ['catcheur-18'], what: 'Sheamus', optional: true },                              // Botte Celte
   'wyatt-11:passive': { filter: c => c.category === 'Momentum' && mentionsBloodline(c), what: 'un Momentum qui cite la Bloodline' }, // Sami Zayn
   'wyatt-10:special': { names: ['managers-01'], what: 'Paul Heyman' },                                     // Jimmy Uso
+  'nwo-06': { filter: c => c.id.startsWith('nwo-'), what: 'une carte nWo' },                               // Eric Bischoff
 });
 
 // « Piochez 2 cartes si … ».
@@ -172,6 +173,7 @@ export function resolveShieldSummon(state, playerIndex, placements) {
 // Effets de managers automatisés (une fois par partie).
 export function managerEffect(state, playerIndex, options = {}) {
   const player = state.players[playerIndex], manager = player.manager;
+  if (manager?.cardId === 'nwo-06') return bischoff(state, playerIndex, options);
   if (!manager || manager.used) return { ok: false, reason: 'Effet du manager indisponible.' };
   const once = player.status.onceUsed ?? (player.status.onceUsed = []);
   if (manager.cardId === 'managers-02') {
@@ -194,6 +196,34 @@ export function managerEffect(state, playerIndex, options = {}) {
   manager.used = true;
   emit(state, { kind: 'effect', pi: playerIndex, cardId: manager.cardId, title: 'Effet du manager' });
   return { ok: true, automatic: true };
+}
+
+// Eric Bischoff : une fois par tour, au choix, marquer nWo un actif adverse ou prendre une carte nWo du deck.
+// options : { mode: 'mark', targets: [{ instanceId }] } ou { mode: 'search', cardId }.
+export function bischoffCheck(state, playerIndex, mode) {
+  const player = state.players[playerIndex];
+  if (state.turn !== playerIndex || state.phase !== 'actions' || state.winner !== null) return 'À utiliser pendant ta phase d’action.';
+  if (effectsOff(state, playerIndex)) return 'Tes effets sont annulés ce tour-ci.';
+  if (player.manager?.usedTurn === state.turnNumber) return 'Eric Bischoff a déjà servi ce tour-ci.';
+  if (mode === 'mark' && !state.players[1 - playerIndex].active.some(f => !f.nwoMark)) return 'Aucun actif adverse à marquer.';
+  if (mode === 'search' && !searchOptions(state, playerIndex, 'nwo-06').length) return 'Aucune carte nWo dans ton deck.';
+  return null;
+}
+
+function bischoff(state, playerIndex, { mode, targets = [], cardId } = {}) {
+  const player = state.players[playerIndex], refused = bischoffCheck(state, playerIndex, mode);
+  if (refused) return { ok: false, reason: refused };
+  if (mode === 'mark') {
+    const t = state.players[1 - playerIndex].active.find(f => f.instanceId === targets[0]?.instanceId && !f.nwoMark);
+    if (!t) return { ok: false, reason: 'Choisis un actif adverse pas encore marqué.' };
+    emit(state, { kind: 'effect', pi: playerIndex, cardId: 'nwo-06', title: 'Effet du manager', sub: 'Marque nWo' });
+    markNwo(state, t, 'Eric Bischoff');
+  } else if (mode === 'search') {
+    if (!searchOptions(state, playerIndex, 'nwo-06').some(o => o.cardId === cardId)) return { ok: false, reason: 'Choisis une carte nWo de ton deck.' };
+    takeFromDeck(state, playerIndex, cardId, 'Eric Bischoff');
+  } else return { ok: false, reason: 'Choisis : marquer un adversaire ou chercher une carte nWo.' };
+  player.manager.usedTurn = state.turnNumber;
+  return { ok: true };
 }
 
 // Teddy Long : deux catcheurs de la même faction, depuis la main, sans sacrifice.

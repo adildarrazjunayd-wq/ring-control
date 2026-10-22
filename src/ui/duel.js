@@ -19,19 +19,20 @@ export function handActions(m, id) {
   if (!c || !p.hand.includes(id)) return out;
   if (c.category === 'Catcheur' && acting && (!p.limits.normal || p.limits.extraNormal > 0) && normalSummonRequirement(c).allowed) {
     const positions = game.legalPositions(p);
-    if (c.rarity === 'SSR' && !p.status.freeSsrSummon) {
+    const hogan = c.id === 'nwo-01' && combat.hoganFree(m, 0);
+    if (c.rarity === 'SSR' && !p.status.freeSsrSummon && !hogan) {
       const board = fightersOf(p).map(f => card(f.cardId)?.rarity);
       const canSac = board.includes('SR') || board.includes('SSR') || board.filter(r => r === 'R').length >= 2;
       out.push(act('Invoquer avec sacrifice', `data-act="summonSSR" data-id="${id}" ${canSac ? '' : 'disabled'}`, canSac ? 'Sacrifie 1 SR, 1 SSR ou 2 R' : 'Il faut 1 SR, 1 SSR ou 2 R sur ton ring', 'hot'));
     } else {
-      const free = c.rarity === 'SSR' ? ' · sans sacrifice (McMahon)' : '';
+      const free = hogan ? ' · sans sacrifice (Hall et Nash)' : c.rarity === 'SSR' ? ' · sans sacrifice (McMahon)' : '';
       for (const pos of positions) out.push(act(pos === 'active' ? 'Invoquer en actif' : 'Invoquer en passif', `data-act="summon" data-id="${id}" data-pos="${pos}"`, (pos === 'active' ? 'Peut attaquer' : 'Protégé, n’attaque pas') + free, pos === 'active' ? 'hot' : ''));
       if (!positions.length) out.push(act('Ring complet', 'disabled', '5 catcheurs maximum'));
     }
   }
   if (c.category === 'Manager' && acting && !p.limits.manager && !p.manager) out.push(act('Jouer le manager', `data-act="playManager" data-id="${id}"`, 'Occupe ton emplacement Manager', 'hot'));
   if (c.category === 'Objet' && acting && !p.limits.object) {
-    for (const f of fightersOf(p)) { const e = combat.effective(m, 0, f); out.push(act(`Équiper à ${esc(card(f.cardId).displayName)}`, `data-act="equip" data-id="${id}" data-iid="${f.instanceId}"`, `${e.attack} ATT · ${e.endurance} END`)); }
+    for (const f of fightersOf(p).filter(x => id !== 'nwo-07' || combat.isNwoMember(x.cardId))) { const e = combat.effective(m, 0, f); out.push(act(`Équiper à ${esc(card(f.cardId).displayName)}`, `data-act="equip" data-id="${id}" data-iid="${f.instanceId}"`, `${e.attack} ATT · ${e.endurance} END`)); }
   }
   if (c.category === 'Momentum') {
     const reaction = m.pendingAttack?.playerIndex === 1 && c.rapid && m.outOfTurnMomentumUsed[0] < 1;
@@ -113,6 +114,13 @@ function fighterActions(m, pi, f) {
 
 function managerActions(m, pi) {
   const p = m.players[pi];
+  if (pi === 0 && p.manager?.cardId === 'nwo-06' && m.winner === null) {
+    const mark = effects.bischoffCheck(m, 0, 'mark'), search = effects.bischoffCheck(m, 0, 'search');
+    return [
+      act('Marquer nWo un adversaire', `data-act="bischoffMark" ${mark ? 'disabled' : ''}`, mark ?? 'Une fois par tour (au choix)', 'hot'),
+      act('Chercher une carte nWo', `data-act="bischoffSearch" ${search ? 'disabled' : ''}`, search ?? 'Une fois par tour (au choix)', 'hot'),
+    ];
+  }
   if (pi !== 0 || !p.manager || p.manager.used || m.winner !== null || !['managers-02', 'managers-04', 'managers-05'].includes(p.manager.cardId)) return [];
   const teddy = p.manager.cardId === 'managers-04';
   const ok = !teddy || (myTurn(m) && m.phase === 'actions' && effects.teddyLongOptions(m, 0).length && game.legalPositions(p).length);
@@ -183,6 +191,7 @@ function fighterStats(m, pi, f) {
   if ((f.noAttackUntil ?? 0) >= m.turnNumber) lines.push(`<li class="down">💤 <b>Ne peut pas attaquer</b>${f.noAttackUntilWhy ? ` (${esc(f.noAttackUntilWhy)})` : ''} · ${when(f.noAttackUntil)}</li>`);
   if ((f.passivesOffUntil ?? 0) >= m.turnNumber) lines.push(`<li class="down">🚫 <b>Effets passifs annulés</b>${f.passivesOffUntilWhy ? ` (${esc(f.passivesOffUntilWhy)})` : ''} · ${when(f.passivesOffUntil)}</li>`);
   if ((f.halfDamageUntil ?? 0) >= m.turnNumber) lines.push(`<li class="down">½ <b>Inflige moitié moins de dégâts</b>${f.halfDamageUntilWhy ? ` (${esc(f.halfDamageUntilWhy)})` : ''} · ${when(f.halfDamageUntil)}</li>`);
+  if (f.nwoMark) lines.push(`<li class="down">🎯 <b>Marqué nWo</b>${f.nwoMarkWhy ? ` (${esc(f.nwoMarkWhy)})` : ''} · tant qu’il reste sur le ring</li>`);
   if (f.specialUsed) lines.push('<li class="muted">Effet spécial déjà utilisé</li>');
   if (m.turn === pi && f.position === 'active') { const n = combat.attacksAllowed(m, pi, f), used = combat.attacksUsed(m, f); lines.push(`<li>⚔ Attaques ce tour : <b>${used}/${n}</b></li>`); }
   for (const o of m.players[pi].objects.filter(x => x.fighterId === f.instanceId)) lines.push(`<li>⚙ <b>${esc(card(o.cardId).displayName)}</b> équipé</li>`);
@@ -214,6 +223,7 @@ function statusBadges(m, f) {
   if ((f.passivesOffUntil ?? 0) >= m.turnNumber) out.push(['🚫', 'Effets passifs annulés']);
   if ((f.halfDamageUntil ?? 0) >= m.turnNumber) out.push(['½', 'Dégâts divisés par 2']);
   if (m.extraAttacks?.[f.instanceId]) out.push(['×2', 'Attaque deux fois']);
+  if (f.nwoMark) out.push(['🎯', 'Marqué nWo']);
   return out;
 }
 

@@ -40,6 +40,17 @@ const recipes = [
       'momentum-29', 'momentum-03', 'momentum-08', 'momentum-05', 'momentum-20',
     ],
   },
+  {
+    id: 'nwo',
+    name: 'New World Order',
+    theme: 'Faction · Marque nWo et invocations en chaîne',
+    description: 'Hall fait venir Nash, puis Hogan arrive gratuitement. Marquez les adversaires (Bischoff, Spray, Too Sweet) et faites-les payer.',
+    cardIds: [
+      'nwo-01', 'nwo-02', 'nwo-03', 'nwo-04', 'nwo-05', 'nwo-06', 'nwo-07', 'nwo-08', 'nwo-09',
+      'catcheur-03', 'catcheur-13', 'catcheur-19', 'catcheur-38', 'catcheur-35',
+      'momentum-05', 'momentum-08', 'momentum-15', 'momentum-20', 'momentum-29', 'objets-05',
+    ],
+  },
 ];
 
 export const SIGNATURE_DECKS = Object.freeze(recipes.map(recipe => Object.freeze({

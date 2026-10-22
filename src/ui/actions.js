@@ -93,7 +93,7 @@ async function afterMomentum(c, result) {
   }
   if (activ.SUMMON_MOMENTA[c.id]) {
     const sm = activ.SUMMON_MOMENTA[c.id], opts = activ.summonCandidates(match, 0, sm.summon);
-    const discard = sm.discard ? `<p>1. Choisis la carte à défausser :</p><div class="opts">${[...new Set(p.hand)].map((id, i) => `<label class="pick"><input type="radio" name="discard" data-discard value="${id}" ${i ? '' : 'checked'}><img src="${card(id).image}" alt=""><span>${esc(card(id).displayName)}</span></label>`).join('')}</div><p>2. Choisis le catcheur à invoquer :</p>` : '<p>Choisis le catcheur à invoquer depuis ton deck :</p>';
+    const discard = sm.discard ? `<p>1. Choisis la carte à défausser :</p><div class="opts">${[...new Set(p.hand)].map((id, i) => `<label class="pick"><input type="radio" name="discard" data-discard value="${id}" ${i ? '' : 'checked'}><img src="${card(id).image}" alt=""><span>${esc(card(id).displayName)}</span></label>`).join('')}</div><p>2. Choisis le catcheur à invoquer :</p>` : `<p>Choisis le catcheur à invoquer depuis ${sm.summon.sources.includes('hand') ? 'ta main ou ton deck' : 'ton deck'} :</p>`;
     modal(`<h2>${esc(c.displayName)}</h2>${discard}<div class="opts">${opts.map(o => `<div class="opt row"><img src="${card(o.cardId).image}" alt=""><b>${esc(card(o.cardId).displayName)}</b>${o.positions.map(pos => btn(pos === 'active' ? 'Actif' : 'Passif', `data-act="summonMomentum" data-mid="${c.id}" data-id="${o.cardId}" data-pos="${pos}"`, 'btn small hot')).join('')}</div>`).join('')}</div>`);
     return;
   }
@@ -284,6 +284,19 @@ export const actions = {
     }
     done(await exec('managerEffect', {}), 'effect');
   },
+  // Eric Bischoff : marquer un actif adverse (on vise sur le ring) ou chercher une carte nWo.
+  bischoffMark: () => {
+    const refused = effects.bischoffCheck(m(), 0, 'mark');
+    if (refused) { toast(refused); return; }
+    S.targeting = { mode: 'effect', kind: 'manager', key: 'nwo-06', iid: null, specs: [{ side: 'opp', zone: 'active', filter: (s, pi, t) => !t.nwoMark }], picked: [], name: 'Eric Bischoff' };
+    S.selected = null;
+    render();
+  },
+  bischoffSearch: () => {
+    const opts = effects.searchOptions(m(), 0, 'nwo-06');
+    modal(`<h2>Eric Bischoff</h2><p>Choisis une carte nWo dans ton deck : elle va dans ta main.</p><div class="opts">${opts.map(o => { const c = card(o.cardId); return `<button class="opt row" data-act="bischoffPick" data-id="${o.cardId}"><img src="${c.image}" alt=""><b>${esc(c.displayName)}</b><small>${c.category} · ${c.rarity} · ×${o.copies} dans le deck</small></button>`; }).join('') || '<p>Aucune carte nWo dans ton deck.</p>'}</div>${btn('Annuler', 'data-act="close"', 'btn ghost')}`);
+  },
+  bischoffPick: async d => done(await exec('managerEffect', { mode: 'search', cardId: d.id }), 'effect'),
   teddyConfirm: async () => {
     const ids = [...document.querySelectorAll('[data-teddy]:checked')].map(x => x.value);
     done(await exec('managerEffect', { cardIds: ids, positions: ids.map(id => document.querySelector(`[data-teddy-pos="${id}"]`).value) }), 'summon');
@@ -349,7 +362,9 @@ export const actions = {
     S.targeting = null;
     const r = t.kind === 'activate'
       ? await exec('activate', t.key, t.iid, { targets: t.picked })
-      : await exec('targetMomentum', t.key, t.picked);
+      : t.kind === 'manager'
+        ? await exec('managerEffect', { mode: 'mark', targets: t.picked.map(x => ({ instanceId: x.instanceId })) })
+        : await exec('targetMomentum', t.key, t.picked);
     done(r, 'effect');
   },
   launch: () => launchAttack(S.targeting?.picked[0]?.instanceId ?? 'multi'),

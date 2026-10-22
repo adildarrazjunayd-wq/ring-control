@@ -30,6 +30,32 @@ export const rassemblementActive = (state, pi) => !effectsOff(state, pi) && stat
 // The Bloodline Rassemblement : les membres de la Bloodline peuvent attaquer les catcheurs passifs.
 export const canHitPassive = (state, pi, f) => rassemblementActive(state, pi) && factionOf(f.cardId) === 'The Bloodline';
 
+// ---------- nWo : la « marque nWo » ----------
+// Un catcheur marqué le reste tant qu'il ne quitte pas le ring. Les cartes nWo posent la marque
+// (Hall, Nash, Steiner, X-Pac, Hogan, Bischoff, Spray, Too Sweet, nWo 4 Life) puis en profitent.
+export const isNwoMember = id => factionOf(id) === 'nWo';
+export function markNwo(state, f, why) {
+  if (!f || f.nwoMark) return false;
+  f.nwoMark = true;
+  f.nwoMarkWhy = why;
+  addHistory(state, `${why} : ${label(f.cardId)} est marqué nWo.`);
+  return true;
+}
+// Marque automatiquement l'actif adverse le plus dangereux qui n'est pas encore marqué.
+export function autoMarkNwo(state, pi, why) {
+  const d = state.players[1 - pi];
+  const pick = [...d.active].filter(x => !x.nwoMark).sort((a, b) => effective(state, 1 - pi, b).attack - effective(state, 1 - pi, a).attack)[0];
+  return pick && markNwo(state, pick, why) ? pick : null;
+}
+// Hulk Hogan s'invoque sans sacrifice si Scott Hall et Kevin Nash sont sur le ring.
+export const hoganFree = (state, pi) => !effectsOff(state, pi) && ['scott hall', 'kevin nash'].every(n => fightersOf(state.players[pi]).some(f => is(f.cardId, n)));
+// Effets « à son arrivée sur le ring » (toute invocation).
+export function onEnter(state, pi, f) {
+  if (effectsOff(state, pi)) return;
+  if (f.cardId === 'nwo-01') for (const t of state.players[1 - pi].active) markNwo(state, t, 'Hulk Hogan : Le 3e homme');
+  if (f.cardId === 'nwo-05') autoMarkNwo(state, pi, 'X-Pac : Syxx');
+}
+
 export function heal(state, pi, f, amount, why) {
   f.endurance += amount; // pas de plafond (décision du propriétaire)
   addHistory(state, `${why} : ${label(f.cardId)} regagne ${amount} END.`);
@@ -65,7 +91,9 @@ export function statBonus(state, pi, f) {
   if (factionOf(f.cardId) === 'The Bloodline' && rassemblementActive(state, pi)) add('attack', 10, 'The Bloodline Rassemblement');
   if (managerIs(state, pi, 'managers-01') && f.position === 'active' && (is(f.cardId, 'roman reigns') || is(f.cardId, 'brock lesnar'))) { add('attack', 10, 'Paul Heyman'); add('endurance', 10, 'Paul Heyman'); }
   if (managerIs(state, pi, 'managers-03') && p.active.some(x => factionOf(x.cardId))) add('attack', 10, 'Triple H (manager)');
+  if (f.nwoMark && managerIs(state, 1 - pi, 'nwo-06')) add('attack', -5, 'Eric Bischoff (marqué nWo)');
   for (const o of objectsOf(state, pi, f)) {
+    if (o === 'nwo-07') add('attack', 5, 'Spray');
     if (o === 'objets-05') add('attack', 10, 'Ceinture Universelle');
     if (o === 'objets-08') add('endurance', 10, 'Ceinture « The Champ »');
     if (o === 'wyatt-07' && is(f.cardId, 'bray wyatt')) { add('attack', 10, 'Lanterne de l’obscurité'); add('endurance', -10, 'Lanterne de l’obscurité'); }
@@ -103,6 +131,7 @@ export function activeEffects(state, pi) {
     if ((f.noAttackUntil ?? 0) >= n) out.push({ cardId: f.cardId, tone: 'debuff', icon: '💤', title: `${who} ne peut pas attaquer`, text: f.noAttackUntilWhy ? `Cause : ${f.noAttackUntilWhy}.` : '', until: f.noAttackUntil });
     if ((f.passivesOffUntil ?? 0) >= n) out.push({ cardId: f.cardId, tone: 'debuff', icon: '🚫', title: `Effets passifs de ${who} annulés`, text: f.passivesOffUntilWhy ? `Cause : ${f.passivesOffUntilWhy}.` : '', until: f.passivesOffUntil });
     if ((f.halfDamageUntil ?? 0) >= n) out.push({ cardId: f.cardId, tone: 'debuff', icon: '½', title: `${who} inflige moitié moins de dégâts`, text: f.halfDamageUntilWhy ? `Cause : ${f.halfDamageUntilWhy}.` : '', until: f.halfDamageUntil });
+    if (f.nwoMark) out.push({ cardId: f.cardId, tone: 'debuff', icon: '🎯', title: `${who} est marqué nWo`, text: f.nwoMarkWhy ? `Cause : ${f.nwoMarkWhy}.` : '', until: null });
     if (state.extraAttacks?.[f.instanceId] && state.turn === pi) out.push({ cardId: f.cardId, tone: 'buff', icon: '×2', title: `${who} peut attaquer une fois de plus`, text: '', until: n });
     for (const m of f.modifiers ?? []) if (m.until == null || m.until >= n) out.push({ cardId: m.source, tone: m.value > 0 ? 'buff' : 'debuff', icon: m.value > 0 ? '⬆' : '⬇', title: `${who} : ${m.value > 0 ? '+' : ''}${m.value} ${m.stat === 'attack' ? 'ATT' : 'END'}`, text: nameAt(m.source), until: m.until });
   }
@@ -164,6 +193,11 @@ export const ATTACK_SPECIALS = Object.freeze({
   'catcheur-39': { name: 'Sister Abigail', targets: 'one', bonus: () => 25 },
   'wyatt-04': { name: 'Prise de contrôle', targets: 'fighter', bonus: () => 0 },
   'wyatt-08': { name: 'Attaque totale', targets: 'all-active', bonus: c => (effective(c.state, c.pi, c.f).endurance <= 55 ? 0 : null) },
+  // nWo
+  'nwo-01': { name: 'Leg Drop', targets: 'fighter', bonus: c => (c.target?.nwoMark ? 20 : null), steal: true },
+  'nwo-02': { name: 'Jackknife Powerbomb', targets: 'fighter', bonus: () => 15 },
+  'nwo-04': { name: 'Steiner Recliner', targets: 'fighter', bonus: () => 0 },
+  'nwo-05': { name: 'Bronco Buster', targets: 'fighter', bonus: () => 10 },
 });
 
 export function specialAvailable(state, pi, f) {
@@ -201,6 +235,7 @@ function offense(state, a, f, target) {
     if (f.cardId === 'catcheur-14' && target && tEnd < 80) dmg += 5;                                   // AJ Styles
     if (f.cardId === 'catcheur-15' && target && tEnd > 85) dmg += 10;                                  // Finn Balor
     if (f.cardId === 'catcheur-24' && mp) dmg += 5;                                                    // Edge
+    if (f.cardId === 'nwo-04' && target?.nwoMark) dmg += 10;                                           // Scott Steiner : Genetic Freak
   }
   for (const o of objectsOf(state, pi, f)) {
     if (o === 'objets-02') dmg += 10;                                                                  // Bâton de Kendo
@@ -223,6 +258,7 @@ function defense(state, a, f, target, dmg) {
     if (target.cardId === 'catcheur-12') dmg -= 10;                                                    // Gunther : Mur invincible
     if (target.cardId === 'catcheur-19') dmg -= 5;                                                     // Braun Strowman
     if (target.cardId === 'catcheur-20' && d.active.length === 1) dmg -= 5;                            // Jey Uso : One-Man Show
+    if (target.cardId === 'nwo-02' && fightersOf(d).some(x => is(x.cardId, 'scott hall'))) dmg -= 10;  // Kevin Nash : Big Sexy
   }
   if (onRing(state, di, 'catcheur-39', 'active')) dmg -= 10;                                           // Bray Wyatt : Manipulation mentale
   if ((d.status.damageReductionUntil ?? 0) >= state.turnNumber && !effectsOff(state, di)) dmg -= 40;  // Défense inébranlable
@@ -274,7 +310,7 @@ function knockOut(state, pi, f, killer) {
     return;
   }
   const cena = p.active.find(x => x !== f && has(state, pi, x, 'catcheur-35'));
-  // Bray Wyatt (SSR) : prise de contrôle du catcheur mis K.-O. par son attaque spéciale.
+  // Bray Wyatt (SSR) et Hulk Hogan : prise de contrôle du catcheur mis K.-O. par leur attaque spéciale.
   if (killer?.steal && killer.pi !== pi) {
     const thief = state.players[killer.pi], pos = legalPositions(thief)[0];
     if (pos) {
@@ -282,9 +318,9 @@ function knockOut(state, pi, f, killer) {
       zone.splice(zone.indexOf(f), 1);
       for (const o of p.objects.filter(x => x.fighterId === f.instanceId)) p.grave.push(o.cardId);
       p.objects = p.objects.filter(x => x.fighterId !== f.instanceId);
-      Object.assign(f, { position: pos, endurance: Math.floor((lookupCard(f.cardId).endurance ?? 0) / 2), modifiers: [], specialUsed: false });
+      Object.assign(f, { position: pos, endurance: Math.floor((lookupCard(f.cardId).endurance ?? 0) / 2), modifiers: [], specialUsed: false, nwoMark: false });
       thief[pos].push(f);
-      addHistory(state, `Bray Wyatt prend le contrôle de ${label(f.cardId)} (END réduite de moitié).`);
+      addHistory(state, `${label(killer.cardId ?? 'wyatt-04')} prend le contrôle de ${label(f.cardId)} (END réduite de moitié).`);
       return;
     }
   }
@@ -311,7 +347,8 @@ export function resolveCombat(state, a) {
 
 function resolveHits(state, a, f) {
   const pi = a.playerIndex, di = 1 - pi, p = state.players[pi], d = state.players[di];
-  const killer = { pi, instanceId: f.instanceId, steal: a.special === 'wyatt-04' };
+  const killer = { pi, instanceId: f.instanceId, cardId: f.cardId, steal: Boolean(ATTACK_SPECIALS[a.special]?.steal) || a.special === 'wyatt-04' };
+  const markedBefore = a.targets.filter(id => fightersOf(d).find(x => x.instanceId === id)?.nwoMark);
   if (a.targets[0] === 'direct') {
     const dmg = previewDamage(state, a, 'direct');
     d.hp -= dmg;
@@ -334,6 +371,7 @@ function resolveHits(state, a, f) {
   }
   afterAttack(state, a, f, hit);
   checkKOs(state, killer);
+  nwoAfterHits(state, a, f, hit, markedBefore);
   // Soins des survivants « après avoir subi une attaque ».
   for (const t of hit) {
     if (!fightersOf(d).includes(t)) continue;
@@ -360,6 +398,24 @@ function resolveHits(state, a, f) {
     if (t2) { const cut = Math.ceil(effective(state, di, t2).endurance / 2); t2.endurance -= cut; addHistory(state, `Triple Powerbomb : l’END de ${label(t2.cardId)} est réduite de moitié.`); checkKOs(state, killer); }
   }
   if (d.hp <= 0 && state.winner === null) finishMatch(state, pi, `${d.name} tombe à ${d.hp} PV.`);
+}
+
+// nWo : marques posées par l'attaque (les catcheurs mis K.-O. ou volés ne sont plus chez l'adversaire).
+function nwoAfterHits(state, a, f, hit, markedBefore) {
+  const pi = a.playerIndex, d = state.players[1 - pi];
+  const alive = hit.filter(t => fightersOf(d).includes(t));
+  const why = [
+    passiveOn(state, pi, f) && f.cardId === 'nwo-03' && 'Scott Hall : Outsider',
+    objectsOf(state, pi, f).includes('nwo-07') && 'Spray',
+    (a.special === 'nwo-02' || a.special === 'nwo-04') && ATTACK_SPECIALS[a.special].name,
+  ].find(Boolean);
+  if (why) for (const t of alive) markNwo(state, t, why);
+  if (a.special === 'nwo-02') {
+    const other = [...d.active].filter(x => !hit.includes(x)).sort((x, y) => Number(x.nwoMark ?? false) - Number(y.nwoMark ?? false) || effective(state, 1 - pi, y).attack - effective(state, 1 - pi, x).attack)[0];
+    if (other) markNwo(state, other, 'Jackknife Powerbomb');
+  }
+  if (a.special === 'nwo-04' && alive[0]) { alive[0].noAttackUntil = state.turnNumber + 1; addHistory(state, `Steiner Recliner : ${label(alive[0].cardId)} est endormi (pas d’attaque au prochain tour).`); }
+  if (a.special === 'nwo-05' && markedBefore.length) draw(state, pi, 1, 'X-Pac : Bronco Buster');
 }
 
 function afterAttack(state, a, f, hit) {

@@ -1,7 +1,7 @@
 // Effets que le joueur déclenche lui-même (effets passifs « à action », effets spéciaux hors attaque,
 // effets depuis le cimetière, Momenta qui visent une carte) et choix déclenchés par l'arrivée au cimetière.
 import { addHistory, emit, lookupCard, specialSummon, legalPositions, resolveMomentum, activateWrestlerEffect, sendFighterToGrave } from './game-engine.js';
-import { effective, effectsOff, is, fightersOf, addModifier, checkKOs, heal, draw, bloodlineComplete, snapshotStatus, stampWhy } from './combat.js';
+import { effective, effectsOff, is, fightersOf, addModifier, checkKOs, heal, draw, bloodlineComplete, snapshotStatus, stampWhy, markNwo, autoMarkNwo } from './combat.js';
 
 const label = id => lookupCard(id)?.displayName ?? 'la carte';
 const text = c => `${c.displayName} ${c.effects.map(e => e.text).join(' ')}`;
@@ -64,17 +64,20 @@ export const ACTIVATED = Object.freeze({
   'wyatt-04:passive': { name: 'Famille réunie', summon: { sources: ['grave'], filter: wyattFamily } },
   'wyatt-09:special': { name: 'Appel de Jimmy', summon: { sources: ['deck'], filter: c => is(c.id, 'jimmy uso') }, after: (s, pi, f) => { f.noAttackUntil = s.turnNumber; } },
   'wyatt-10:passive': { name: 'Frappe de Jimmy', check: (s, pi, f) => (f.position === 'active' && s.players[pi].active.some(x => x !== f && lookupCard(x.cardId)?.faction === 'The Bloodline') ? null : 'Jimmy Uso et un autre membre de la Bloodline doivent être actifs.'), targets: [{ side: 'opp', zone: 'active' }], run: (s, pi, f, [t]) => { t.endurance -= 10; return `${label(t.cardId)} subit 10 dégâts`; } },
+  'nwo-03:special': { name: 'The Outsiders', summon: { sources: ['deck'], filter: c => is(c.id, 'kevin nash') }, after: (s, pi, f) => { f.noAttackUntil = s.turnNumber; } },
   // Depuis le cimetière.
   'wyatt-02:grave': { name: 'Erick Rowan (cimetière)', grave: true, banish: true, targets: [{ side: 'me', zone: 'any', filter: (s, pi, t) => is(t.cardId, 'bray wyatt') }], run: (s, pi, f, [t]) => { addModifier(t, 'attack', 20, s.turnNumber, 'wyatt-02'); return 'Bray Wyatt gagne +20 ATT ce tour-ci'; } },
   'wyatt-03:grave': { name: 'Luke Harper (cimetière)', grave: true, perTurn: true, check: (s, pi) => (s.players[pi].active.some(x => is(x.cardId, 'bray wyatt')) ? null : 'Bray Wyatt doit être sur ton ring, en zone ACTIVE (pas passive).'), targets: [opp()], run: (s, pi, f, [t]) => { t.noAttackUntil = s.turnNumber + 1; return `${label(t.cardId)} est endormi`; } },
 });
 
 // Mode d'un effet imprimé, pour l'affichage.
-const AUTO = new Set(['catcheur-01:passive', 'catcheur-02:passive', 'catcheur-03:passive', 'catcheur-04:passive', 'catcheur-05:passive', 'catcheur-06:passive', 'catcheur-07:passive', 'catcheur-08:passive', 'catcheur-09:passive', 'catcheur-10:passive', 'catcheur-11:passive', 'catcheur-12:passive', 'catcheur-14:passive', 'catcheur-15:passive', 'catcheur-16:passive', 'catcheur-18:passive', 'catcheur-19:passive', 'catcheur-20:passive', 'catcheur-21:passive', 'catcheur-22:passive', 'catcheur-24:passive', 'catcheur-25:passive', 'catcheur-34:passive', 'catcheur-35:passive', 'catcheur-39:passive', 'catcheur-32:special', 'wyatt-01:passive', 'wyatt-02:passive', 'wyatt-08:passive', 'wyatt-09:passive']);
+const AUTO = new Set(['catcheur-01:passive', 'catcheur-02:passive', 'catcheur-03:passive', 'catcheur-04:passive', 'catcheur-05:passive', 'catcheur-06:passive', 'catcheur-07:passive', 'catcheur-08:passive', 'catcheur-09:passive', 'catcheur-10:passive', 'catcheur-11:passive', 'catcheur-12:passive', 'catcheur-14:passive', 'catcheur-15:passive', 'catcheur-16:passive', 'catcheur-18:passive', 'catcheur-19:passive', 'catcheur-20:passive', 'catcheur-21:passive', 'catcheur-22:passive', 'catcheur-24:passive', 'catcheur-25:passive', 'catcheur-34:passive', 'catcheur-35:passive', 'catcheur-39:passive', 'catcheur-32:special', 'wyatt-01:passive', 'wyatt-02:passive', 'wyatt-08:passive', 'wyatt-09:passive', 'nwo-01:passive', 'nwo-02:passive', 'nwo-03:passive', 'nwo-04:passive', 'nwo-05:passive']);
+// Effets automatiques sans bouton « Activer » (déclenchés par l'arrivée au cimetière ou sur le ring).
+const NO_TOGGLE = ['wyatt-01', 'wyatt-02', 'nwo-01', 'nwo-05'];
 const REACTION = new Set(['catcheur-10:special', 'catcheur-13:special', 'wyatt-11:special', 'wyatt-01:special']);
 export function effectMode(cardId, kind, { attackSpecial, search } = {}) {
   const key = `${cardId}:${kind === 'passif' ? 'passive' : 'special'}`;
-  if (AUTO.has(key)) return kind === 'passif' && !['wyatt-01', 'wyatt-02'].includes(cardId) ? 'toggle' : 'auto';
+  if (AUTO.has(key)) return kind === 'passif' && !NO_TOGGLE.includes(cardId) ? 'toggle' : 'auto';
   if (REACTION.has(key)) return 'reaction';
   if (ACTIVATED[key]) return 'activated';
   if (search?.[key]) return 'search';
@@ -153,10 +156,18 @@ export const TARGET_MOMENTA = Object.freeze({
   'momentum-09': { targets: [{ side: 'me', zone: 'active', filter: (s, pi, t) => effective(s, pi, t).endurance >= 70 }], run: (s, pi, [t]) => { s.extraAttacks[t.instanceId] = (s.extraAttacks[t.instanceId] ?? 0) + 1; return `${label(t.cardId)} peut attaquer deux fois ce tour-ci`; } },
   'momentum-14': { targets: [meActive], run: (s, pi, [t]) => { t.attack += 15; t.noAttackUntil = s.turnNumber + 2; return `${label(t.cardId)} gagne +15 ATT mais ne pourra pas attaquer au prochain tour`; } },
   'momentum-18': { targets: [{ side: 'opp', zone: 'active' }], run: (s, pi, [t]) => { t.passivesOffUntil = s.turnNumber; return `l’effet passif de ${label(t.cardId)} est annulé ce tour-ci`; } },
+  // Too Sweet : marque un actif adverse, puis 15 dégâts à chaque catcheur adverse marqué.
+  'nwo-08': { targets: [{ side: 'opp', zone: 'active' }], run: (s, pi, [t]) => {
+    markNwo(s, t, 'Too Sweet');
+    const marked = fightersOf(s.players[1 - pi]).filter(x => x.nwoMark);
+    for (const x of marked) { x.endurance -= 15; x.tookDamage = true; }
+    return `15 dégâts à ${marked.map(x => label(x.cardId)).join(', ')}`;
+  } },
 });
 export const SUMMON_MOMENTA = Object.freeze({
   'wyatt-06': { summon: { sources: ['deck'], filter: c => wyattFamily(c) }, discard: true },
   'wyatt-12': { summon: { sources: ['deck'], filter: c => is(c.id, 'jey uso') }, after: (s, pi) => { s.players[pi].status.extraMomentumTurn = s.turnNumber + 2; } },
+  'nwo-09': { summon: { sources: ['hand', 'deck'], filter: c => c.faction === 'nWo' && ['R', 'SR'].includes(c.rarity) }, after: (s, pi) => { if (!effectsOff(s, pi)) autoMarkNwo(s, pi, 'nWo 4 Life'); } },
 });
 
 export function momentumTargetsAvailable(state, pi, cardId) {

@@ -2154,5 +2154,214 @@
         "text": "Invoquez Triple H depuis votre main ou votre deck directement sur le ring."
       }
     ]
+  },
+  {
+    "id": "nwo-01",
+    "displayName": "HULK HOGAN",
+    "category": "Catcheur",
+    "rarity": "SSR",
+    "attack": 65,
+    "endurance": 90,
+    "source": "Canva : ARCHETYPE nWo",
+    "page": 1,
+    "image": "public/cards/nwo-01.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "nWo",
+    "nickname": "HOLLYWOOD",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Le 3e homme : sans sacrifice si Hall et Nash sont sur ton ring. À son arrivée, marque nWo tous les adversaires actifs."
+      },
+      {
+        "kind": "spécial",
+        "text": "Leg Drop : +20 dégâts sur un catcheur marqué nWo. S'il est K.O., il rejoint ton camp (END de moitié)."
+      }
+    ]
+  },
+  {
+    "id": "nwo-02",
+    "displayName": "KEVIN NASH",
+    "category": "Catcheur",
+    "rarity": "SR",
+    "attack": 55,
+    "endurance": 80,
+    "source": "Canva : ARCHETYPE nWo",
+    "page": 2,
+    "image": "public/cards/nwo-02.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "nWo",
+    "nickname": "BIG SEXY",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Big Sexy : -10 dégâts reçus si Scott Hall est sur ton ring."
+      },
+      {
+        "kind": "spécial",
+        "text": "Jackknife : +15 dégâts. Marque nWo l'adversaire touché et un autre adversaire actif."
+      }
+    ]
+  },
+  {
+    "id": "nwo-03",
+    "displayName": "SCOTT HALL",
+    "category": "Catcheur",
+    "rarity": "SR",
+    "attack": 50,
+    "endurance": 75,
+    "source": "Canva : ARCHETYPE nWo",
+    "page": 3,
+    "image": "public/cards/nwo-03.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "nWo",
+    "nickname": "THE OUTSIDER",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Outsider : chaque adversaire qu'il attaque est marqué nWo."
+      },
+      {
+        "kind": "spécial",
+        "text": "The Outsiders : invoque Kevin Nash depuis ton deck sans sacrifice. Hall n'attaque pas ce tour-ci."
+      }
+    ]
+  },
+  {
+    "id": "nwo-04",
+    "displayName": "SCOTT STEINER",
+    "category": "Catcheur",
+    "rarity": "SR",
+    "attack": 55,
+    "endurance": 75,
+    "source": "Canva : ARCHETYPE nWo",
+    "page": 4,
+    "image": "public/cards/nwo-04.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "nWo",
+    "nickname": "BIG POPPA PUMP",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Genetic Freak : +10 ATT contre un catcheur marqué nWo."
+      },
+      {
+        "kind": "spécial",
+        "text": "Steiner Recliner : marque nWo l'adversaire touché et l'endort (il n'attaque pas à son prochain tour)."
+      }
+    ]
+  },
+  {
+    "id": "nwo-05",
+    "displayName": "X-PAC",
+    "category": "Catcheur",
+    "rarity": "R",
+    "attack": 45,
+    "endurance": 70,
+    "source": "Canva : ARCHETYPE nWo",
+    "page": 5,
+    "image": "public/cards/nwo-05.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": "nWo",
+    "nickname": "SYXX",
+    "effects": [
+      {
+        "kind": "passif",
+        "text": "Syxx : à son arrivée sur le ring, marque nWo un adversaire actif."
+      },
+      {
+        "kind": "spécial",
+        "text": "Bronco Buster : +10 dégâts. Si l'adversaire est marqué nWo, pioche 1 carte."
+      }
+    ]
+  },
+  {
+    "id": "nwo-06",
+    "displayName": "ERIC BISCHOFF",
+    "category": "Manager",
+    "rarity": "SR",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE nWo",
+    "page": 6,
+    "image": "public/cards/nwo-06.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Une fois par tour, au choix : marque nWo un adversaire actif, ou ajoute une carte nWo de ton deck à ta main. Les catcheurs marqués nWo perdent 5 ATT."
+      }
+    ]
+  },
+  {
+    "id": "nwo-07",
+    "displayName": "SPRAY",
+    "category": "Objet",
+    "rarity": "R",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE nWo",
+    "page": 7,
+    "image": "public/cards/nwo-07.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "À équiper sur un catcheur nWo : il gagne +5 ATT et chaque adversaire qu'il touche est marqué nWo. Quand tu l'équipes, marque nWo un adversaire actif."
+      }
+    ]
+  },
+  {
+    "id": "nwo-08",
+    "displayName": "TOO SWEET",
+    "category": "Momentum",
+    "rarity": "R",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE nWo",
+    "page": 8,
+    "image": "public/cards/nwo-08.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Marque nWo un adversaire actif. Puis inflige 15 dégâts à chaque catcheur adverse marqué nWo."
+      }
+    ]
+  },
+  {
+    "id": "nwo-09",
+    "displayName": "NWO 4 LIFE",
+    "category": "Momentum",
+    "rarity": "SR",
+    "attack": null,
+    "endurance": null,
+    "source": "Canva : ARCHETYPE nWo",
+    "page": 9,
+    "image": "public/cards/nwo-09.png",
+    "playable": true,
+    "excludedReason": null,
+    "faction": null,
+    "nickname": null,
+    "effects": [
+      {
+        "kind": "effet",
+        "text": "Invoque un catcheur nWo R ou SR depuis ta main ou ton deck, sans sacrifice. Puis marque nWo un adversaire actif."
+      }
+    ]
   }
 ]

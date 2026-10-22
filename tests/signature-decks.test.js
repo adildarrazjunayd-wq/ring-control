@@ -7,7 +7,7 @@ import { AI_DECKS } from '../data/ai-decks.js';
 const catalog = JSON.parse(readFileSync(new URL('../data/catalog.json', import.meta.url), 'utf8'));
 
 test('les decks signature sont prêts à jouer et respectent les limites du deck', () => {
-  assert.deepEqual(SIGNATURE_DECKS.map(deck => deck.id), ['bloodline', 'wyatt-family', 'main-event-legends']);
+  assert.deepEqual(SIGNATURE_DECKS.map(deck => deck.id), ['bloodline', 'wyatt-family', 'main-event-legends', 'nwo']);
   for (const deck of SIGNATURE_DECKS) {
     assert.equal(deck.cards.length, 40, `${deck.name} contient exactement 40 cartes`);
     assert.equal(validateDeck(deck).valid, true, `${deck.name} doit respecter la limite d’exemplaires`);

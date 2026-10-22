@@ -27,6 +27,16 @@
 - **Pile ou face** : avant chaque duel, le joueur choisit pile ou face ; le gagnant commence (et pioche sa carte de début de tour).
 - **Decks de l'IA** : l'IA joue un deck de faction tiré au hasard (decks signature, The Shield, D-Generation X) — `data/ai-decks.js`.
 
+## Archétype nWo (validé par le propriétaire le 22 octobre 2026)
+
+- 9 cartes créées dans son Canva (dossier « ARCHETYPE nWo ») : `nwo-01` à `nwo-09`, deck signature « New World Order ».
+- **Marque nWo** : un catcheur marqué le reste tant qu'il ne quitte pas le ring (K.O., sacrifice, ou pris par Hogan : la marque disparaît).
+- Quand une carte marque « un adversaire actif » sans viser (X-Pac à son arrivée, Spray à l'équipement, nWo 4 Life,
+  2e cible de Nash), le jeu choisit l'actif adverse non marqué qui a le plus d'ATT.
+- Hogan et X-Pac : leur effet « à son arrivée » est automatique (pas de bouton) ; Hall, Nash, Steiner : passifs à activer.
+- Eric Bischoff : une fois par tour, au choix, marquer (on vise) ou chercher une carte nWo ; -5 ATT aux marqués en permanence.
+- Spray : uniquement sur un catcheur de la nWo.
+
 ## Façon d'appliquer les effets (cahier des charges §11 : « selon sa formulation »)
 
 Mise à jour du 21 octobre 2026, à la demande du propriétaire (« je veux choisir d'activer ») :
