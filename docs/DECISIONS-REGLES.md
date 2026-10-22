@@ -31,8 +31,10 @@
 
 - 9 cartes créées dans son Canva (dossier « ARCHETYPE nWo ») : `nwo-01` à `nwo-09`, deck signature « New World Order ».
 - **Marque nWo** : un catcheur marqué le reste tant qu'il ne quitte pas le ring (K.O., sacrifice, ou pris par Hogan : la marque disparaît).
-- Quand une carte marque « un adversaire actif » sans viser (X-Pac à son arrivée, Spray à l'équipement, nWo 4 Life,
-  2e cible de Nash), le jeu choisit l'actif adverse non marqué qui a le plus d'ATT.
+- Quand une carte marque « un adversaire actif » (X-Pac à son arrivée, Spray à l'équipement, nWo 4 Life,
+  2e cible de Nash), **le joueur choisit toujours la cible** (demande du propriétaire, 22/10/2026) parmi les actifs
+  adverses non marqués (pour Nash : pas la cible déjà touchée). La marque est obligatoire ; s'il ne reste personne
+  à marquer, rien ne se passe. L'IA, elle, choisit l'actif adverse non marqué qui a le plus d'ATT.
 - Hogan et X-Pac : leur effet « à son arrivée » est automatique (pas de bouton) ; Hall, Nash, Steiner : passifs à activer.
 - Eric Bischoff : une fois par tour, au choix, marquer (on vise) ou chercher une carte nWo ; -5 ATT aux marqués en permanence.
 - Spray : uniquement sur un catcheur de la nWo.

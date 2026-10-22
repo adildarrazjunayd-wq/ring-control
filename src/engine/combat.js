@@ -41,11 +41,19 @@ export function markNwo(state, f, why) {
   addHistory(state, `${why} : ${label(f.cardId)} est marqué nWo.`);
   return true;
 }
-// Marque automatiquement l'actif adverse le plus dangereux qui n'est pas encore marqué.
-export function autoMarkNwo(state, pi, why) {
-  const d = state.players[1 - pi];
-  const pick = [...d.active].filter(x => !x.nwoMark).sort((a, b) => effective(state, 1 - pi, b).attack - effective(state, 1 - pi, a).attack)[0];
+// Actifs adverses qu'on peut encore marquer (`exclude` : la cible déjà touchée par Nash).
+export const markOptions = (state, pi, exclude = []) => state.players[1 - pi].active.filter(x => !x.nwoMark && !exclude.includes(x.instanceId));
+// L'IA marque l'actif adverse le plus dangereux qui n'est pas encore marqué.
+export function autoMarkNwo(state, pi, why, exclude = []) {
+  const pick = [...markOptions(state, pi, exclude)].sort((a, b) => effective(state, 1 - pi, b).attack - effective(state, 1 - pi, a).attack)[0];
   return pick && markNwo(state, pick, why) ? pick : null;
+}
+// « Marque nWo un adversaire actif » : le joueur choisit lui-même la cible (choix en attente), l'IA choisit seule.
+// `cardId` : la carte qui marque (image affichée pendant le choix).
+export function chooseMark(state, pi, why, cardId, exclude = []) {
+  if (!markOptions(state, pi, exclude).length) return;
+  if (state.players[pi].role === 'ai') { autoMarkNwo(state, pi, why, exclude); return; }
+  (state.pendingChoices ??= []).push({ pi, key: 'mark', id: crypto.randomUUID(), why, cardId, exclude });
 }
 // Hulk Hogan s'invoque sans sacrifice si Scott Hall et Kevin Nash sont sur le ring.
 export const hoganFree = (state, pi) => !effectsOff(state, pi) && ['scott hall', 'kevin nash'].every(n => fightersOf(state.players[pi]).some(f => is(f.cardId, n)));
@@ -53,7 +61,7 @@ export const hoganFree = (state, pi) => !effectsOff(state, pi) && ['scott hall',
 export function onEnter(state, pi, f) {
   if (effectsOff(state, pi)) return;
   if (f.cardId === 'nwo-01') for (const t of state.players[1 - pi].active) markNwo(state, t, 'Hulk Hogan : Le 3e homme');
-  if (f.cardId === 'nwo-05') autoMarkNwo(state, pi, 'X-Pac : Syxx');
+  if (f.cardId === 'nwo-05') chooseMark(state, pi, 'X-Pac : Syxx', 'nwo-05');
 }
 
 export function heal(state, pi, f, amount, why) {
@@ -410,10 +418,7 @@ function nwoAfterHits(state, a, f, hit, markedBefore) {
     (a.special === 'nwo-02' || a.special === 'nwo-04') && ATTACK_SPECIALS[a.special].name,
   ].find(Boolean);
   if (why) for (const t of alive) markNwo(state, t, why);
-  if (a.special === 'nwo-02') {
-    const other = [...d.active].filter(x => !hit.includes(x)).sort((x, y) => Number(x.nwoMark ?? false) - Number(y.nwoMark ?? false) || effective(state, 1 - pi, y).attack - effective(state, 1 - pi, x).attack)[0];
-    if (other) markNwo(state, other, 'Jackknife Powerbomb');
-  }
+  if (a.special === 'nwo-02') chooseMark(state, pi, 'Jackknife Powerbomb', 'nwo-02', hit.map(t => t.instanceId));
   if (a.special === 'nwo-04' && alive[0]) { alive[0].noAttackUntil = state.turnNumber + 1; addHistory(state, `Steiner Recliner : ${label(alive[0].cardId)} est endormi (pas d’attaque au prochain tour).`); }
   if (a.special === 'nwo-05' && markedBefore.length) draw(state, pi, 1, 'X-Pac : Bronco Buster');
 }

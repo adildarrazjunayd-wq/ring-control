@@ -285,7 +285,7 @@ export function equipObject(state, playerIndex, card, fighterId) {
   emit(state, { kind: 'card', pi: playerIndex, cardId: card.id, title: 'Objet équipé', sub: rarityLookup(fighter.cardId)?.displayName });
   // Effets immédiats des objets (« ce tour-ci »).
   if (card.id === 'objets-06') { player.limits.extraNormal = (player.limits.extraNormal ?? 0) + 1; addHistory(state, 'Big Gold : une invocation supplémentaire est possible ce tour-ci.'); }
-  if (card.id === 'nwo-07' && !combat.effectsOff(state, playerIndex)) combat.autoMarkNwo(state, playerIndex, 'Spray');
+  if (card.id === 'nwo-07' && !combat.effectsOff(state, playerIndex)) combat.chooseMark(state, playerIndex, 'Spray', 'nwo-07');
   if (card.id === 'objets-07') { player.limits.momentum -= 1; addHistory(state, 'Ceinture poids lourd : deux Momenta peuvent être joués par tour.'); }
   if (card.id === 'objets-08' && (combat.is(fighter.cardId, 'john cena') || combat.is(fighter.cardId, 'cm punk'))) {
     state.extraAttacks[fighterId] = (state.extraAttacks[fighterId] ?? 0) + 1;

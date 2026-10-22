@@ -25,6 +25,9 @@ function duel(me = [], opp = [], phase = 'attacks') {
 }
 const hit = (s, a, t, opts) => { const r = game.declareAttack(s, 0, a.instanceId, t.instanceId, opts); assert.equal(r.ok, true, r.reason); game.resolveAttack(s); };
 const eff = (s, pi, f) => combat.effective(s, pi, f);
+// Le joueur choisit qui marquer : un choix « mark » attend, avec les cibles possibles.
+const markChoice = s => (s.pendingChoices ?? []).find(c => c.key === 'mark');
+const pickMark = (s, f) => { const c = markChoice(s); assert.ok(c, 'un choix de marque doit attendre'); const r = act.resolveChoice(s, c.id, f.instanceId); assert.equal(r.ok, true, r.reason); };
 // Cibles adverses solides (Gunther 85 END, Roman 105 END).
 const TANK = 'catcheur-01', TANK2 = 'catcheur-03';
 
@@ -72,13 +75,19 @@ test('Kevin Nash : -10 dégâts reçus seulement si Scott Hall est sur son ring'
   assert.equal(s2.players[1].active[0].endurance, 80 - 45);
 });
 
-test('Kevin Nash (Jackknife) : +15 dégâts et marque 2 adversaires', () => {
-  const s = duel(['nwo-02'], [TANK, TANK2]);
-  const [nash] = s.players[0].active, [roman, brock] = s.players[1].active;
+test('Kevin Nash (Jackknife) : +15 dégâts, marque la cible, et le joueur choisit le 2e marqué (pas la cible)', () => {
+  const s = duel(['nwo-02'], [TANK, TANK2, 'catcheur-33']);
+  const [nash] = s.players[0].active, [roman, brock, horn] = s.players[1].active;
   hit(s, nash, roman, { special: 'nwo-02' });
   assert.equal(roman.endurance, 105 - 70);
   assert.equal(roman.nwoMark, true);
-  assert.equal(brock.nwoMark, true);
+  assert.ok(!brock.nwoMark && !horn.nwoMark);
+  assert.deepEqual(act.choiceOptions(s, markChoice(s)), [brock.instanceId, horn.instanceId]);
+  assert.equal(act.resolveChoice(s, markChoice(s).id, roman.instanceId).ok, false); // déjà touché : refusé
+  pickMark(s, horn);
+  assert.equal(horn.nwoMark, true);
+  assert.ok(!brock.nwoMark);
+  assert.equal(markChoice(s), undefined);
 });
 
 test('Scott Steiner : +10 contre un marqué, et son spécial marque + endort', () => {
@@ -100,7 +109,9 @@ test('X-Pac marque un adversaire à son arrivée, et Bronco Buster pioche contre
   const r = game.normalSummon(s, 0, byId('nwo-05'), [], 'active');
   assert.equal(r.ok, true, r.reason);
   const [roman, brock] = s.players[1].active;
-  assert.equal(roman.nwoMark, true); // le plus fort (75 ATT avec Domination)
+  assert.ok(!roman.nwoMark && !brock.nwoMark); // pas encore : le joueur choisit
+  pickMark(s, roman);
+  assert.equal(roman.nwoMark, true);
   assert.ok(!brock.nwoMark);
   s.phase = 'attacks';
   const xpac = s.players[0].active.find(f => f.cardId === 'nwo-05');
@@ -155,7 +166,9 @@ test('Spray : seulement sur un nWo, +5 ATT, marque à l’équipement et à chaq
   assert.equal(game.equipObject(s, 0, byId('nwo-07'), lashley.instanceId).ok, false);
   assert.equal(game.equipObject(s, 0, byId('nwo-07'), steiner.instanceId).ok, true);
   assert.equal(eff(s, 0, steiner).attack, 60);
+  pickMark(s, roman);
   assert.equal(roman.nwoMark, true);
+  assert.ok(!brock.nwoMark);
   s.phase = 'attacks';
   steiner.passiveActiveUntil = 0;
   hit(s, steiner, brock);
@@ -186,7 +199,35 @@ test('nWo 4 Life : invoque un nWo R/SR (main ou deck) sans sacrifice puis marque
   const r = act.resolveSummonMomentum(s, 0, 'nwo-09', { summonId: 'nwo-02', position: 'active' });
   assert.equal(r.ok, true, r.reason);
   assert.ok(s.players[0].active.some(f => f.cardId === 'nwo-02'));
+  pickMark(s, s.players[1].active[0]);
   assert.equal(s.players[1].active[0].nwoMark, true);
+});
+
+test('nWo 4 Life + X-Pac : deux marques à choisir, l’une après l’autre ; la 2e tombe s’il ne reste personne', () => {
+  const s = duel(['nwo-03'], [TANK, TANK2], 'actions');
+  s.players[0].hand = ['nwo-09', 'nwo-05'];
+  game.playMomentum(s, 0, byId('nwo-09'));
+  act.resolveSummonMomentum(s, 0, 'nwo-09', { summonId: 'nwo-05', position: 'active' });
+  assert.equal(s.pendingChoices.filter(c => c.key === 'mark').length, 2);
+  const [roman, brock] = s.players[1].active;
+  pickMark(s, brock);
+  pickMark(s, roman);
+  assert.ok(roman.nwoMark && brock.nwoMark);
+  const s2 = duel(['nwo-03'], [TANK], 'actions');
+  s2.players[0].hand = ['nwo-09', 'nwo-05'];
+  game.playMomentum(s2, 0, byId('nwo-09'));
+  act.resolveSummonMomentum(s2, 0, 'nwo-09', { summonId: 'nwo-05', position: 'active' });
+  pickMark(s2, s2.players[1].active[0]);
+  assert.equal(markChoice(s2), undefined); // plus aucune cible : le 2e choix disparaît
+});
+
+test('l’IA choisit seule la cible à marquer (pas de choix en attente)', () => {
+  const s = duel(['nwo-03'], [TANK, TANK2], 'actions');
+  s.players[0].role = 'ai';
+  s.players[0].hand = ['nwo-05'];
+  game.normalSummon(s, 0, byId('nwo-05'), [], 'active');
+  assert.equal(markChoice(s), undefined);
+  assert.equal(s.players[1].active.filter(f => f.nwoMark).length, 1);
 });
 
 test('la marque apparaît dans les effets en cours', () => {

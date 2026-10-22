@@ -360,7 +360,9 @@ export const actions = {
     if (t.picked.length < needed(m(), t)) { render(); return; }
     if (t.mode === 'attack') { launchAttack(t.picked[0].instanceId); return; }
     S.targeting = null;
-    const r = t.kind === 'activate'
+    const r = t.kind === 'mark'
+      ? await exec('resolveChoice', t.choiceId, t.picked[0].instanceId)
+      : t.kind === 'activate'
       ? await exec('activate', t.key, t.iid, { targets: t.picked })
       : t.kind === 'manager'
         ? await exec('managerEffect', { mode: 'mark', targets: t.picked.map(x => ({ instanceId: x.instanceId })) })

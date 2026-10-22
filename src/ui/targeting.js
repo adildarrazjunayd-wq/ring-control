@@ -42,6 +42,7 @@ export function targetingScreen(m) {
   if (t.mode === 'effect') {
     const spec = t.specs[t.picked.length], who = spec?.side === 'me' ? 'un de tes catcheurs' : `un catcheur de ${esc(m.players[1].name)}`;
     const img = t.iid ? card([...m.players[0].active, ...m.players[0].passive].find(f => f.instanceId === t.iid)?.cardId)?.image : card(t.key.split(':')[0])?.image;
+    if (t.kind === 'mark') return `<div class="tron targeting">${img ? `<img src="${img}" alt="">` : ''}<div class="tron-body"><span class="k">${esc(t.name)}</span><h2>🎯 QUI MARQUER ?</h2><p>Clique l’adversaire actif à marquer nWo (il brille sur le ring).</p></div></div>`;
     return `<div class="tron targeting">${img ? `<img src="${img}" alt="">` : ''}<div class="tron-body"><span class="k">${esc(t.name)}</span><h2>CHOISIS ${t.specs.length > 1 ? `LA CIBLE ${t.picked.length + 1}/${t.specs.length}` : 'LA CIBLE'}</h2><p>Clique ${who} qui brille sur le ring.</p><div class="tron-actions"><button class="btn ghost" data-act="cancelTarget">Annuler</button></div></div></div>`;
   }
   const f = attacker(m, t);

@@ -1,7 +1,7 @@
 // Effets que le joueur déclenche lui-même (effets passifs « à action », effets spéciaux hors attaque,
 // effets depuis le cimetière, Momenta qui visent une carte) et choix déclenchés par l'arrivée au cimetière.
 import { addHistory, emit, lookupCard, specialSummon, legalPositions, resolveMomentum, activateWrestlerEffect, sendFighterToGrave } from './game-engine.js';
-import { effective, effectsOff, is, fightersOf, addModifier, checkKOs, heal, draw, bloodlineComplete, snapshotStatus, stampWhy, markNwo, autoMarkNwo } from './combat.js';
+import { effective, effectsOff, is, fightersOf, addModifier, checkKOs, heal, draw, bloodlineComplete, snapshotStatus, stampWhy, markNwo, chooseMark, markOptions } from './combat.js';
 
 const label = id => lookupCard(id)?.displayName ?? 'la carte';
 const text = c => `${c.displayName} ${c.effects.map(e => e.text).join(' ')}`;
@@ -167,7 +167,7 @@ export const TARGET_MOMENTA = Object.freeze({
 export const SUMMON_MOMENTA = Object.freeze({
   'wyatt-06': { summon: { sources: ['deck'], filter: c => wyattFamily(c) }, discard: true },
   'wyatt-12': { summon: { sources: ['deck'], filter: c => is(c.id, 'jey uso') }, after: (s, pi) => { s.players[pi].status.extraMomentumTurn = s.turnNumber + 2; } },
-  'nwo-09': { summon: { sources: ['hand', 'deck'], filter: c => c.faction === 'nWo' && ['R', 'SR'].includes(c.rarity) }, after: (s, pi) => { if (!effectsOff(s, pi)) autoMarkNwo(s, pi, 'nWo 4 Life'); } },
+  'nwo-09': { summon: { sources: ['hand', 'deck'], filter: c => c.faction === 'nWo' && ['R', 'SR'].includes(c.rarity) }, after: (s, pi) => { if (!effectsOff(s, pi)) chooseMark(s, pi, 'nWo 4 Life', 'nwo-09'); } },
 });
 
 export function momentumTargetsAvailable(state, pi, cardId) {
@@ -259,19 +259,35 @@ export function queueGraveTriggers(state, pi, cardIds) {
   }
 }
 
-export function choiceInfo(choice) { const c = CHOICES[choice.key]; return { title: c.title, what: c.what }; }
-export function choiceOptions(state, choice) { return [...new Set(CHOICES[choice.key].options(state.players[choice.pi]))]; }
+// Choix « marque nWo » : `key: 'mark'`, les options sont les instanceId des actifs adverses à marquer.
+export function choiceInfo(choice) { if (choice.key === 'mark') return { title: choice.why, what: 'l’adversaire actif à marquer nWo' }; const c = CHOICES[choice.key]; return { title: c.title, what: c.what }; }
+export function choiceOptions(state, choice) {
+  if (choice.key === 'mark') return markOptions(state, choice.pi, choice.exclude).map(f => f.instanceId);
+  return [...new Set(CHOICES[choice.key].options(state.players[choice.pi]))];
+}
 
-// cardId null = le joueur renonce (ces effets sont tous facultatifs).
+// cardId null = le joueur renonce (ces effets sont tous facultatifs, sauf la marque nWo qui est obligatoire).
 export function resolveChoice(state, choiceId, cardId, direct = null) {
   const list = state.pendingChoices ??= [];
   const choice = direct ?? list.find(c => c.id === choiceId);
   if (!choice) return { ok: false, reason: 'Choix introuvable.' };
+  if (choice.key === 'mark') return resolveMarkChoice(state, choice, cardId);
   if (!direct) list.splice(list.indexOf(choice), 1);
   if (!cardId) return { ok: true };
   if (!choiceOptions(state, choice).includes(cardId)) return { ok: false, reason: 'Carte non valide.' };
   addHistory(state, `${CHOICES[choice.key].title} : ${CHOICES[choice.key].apply(state, choice.pi, cardId)}.`);
   emit(state, { kind: 'reveal', pi: choice.pi, cardIds: [cardId], title: choice.key === 'wyatt-01' ? 'Envoyée au cimetière' : 'Ajoutée à la main', sub: CHOICES[choice.key].title });
+  return { ok: true };
+}
+
+function resolveMarkChoice(state, choice, instanceId) {
+  const list = state.pendingChoices;
+  if (!choiceOptions(state, choice).length) { list.splice(list.indexOf(choice), 1); return { ok: true }; } // plus aucune cible
+  if (!choiceOptions(state, choice).includes(instanceId)) return { ok: false, reason: 'Choisis un actif adverse pas encore marqué.' };
+  list.splice(list.indexOf(choice), 1);
+  markNwo(state, state.players[1 - choice.pi].active.find(f => f.instanceId === instanceId), choice.why);
+  // Les autres marques en attente qui n'ont plus de cible possible tombent.
+  state.pendingChoices = list.filter(c => c.key !== 'mark' || choiceOptions(state, c).length);
   return { ok: true };
 }
 
