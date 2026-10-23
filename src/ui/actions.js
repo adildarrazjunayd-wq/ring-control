@@ -141,6 +141,10 @@ export const actions = {
 
   // ----- decks -----
   pickDeck: d => { S.chosenDeck = d.deck; render(); },
+  // Consulter un deck sans le modifier (signature, perso ou deck de l'IA).
+  viewDeck: d => { S.viewDeck = d.deck; try { sessionStorage.setItem('ring-control-view', d.deck); } catch { /* ignore */ } go('deck'); },
+  editDeck: d => { S.deckId = d.id; go('decks'); },
+  back: () => { if (history.state?.ringControl && history.length > 1) history.back(); else go('home'); },
   chooseDeck: d => { S.chosenDeck = d.deck; go('lobby'); },
   start: () => {
     const deck = chosenDeck();

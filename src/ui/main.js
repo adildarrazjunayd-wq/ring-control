@@ -9,7 +9,7 @@ import { runAI } from './ai.js';
 import { beforeRender, afterRender } from './fx.js';
 import { soundOn, startCrowd, stopCrowd } from './sound.js';
 
-const TITLES = { home: 'Accueil', lobby: 'Nouveau duel', decks: 'Decks', collection: 'Collection', duel: 'Duel' };
+const TITLES = { home: 'Accueil', lobby: 'Nouveau duel', decks: 'Decks', collection: 'Collection', duel: 'Duel', deck: 'Voir le deck' };
 
 function render() {
   const view = $('#view');
@@ -21,7 +21,9 @@ function render() {
     : S.page === 'duel' || S.page === 'lobby' ? screens.lobby()
     : S.page === 'decks' ? screens.decks()
     : S.page === 'collection' ? screens.collection()
+    : S.page === 'deck' ? screens.deckView()
     : screens.home();
+  hideHoverCard();
   if (inDuel) afterRender(S.match);
   if (inDuel) showPendingChoice();
   for (const el of document.querySelectorAll('[data-nav]')) el.classList.toggle('on', el.dataset.page === S.page || (S.page === 'duel' && el.dataset.page === 'lobby'));
@@ -70,6 +72,35 @@ document.addEventListener('pointerover', event => {
   S.hovered = id;
   refreshTitantron(S.match);
 });
+
+// Menus (hors duel) : au survol d'une carte à la souris, une grande fiche montre l'image et les effets.
+const hoverCard = document.createElement('aside');
+hoverCard.className = 'hovercard';
+hoverCard.setAttribute('aria-hidden', 'true');
+document.body.append(hoverCard);
+let hoverId = null;
+function hideHoverCard() { hoverId = null; hoverCard.classList.remove('show'); }
+function placeHoverCard(x, y) {
+  const w = hoverCard.offsetWidth, h = hoverCard.offsetHeight, gap = 24;
+  const left = x + gap + w < innerWidth ? x + gap : Math.max(8, x - gap - w);
+  const top = Math.min(Math.max(8, y - h / 2), innerHeight - h - 8);
+  hoverCard.style.transform = `translate(${left}px, ${top}px)`;
+}
+function followPointer(event) {
+  if (event.pointerType !== 'mouse' || S.page === 'duel' || $('#modal').open) { if (hoverId) hideHoverCard(); return; }
+  const c = card(event.target.closest?.('[data-hover]')?.dataset.hover);
+  if (!c) { if (hoverId) hideHoverCard(); return; }
+  if (hoverId !== c.id) {
+    hoverId = c.id;
+    hoverCard.innerHTML = `<img src="${c.image}" alt=""><div><h3>${esc(c.displayName)}</h3>${c.nickname ? `<small class="muted">${esc(c.nickname)}</small>` : ''}<div class="facts">${screens.cardFacts(c)}</div>${screens.effectsMarkup(c)}</div>`;
+    hoverCard.classList.add('show');
+  }
+  placeHoverCard(event.clientX, event.clientY);
+}
+document.addEventListener('pointerover', followPointer);
+document.addEventListener('pointermove', followPointer);
+document.addEventListener('scroll', hideHoverCard, true);
+document.addEventListener('click', hideHoverCard);
 
 document.addEventListener('input', event => {
   if (event.target.matches('[data-filter="text"]')) screens.applyFilters();

@@ -153,6 +153,61 @@ img { display: block; max-width: 100%; }
 .in-deck em { font: 18px var(--title); color: var(--y); font-style: normal; }
 .decks-empty { padding: 40px; }
 
+/* ---------- Voir un deck (sans le modifier) ---------- */
+.btn.see { background: var(--c); color: #000; border-color: #000; box-shadow: 3px 3px 0 var(--m); }
+.editor-head { flex-wrap: wrap; }
+.sig { grid-template-columns: 70px 1fr auto; }
+.deck-pick-box { display: grid; grid-template-rows: 1fr auto; gap: 6px; }
+.deck-pick-box .see { justify-self: start; }
+.deck-pick.ai { border-style: dashed; cursor: default; }
+.lobby h3 small { font: 13px var(--body); letter-spacing: 0; }
+.deckview { padding: 26px clamp(16px, 4vw, 60px) 80px; }
+.dv-head { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 26px; align-items: center; margin-bottom: 18px; }
+.dv-head > img { width: 100%; border: 3px solid #fff; box-shadow: 6px 6px 0 var(--m); }
+.dv-head h1 { font: clamp(40px, 6vw, 72px)/1 var(--title); text-shadow: 4px 4px 0 var(--m); margin: 6px 0 10px; text-transform: uppercase; }
+.dv-desc { font-size: 18px; color: #e3d9ff; max-width: 820px; margin-bottom: 12px; }
+.dv-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.dv-stats span { padding: 4px 12px; background: var(--panel2); border: 2px solid var(--line); font: 600 22px var(--cond); text-transform: uppercase; }
+.dv-stats b { color: var(--y); font-family: var(--title); font-size: 20px; }
+.dv-stats .total { border-color: var(--y); }
+.dv-tip { margin: 6px 0 14px; }
+.dv-type { font: 26px var(--title); letter-spacing: 2px; color: var(--y); margin: 30px 0 14px; padding-bottom: 6px; border-bottom: 3px solid var(--m); }
+.dv-type em { font-style: normal; color: #fff; margin-left: 8px; }
+.dv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 470px), 1fr)); gap: 16px; }
+.dv-card { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 12px; background: var(--panel); border: 2px solid var(--line); cursor: zoom-in; transition: border-color .15s, transform .15s; }
+.dv-card:hover, .dv-card:focus-visible { border-color: var(--m); transform: translateY(-3px); }
+.dv-img { position: relative; align-self: start; }
+.dv-img img { width: 100%; aspect-ratio: 496 / 693; object-fit: cover; border: 2px solid #fff; }
+.dv-n { position: absolute; top: -10px; right: -10px; padding: 2px 10px; background: var(--y); color: #000; border: 3px solid #000; font: 24px var(--title); transform: skewX(-8deg); box-shadow: 3px 3px 0 var(--m); }
+.dv-name { display: block; font: 32px/1 var(--cond); text-transform: uppercase; }
+.dv-text .facts { margin-top: 6px; }
+.dv-text .effect { margin: 8px 0; }
+.dv-text .effect p { font-size: 16px; line-height: 1.45; }
+@media (max-width: 700px) {
+  .dv-head { grid-template-columns: 110px minmax(0, 1fr); gap: 14px; }
+  .dv-card { grid-template-columns: 120px minmax(0, 1fr); gap: 12px; }
+  .dv-name { font-size: 26px; }
+  .dv-text .effect p { font-size: 15px; }
+  .sig { grid-template-columns: 60px 1fr; }
+  .sig .see { grid-column: 1 / -1; justify-self: start; }
+}
+
+/* Fiche au survol d'une carte dans les menus (souris seulement). */
+.hovercard {
+  position: fixed; left: 0; top: 0; z-index: 70; width: min(560px, calc(100vw - 16px));
+  display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 16px; padding: 14px;
+  background: linear-gradient(160deg, #1d0d33, #0d0719); border: 3px solid #fff;
+  box-shadow: 0 0 0 3px var(--m), 0 0 40px rgba(255, 46, 136, .4), 8px 8px 0 #000;
+  pointer-events: none; opacity: 0; visibility: hidden; transition: opacity .12s;
+}
+.hovercard.show { opacity: 1; visibility: visible; }
+.hovercard img { width: 100%; border: 2px solid #fff; }
+.hovercard h3 { font: 30px/1 var(--cond); text-transform: uppercase; margin-bottom: 2px; }
+.hovercard .facts { margin: 6px 0; }
+.hovercard .effect { margin: 8px 0; }
+.hovercard .effect p { font-size: 15px; line-height: 1.4; }
+@media (hover: none) { .hovercard { display: none; } }
+
 /* ---------- Fenêtres ---------- */
 dialog {
   width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 40px); overflow: auto;
