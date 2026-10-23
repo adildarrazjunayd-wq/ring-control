@@ -19,11 +19,13 @@ const recipes = [
     name: 'Wyatt Family',
     theme: 'Faction · Résilience et retour',
     description: 'Bray Wyatt, Strowman, Rowan et Harper avec leurs Momenta et objets de soutien.',
+    // Rééquilibré le 23/10/2026 (44 % → 49 % après le renforcement de DX, simulations de 2 800 parties) :
+    // Rappel stratégique remplace Atemi stratégique.
     cardIds: [
       'wyatt-01', 'wyatt-02', 'wyatt-03', 'wyatt-04', 'catcheur-39', 'catcheur-19',
       'catcheur-38', 'catcheur-03', 'catcheur-01', 'catcheur-24', 'catcheur-18',
       'wyatt-05', 'wyatt-06', 'wyatt-07', 'momentum-16', 'momentum-20', 'momentum-15',
-      'momentum-18', 'objets-02', 'objets-03',
+      'momentum-08', 'objets-02', 'objets-03',
     ],
   },
   {
