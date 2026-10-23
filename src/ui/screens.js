@@ -1,6 +1,6 @@
 // Écrans hors duel : accueil, choix du deck, decks, collection, fiche de carte.
 import { DECK_MAX, COPIES_MAX, validateDeck } from '../engine/rules.js';
-import { S, catalog, card, esc, btn, KIND_LABEL, SIGNATURE_DECKS } from './core.js';
+import { S, catalog, card, esc, btn, KIND_LABEL, SIGNATURE_DECKS, VERSION } from './core.js';
 import { savedSession } from './net.js';
 import { AI_DECKS } from '../../data/ai-decks.js';
 
@@ -88,7 +88,8 @@ export function home() {
       <div class="row">${S.match && S.match.winner === null ? btn('▶ Reprendre le duel', 'data-act="resume"', 'btn hot big') : ''}${btn('Nouveau duel', 'data-act="go" data-page="lobby"', `btn ${S.match && S.match.winner === null ? '' : 'hot'} big`)}${btn('Mes decks', 'data-act="go" data-page="decks"', 'btn ghost big')}</div>
     </div>
     <div class="home-side"><h3>Decks signature</h3><div class="sig-list">${sig}</div>
-      <div class="stats"><div><b>${playable().length}</b><small>cartes jouables</small></div><div><b>${S.decks.length}</b><small>decks perso</small></div><div><b>500</b><small>PV au départ</small></div></div></div>
+      <div class="stats"><div><b>${playable().length}</b><small>cartes jouables</small></div><div><b>${S.decks.length}</b><small>decks perso</small></div><div><b>500</b><small>PV au départ</small></div></div>
+      ${VERSION ? `<p class="version muted">Version ${esc(VERSION)}</p>` : ''}</div>
   </section>`;
 }
 

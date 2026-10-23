@@ -6,7 +6,10 @@ export const $ = (selector, root = document) => root.querySelector(selector);
 export const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-export const catalog = await fetch('./data/catalog.json').then(r => r.json());
+// Version des fichiers (écrite par tools/versionner.mjs) : force le navigateur à reprendre le catalogue à jour.
+const meta = name => document.querySelector(`meta[name="${name}"]`)?.content ?? '';
+export const VERSION = meta('rc-version');
+export const catalog = await fetch(`./data/catalog.json${meta('rc-catalogue') ? `?v=${meta('rc-catalogue')}` : ''}`).then(r => r.json());
 const byId = new Map(catalog.map(c => [c.id, c]));
 export const card = id => byId.get(id);
 export const CARD_BACK = card('catcheur-40').image;

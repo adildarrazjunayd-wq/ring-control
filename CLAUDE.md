@@ -28,6 +28,8 @@ navigateur) et ce qui ne l'a pas été.
 
 - Lancer : `node server.mjs` (ou `LANCER-LE-JEU.bat`), puis `http://localhost:4173`.
 - Tests : `node --test`. Vérifier aussi dans le navigateur après un changement d'interface.
+- Avant chaque publication : `node tools/versionner.mjs` (empreintes `?v=` dans `index.html`, sinon les navigateurs
+  gardent l'ancienne version jusqu'à 10 min ; un test le vérifie). Le numéro de version s'affiche sur l'accueil.
 - Git : `C:\Program Files\Git\cmd\git.exe` (pas dans le PATH de cette machine). E-mail des commits : adresse anonyme
   `adild@users.noreply.github.com` (ne jamais remettre la vraie adresse : le dépôt est public).
 - En ligne : https://adildarrazjunayd-wq.github.io/ring-control/ (GitHub Pages, dépôt public). Publier avec `git push`
