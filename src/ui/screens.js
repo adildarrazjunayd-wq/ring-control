@@ -3,6 +3,7 @@ import { DECK_MAX, COPIES_MAX, validateDeck } from '../engine/rules.js';
 import { S, catalog, card, esc, btn, KIND_LABEL, SIGNATURE_DECKS, VERSION } from './core.js';
 import { savedSession } from './net.js';
 import { AI_DECKS } from '../../data/ai-decks.js';
+import { deckStar } from './versus.js';
 
 const TYPES = ['Catcheur', 'Manager', 'Objet', 'Momentum'];
 const playable = () => catalog.filter(c => c.playable);
@@ -31,14 +32,14 @@ const filters = () => `<div class="filters"><input class="input" data-filter="te
 const AI_ONLY = AI_DECKS.filter(d => !SIGNATURE_DECKS.some(s => s.id === d.id));
 export function deckSource(value) {
   const [kind, id] = String(value ?? '').split(':');
-  if (kind === 'signature') { const d = SIGNATURE_DECKS.find(x => x.id === id); return d && { kind, label: 'Deck signature', name: d.name, theme: d.theme, description: d.description, cards: d.cards }; }
+  if (kind === 'signature') { const d = SIGNATURE_DECKS.find(x => x.id === id); return d && { kind, label: 'Deck signature', name: d.name, theme: d.theme, description: d.description, cards: d.cards, star: d.star }; }
   if (kind === 'custom') { const d = S.decks.find(x => x.id === id); return d && { kind, label: 'Mon deck', name: d.name, cards: d.cards, id }; }
-  if (kind === 'ai') { const d = AI_ONLY.find(x => x.id === id); return d && { kind, label: 'Deck de l’IA (adversaire)', name: d.name, cards: d.cards }; }
+  if (kind === 'ai') { const d = AI_ONLY.find(x => x.id === id); return d && { kind, label: 'Deck de l’IA (adversaire)', name: d.name, cards: d.cards, star: d.star }; }
   return null;
 }
 const RARITY_ORDER = { SSR: 0, SR: 1, R: 2 };
 const seeBtn = (value, label = '👁 Voir les cartes') => btn(label, `data-act="viewDeck" data-deck="${value}"`, 'btn small see');
-const coverOf = cards => card(cards.find(id => card(id)?.category === 'Catcheur' && card(id).rarity === 'SSR') ?? cards.find(id => card(id)?.category === 'Catcheur') ?? cards[0])?.image ?? '';
+const coverOf = (cards, star) => card(deckStar(cards, star))?.image ?? '';
 
 export function deckView() {
   let remembered = null;
@@ -66,7 +67,7 @@ export function deckView() {
   const play = d.kind !== 'ai' && validateDeck({ cards: d.cards }).valid ? btn('Jouer avec ce deck ▶', `data-act="chooseDeck" data-deck="${value}"`, 'btn hot big') : '';
   const edit = d.kind === 'custom' ? btn('Modifier ce deck', `data-act="editDeck" data-id="${d.id}"`, 'btn big') : d.kind === 'signature' ? btn('Copier pour le modifier', `data-act="duplicate" data-id="${value.split(':')[1]}"`, 'btn big') : '';
   return `<section class="deckview">
-    <header class="dv-head"><img src="${coverOf(d.cards)}" alt=""><div>
+    <header class="dv-head"><img src="${coverOf(d.cards, d.star)}" alt=""><div>
       <span class="kicker">${esc(d.label)}${d.theme ? ` · ${esc(d.theme)}` : ''}</span>
       <h1>${esc(d.name)}</h1>
       ${d.description ? `<p class="dv-desc">${esc(d.description)}</p>` : ''}
@@ -99,7 +100,7 @@ export function lobby() {
   const signatures = SIGNATURE_DECKS.map(d => choice(`signature:${d.id}`, d.name, `${d.theme} · ${d.cards.length} cartes`, card(d.cardIds[0]).image)).join('');
   const customs = valid.map(d => choice(`custom:${d.id}`, d.name, `Mon deck · ${d.cards.length} cartes`, card(d.cards.find(id => card(id)?.category === 'Catcheur') ?? d.cards[0])?.image ?? '')).join('');
   const unfinished = S.decks.length - valid.length;
-  const opponents = AI_ONLY.map(d => `<div class="deck-pick-box"><div class="deck-pick ai"><img src="${coverOf(d.cards)}" alt=""><span><b>${esc(d.name)}</b><small>Joué seulement par l’IA · ${d.cards.length} cartes</small></span></div>${seeBtn(`ai:${d.id}`)}</div>`).join('');
+  const opponents = AI_ONLY.map(d => `<div class="deck-pick-box"><div class="deck-pick ai"><img src="${coverOf(d.cards, d.star)}" alt=""><span><b>${esc(d.name)}</b><small>Joué seulement par l’IA · ${d.cards.length} cartes</small></span></div>${seeBtn(`ai:${d.id}`)}</div>`).join('');
   return `<section class="lobby">
     <header><span class="kicker">Préparation du combat</span><h1>Choisis ton deck</h1></header>
     <h3>Decks signature</h3><div class="deck-grid">${signatures}</div>
@@ -144,7 +145,7 @@ export function decks() {
   const d = S.decks.find(x => x.id === S.deckId);
   const sig = SIGNATURE_DECKS.map(x => `<article class="sig-row"><img src="${card(x.cardIds[0]).image}" alt=""><div><b>${esc(x.name)}</b><div class="row">${seeBtn(`signature:${x.id}`, '👁 Voir')}${btn('Dupliquer', `data-act="duplicate" data-id="${x.id}"`, 'btn small')}${btn('Jouer', `data-act="chooseDeck" data-deck="signature:${x.id}"`, 'btn small hot')}</div></div></article>`).join('');
   const mine = S.decks.map(x => { const ok = validateDeck(x).valid; return `<article class="mine ${x.id === S.deckId ? 'on' : ''}"><button class="mine-open" data-act="openDeck" data-id="${x.id}"><b>${esc(x.name)}</b><small class="${ok ? 'ok' : 'warn'}">${x.cards.length} cartes · ${ok ? 'prêt' : 'à compléter'}</small></button>${btn('👁', `data-act="viewDeck" data-deck="custom:${x.id}" title="Voir les cartes"`, 'btn small see')}${btn('✕', `data-act="deleteDeck" data-id="${x.id}" title="Supprimer"`, 'btn small ghost')}</article>`; }).join('');
-  const ai = AI_ONLY.map(x => `<article class="sig-row"><img src="${coverOf(x.cards)}" alt=""><div><b>${esc(x.name)}</b><div class="row">${seeBtn(`ai:${x.id}`, '👁 Voir')}<small class="muted">Joué par l’IA</small></div></div></article>`).join('');
+  const ai = AI_ONLY.map(x => `<article class="sig-row"><img src="${coverOf(x.cards, x.star)}" alt=""><div><b>${esc(x.name)}</b><div class="row">${seeBtn(`ai:${x.id}`, '👁 Voir')}<small class="muted">Joué par l’IA</small></div></div></article>`).join('');
   return `<section class="decks">
     <aside class="decks-side">
       <h3>Decks signature</h3>${sig}

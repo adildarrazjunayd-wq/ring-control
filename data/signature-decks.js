@@ -1,6 +1,7 @@
 const recipes = [
   {
     id: 'bloodline',
+    star: 'wyatt-08', // carte maîtresse (écran VERSUS)
     name: 'The Bloodline',
     theme: 'Faction · Contrôle et pression',
     description: 'Roman, les Usos, Solo et Sami soutenus par les cartes de la Bloodline. Beaucoup de Momenta pour piocher et réunir la famille.',
@@ -16,6 +17,7 @@ const recipes = [
   },
   {
     id: 'wyatt-family',
+    star: 'wyatt-04', // carte maîtresse (écran VERSUS)
     name: 'Wyatt Family',
     theme: 'Faction · Résilience et retour',
     description: 'Bray Wyatt, Strowman, Rowan et Harper avec leurs Momenta et objets de soutien.',
@@ -30,6 +32,7 @@ const recipes = [
   },
   {
     id: 'main-event-legends',
+    star: 'catcheur-02', // carte maîtresse (écran VERSUS)
     name: 'Légendes du Main Event',
     theme: 'All-Stars · Puissance et polyvalence',
     description: 'The Rock, Cody Rhodes et John Cena, soutenus par Triple H, Shawn Michaels, Rey Mysterio, AJ Styles, Finn Balor et des R solides.',
@@ -44,6 +47,7 @@ const recipes = [
   },
   {
     id: 'nwo',
+    star: 'nwo-01', // carte maîtresse (écran VERSUS)
     name: 'New World Order',
     theme: 'Faction · Marque nWo et invocations en chaîne',
     description: 'Hall fait venir Nash, puis Hogan arrive gratuitement. Marquez les adversaires (Bischoff, Spray, Too Sweet) et faites-les payer.',
@@ -55,6 +59,7 @@ const recipes = [
   },
   {
     id: 'authority',
+    star: 'auth-01', // carte maîtresse (écran VERSUS)
     name: 'The Authority',
     theme: 'Faction · Décrets et contrôle',
     description: 'Envoie les adversaires en zone passive, frappe-les là-bas avec Orton, et fais entrer Rollins grâce à J&J Security.',
@@ -67,6 +72,7 @@ const recipes = [
   },
   {
     id: 'evolution',
+    star: 'evo-01', // carte maîtresse (écran VERSUS)
     name: 'Evolution',
     theme: 'Faction · Attaque en meute',
     description: 'Triple H mène la meute : deux membres frappent ensemble le même catcheur. Flair cherche la famille et fait entrer Triple H.',

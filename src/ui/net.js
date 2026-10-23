@@ -9,6 +9,7 @@ import { S, game, hooks, toast, persist } from './core.js';
 import { canReact } from './ai.js';
 import { animateAttack } from './fx.js';
 import { sfx } from './sound.js';
+import { showVersus } from './versus.js';
 
 const PEERJS = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';
 const PREFIX = 'ringcontrol-v1-';
@@ -131,10 +132,11 @@ function status(text, connected) {
 }
 
 // ---------- Hôte ----------
-export async function host({ code = randomCode(), deck, name, resume = null }) {
+// deckName / star : nom du deck et carte maîtresse, montrés sur l'écran VERSUS des deux joueurs.
+export async function host({ code = randomCode(), deck, name, resume = null, deckName = '', star = null }) {
   const Peer = await loadPeer();
   closeAll();
-  S.online = { role: 'host', code, name, deck, connected: false, status: 'En attente de ton adversaire…' };
+  S.online = { role: 'host', code, name, deck, deckName, star, connected: false, status: 'En attente de ton adversaire…' };
   if (resume) { S.soloMatch ??= S.match; S.match = resume; }
   peer = new Peer(PREFIX + code);
   peer.on('error', err => status(err.type === 'unavailable-id' ? 'Ce code est déjà utilisé : réessaie dans quelques secondes.' : `Erreur de connexion : ${err.type}`, false));
@@ -156,7 +158,7 @@ function onHostMessage(msg) {
     S.online.guestName = msg.name || 'Adversaire';
     if (!S.online.started) startMatch(msg);
     saveSession({ ...savedSession(), guestToken: msg.token });
-    conn.send({ t: 'welcome', hostName: S.online.name });
+    conn.send({ t: 'welcome', hostName: S.online.name, deckName: S.online.deckName, star: S.online.star });
     status('Connecté', true);
     broadcast();
     return;
@@ -185,8 +187,9 @@ function startMatch(hello) {
   S.hideResult = false;
   persist();
   hooks.go('duel');
-  sfx('bell');
-  toast(`${first === 0 ? 'Tu commences' : `${S.online.guestName} commence`} (tirage au sort).`);
+  const who = `${first === 0 ? 'Tu commences' : `${S.online.guestName} commence`} (tirage au sort).`;
+  if (S.online.star && hello.star) showVersus({ cardId: S.online.star, player: S.online.name || 'TOI', deck: S.online.deckName }, { cardId: hello.star, player: S.online.guestName, deck: hello.deckName }).then(() => toast(who));
+  else { sfx('bell'); toast(who); }
 }
 
 // Après une attaque : si le défenseur ne peut pas répondre, l'hôte la résout tout de suite.
@@ -205,20 +208,20 @@ async function autoResolve() {
 export { autoResolve };
 
 // ---------- Invité ----------
-export async function join({ code, deck, name }) {
+export async function join({ code, deck, name, deckName = '', star = null }) {
   const Peer = await loadPeer();
   closeAll();
   code = code.trim().toUpperCase();
   const session = savedSession();
   const token = session?.role === 'guest' && session.code === code ? session.token : crypto.randomUUID();
-  S.online = { role: 'guest', code, name, connected: false, status: 'Connexion à la salle…' };
-  saveSession({ role: 'guest', code, token, name, deck });
+  S.online = { role: 'guest', code, name, deckName, star, connected: false, status: 'Connexion à la salle…' };
+  saveSession({ role: 'guest', code, token, name, deck, deckName, star });
   hooks.render();
   peer = new Peer();
   peer.on('error', err => status(err.type === 'peer-unavailable' ? 'Salle introuvable : vérifie le code (l’hôte doit avoir créé la partie).' : `Erreur de connexion : ${err.type}`, false));
   peer.on('open', () => {
     conn = peer.connect(PREFIX + code, { reliable: true });
-    conn.on('open', () => { conn.send({ t: 'hello', name, deck, token }); status('Connecté, en attente de la partie…', true); });
+    conn.on('open', () => { conn.send({ t: 'hello', name, deck, token, deckName, star }); status('Connecté, en attente de la partie…', true); });
     conn.on('data', onGuestMessage);
     conn.on('close', () => { conn = null; status('Connexion perdue avec l’hôte.', false); toast('Connexion perdue : clique sur « Se reconnecter ».'); });
   });
@@ -230,7 +233,14 @@ function onGuestMessage(msg) {
     if (!S.online.inMatch) { S.soloMatch ??= S.match; S.online.inMatch = true; }
     S.match = msg.view;
     S.online.connected = true;
-    if (first) { S.hideResult = false; hooks.go('duel'); } else hooks.render();
+    if (first) {
+      S.hideResult = false;
+      hooks.go('duel');
+      // Nouvelle partie (pas une reconnexion en cours de match) : écran VERSUS.
+      // La partie peut arriver avant le message « welcome » de l'hôte (sa carte maîtresse) : on attend alors celui-ci.
+      const fresh = S.match.turnNumber === 1 && S.match.players.every(p => !p.active.length);
+      if (fresh) { S.online.versusPending = true; guestVersus(); }
+    } else hooks.render();
   } else if (msg.t === 'result') {
     const resolve = pending.get(msg.id);
     pending.delete(msg.id);
@@ -240,11 +250,22 @@ function onGuestMessage(msg) {
     animateAttack(msg.attack);
   } else if (msg.t === 'welcome') {
     S.online.hostName = msg.hostName;
+    S.online.hostDeckName = msg.deckName;
+    S.online.hostStar = msg.star;
+    guestVersus();
     hooks.render();
   } else if (msg.t === 'error') {
     toast(msg.msg);
     status(msg.msg, false);
   }
+}
+
+// Invité : écran VERSUS dès que la nouvelle partie et la carte maîtresse de l'hôte sont arrivées.
+function guestVersus() {
+  const o = S.online;
+  if (!o?.versusPending || !o.star || !o.hostStar) return;
+  o.versusPending = false;
+  showVersus({ cardId: o.star, player: o.name || 'TOI', deck: o.deckName }, { cardId: o.hostStar, player: o.hostName ?? 'Adversaire', deck: o.hostDeckName });
 }
 
 // ---------- Quitter ----------

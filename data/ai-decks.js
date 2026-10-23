@@ -4,6 +4,7 @@ import { SIGNATURE_DECKS } from './signature-decks.js';
 const extra = [
   {
     id: 'ai-shield',
+    star: 'catcheur-08',
     name: 'The Shield',
     cardIds: [
       'catcheur-05', 'catcheur-06', 'catcheur-08', 'catcheur-04', 'catcheur-03', 'catcheur-07', 'catcheur-09', 'catcheur-12',
@@ -13,6 +14,7 @@ const extra = [
   },
   {
     id: 'ai-dx',
+    star: 'catcheur-31',
     name: 'D-Generation X',
     // Renforcé le 22/10/2026 (34 % → 53 % de victoires, simulations de 2 100 parties) : John Cena et The Champ
     // remplacent Braun Strowman et Saut de l'ange.
@@ -25,6 +27,6 @@ const extra = [
 ];
 
 export const AI_DECKS = Object.freeze([
-  ...SIGNATURE_DECKS.map(d => ({ id: d.id, name: d.name, cards: d.cards })),
-  ...extra.map(d => ({ id: d.id, name: d.name, cards: d.cardIds.flatMap(id => [id, id]) })),
+  ...SIGNATURE_DECKS.map(d => ({ id: d.id, name: d.name, star: d.star, cards: d.cards })),
+  ...extra.map(d => ({ id: d.id, name: d.name, star: d.star, cards: d.cardIds.flatMap(id => [id, id]) })),
 ]);

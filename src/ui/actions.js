@@ -12,6 +12,7 @@ import { runAI, aiReact } from './ai.js';
 import { exec } from './net.js';
 import * as net from './net.js';
 import { sfx, toggleSound } from './sound.js';
+import { showVersus, deckStar } from './versus.js';
 
 const render = () => hooks.render();
 const m = () => S.match;
@@ -50,8 +51,7 @@ function onlineName() {
 }
 
 // Pile ou face : le joueur choisit, la pièce tourne, le gagnant commence.
-function coinToss(deck) {
-  const aiDeck = AI_DECKS[Math.floor(Math.random() * AI_DECKS.length)];
+function coinToss(deck, aiDeck) {
   S.pendingStart = { deck, aiDeck };
   modal(`<div class="coin-screen"><h2>PILE OU FACE ?</h2><p>Ton adversaire : <b>${esc(aiDeck.name)}</b>. Le gagnant du tirage commence (sans pouvoir attaquer au premier tour).</p><div class="coin"><div class="coin-face heads">FACE</div><div class="coin-face tails">PILE</div></div><div class="row center">${btn('FACE', 'data-act="coinPick" data-side="face"', 'btn hot big')}${btn('PILE', 'data-act="coinPick" data-side="pile"', 'btn hot big')}</div></div>`);
 }
@@ -146,12 +146,15 @@ export const actions = {
   editDeck: d => { S.deckId = d.id; go('decks'); },
   back: () => { if (history.state?.ringControl && history.length > 1) history.back(); else go('home'); },
   chooseDeck: d => { S.chosenDeck = d.deck; go('lobby'); },
-  start: () => {
+  start: async () => {
     const deck = chosenDeck();
     if (!deck) { toast('Choisis un deck complet.'); return; }
     if (S.online) { toast('Quitte d’abord le mode en ligne.'); return; }
     if (S.match && S.match.winner === null && !confirm('Un duel est en cours. Le remplacer par un nouveau ?')) return;
-    coinToss(deck);
+    const aiDeck = AI_DECKS[Math.floor(Math.random() * AI_DECKS.length)];
+    // Écran VERSUS : la carte maîtresse de chaque deck, puis le pile ou face.
+    await showVersus({ cardId: deckStar(deck.cards, deck.star), player: 'TOI', deck: deck.name }, { cardId: deckStar(aiDeck.cards, aiDeck.star), player: 'L’IA', deck: aiDeck.name });
+    coinToss(deck, aiDeck);
   },
   coinPick: d => {
     if (!S.pendingStart) return;
@@ -173,7 +176,8 @@ export const actions = {
     if (!deck) { toast('Choisis d’abord un deck complet.'); return; }
     const session = net.savedSession();
     try {
-      await net.host(d.resume && session?.match ? { code: session.code, deck: deck.cards, name, resume: session.match } : { deck: deck.cards, name });
+      const me = { deck: deck.cards, name, deckName: deck.name, star: deckStar(deck.cards, deck.star) };
+      await net.host(d.resume && session?.match ? { ...me, code: session.code, resume: session.match } : me);
     } catch (e) { toast(e.message); }
     render();
   },
@@ -182,7 +186,8 @@ export const actions = {
     const code = d.retry ? S.online?.code ?? session?.code : document.querySelector('[data-online-code]')?.value;
     if (!code || code.trim().length < 4) { toast('Tape le code de la salle.'); return; }
     if (!deck && !session?.deck) { toast('Choisis d’abord un deck complet.'); return; }
-    try { await net.join({ code, deck: deck?.cards ?? session.deck, name }); } catch (e) { toast(e.message); }
+    const cards = deck?.cards ?? session.deck, deckName = deck?.name ?? session.deckName ?? 'Son deck';
+    try { await net.join({ code, deck: cards, name, deckName, star: deckStar(cards, deck?.star ?? session?.star) }); } catch (e) { toast(e.message); }
   },
   leaveOnline: () => {
     if (!confirm('Quitter le mode en ligne ? (l’hôte peut reprendre la salle plus tard avec le même code)')) return;
